@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { NIFTY_50_STOCKS } from "../../data/NIFTY_50_STOCK_LIST.js";
+import StockContext from "../../context/stock_context.jsx";
 
 function SearchBar() {
-  const [searchVal, setSearchVal] = useState("");
-
+  const {selectedStock, setSelectedStock} = useContext(StockContext);
   const filteredProduct = NIFTY_50_STOCKS.filter((item) => {
-    return item.toLocaleLowerCase().includes(searchVal.toLocaleLowerCase());
+    return item.toLocaleLowerCase().includes(selectedStock.toLocaleLowerCase());
   });
   const selectStock = (stock) => {
-    setSearchVal(() => {
+    setSelectedStock(() => {
       return stock;
     });
   };
@@ -17,19 +17,19 @@ function SearchBar() {
       <div className="flex items-center w-full h-full">
         <input
           type="search"
-          onChange={(e) => setSearchVal(e.target.value)}
-          className="bg-gray-300 w-[200px] h-3/5 rounded-md"
-          value={searchVal}
+          onChange={(e) => setSelectedStock(e.target.value)}
+          className="bg-gray-300 w-[200px] h-3/5 rounded-md outline-none"
+          value={selectedStock}
         />
         {
           <div
             className={
-              searchVal !== ""
+              selectedStock !== ""
                 ? "absolute flex flex-col items-start z-10 bg-gray-100 top-10 w-[200px] h-fit max-h-[200px] overflow-y-auto"
                 : "hidden"
             }
           >
-            {filteredProduct[0] !== searchVal &&
+            {filteredProduct[0] !== selectedStock &&
               filteredProduct.map((item) => {
                 return (
                   <button
