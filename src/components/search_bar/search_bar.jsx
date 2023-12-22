@@ -1,43 +1,59 @@
-import React, { useContext, useEffect, useState } from "react";
-import { NIFTY_50_STOCKS } from "../../data/NIFTY_50_STOCK_LIST.js";
+import React, { useContext, useState } from "react";
 import StockContext from "../../context/stock_context.jsx";
+import { searchSymbol } from "../../utility/stock_api.js";
 
-function SearchBar() {
+
+function SearchBar(){
   const {selectedStock, setSelectedStock} = useContext(StockContext);
-  const filteredProduct = NIFTY_50_STOCKS.filter((item) => {
-    return item.toLocaleLowerCase().includes(selectedStock.toLocaleLowerCase());
-  });
+  const [searchVal, setSearchVal] = useState([]);
+  const [filteredProduct, setFilteredProduct] = useState([]);
+  const updateBestMatches = async() => {
+    const data = await searchSymbol(searchVal);
+    if(data && data.result) setFilteredProduct(data.result);
+  }
   const selectStock = (stock) => {
+    setSearchVal(() => {
+      return stock;
+    });
     setSelectedStock(() => {
       return stock;
     });
+    setFilteredProduct([]);
   };
   return (
     <div className="flex justify-between items-center pl-2 pr-5">
       <div className="flex items-center w-full h-full">
         <input
           type="search"
-          onChange={(e) => setSelectedStock(e.target.value)}
+          onChange={(e) => setSearchVal(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              updateBestMatches();
+            }
+          }}
           className="bg-gray-300 w-[200px] h-3/5 rounded-md outline-none"
-          value={selectedStock}
+          value={searchVal}
+          placeholder="Search Stocks..."
         />
         {
           <div
             className={
-              selectedStock !== ""
+              searchVal !== ""
                 ? "absolute flex flex-col items-start z-10 bg-gray-100 top-10 w-[200px] h-fit max-h-[200px] overflow-y-auto"
                 : "hidden"
             }
           >
-            {filteredProduct[0] !== selectedStock &&
+            {filteredProduct[0] !== searchVal &&
               filteredProduct.map((item) => {
                 return (
                   <button
                     onFocus={(e) => selectStock(e.target.value)}
-                    value={item}
-                    key={item}
+                    value={item.symbol}
+                    key={item.symbol}
+                    className="flex items-center justify-between w-full"
                   >
-                    {item}
+                     <span>{item.symbol}</span>
+                     <span>{item.description}</span>
                   </button>
                 );
               })}
