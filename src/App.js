@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useLayoutEffect } from 'react';
 import './App.css';
 import Charting from './components/charting/charting';
 import SearchBar from './components/search_bar/search_bar';
@@ -8,18 +8,30 @@ import StockContext, { selectedStock } from './context/stock_context';
 
 function App() {
   const [selectedStock , setSelectedStock] = useState("");
+  const [interval, setInterval] = useState("1D");
   const value = useMemo(
-    () => ({selectedStock, setSelectedStock}),
-    [selectedStock]
+    () => ({selectedStock, setSelectedStock, interval, setInterval}),
+    [selectedStock, interval]
   )
+
+  // useLayoutEffect(() => {
+  //   function updateSize() {
+  //     setWindowSize([window.innerWidth, window.innerHeight]);
+  //   }
+  //   window.addEventListener('resize', updateSize);
+  //   console.log("manav")
+  //   updateSize();
+  //   return () => window.removeEventListener('resize', updateSize);
+  // }, []);
+
   return (
     <div className='app'>
       <StockContext.Provider value={ value }>
-        <div className='grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-full'>
+        <div className='grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen'>
           <StockSelect />
           <SearchBar />
           <ToolBar />
-          <Charting />
+          <Charting/>
         </div>
       </StockContext.Provider>
     </div>
