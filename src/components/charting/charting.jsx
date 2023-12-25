@@ -3,7 +3,7 @@ import StockContext from "../../context/stock_context";
 import { createChart } from "lightweight-charts";
 import stockData from "../../csvjson.json";
 import { monthMap } from "../../data/TIME_MAP";
-
+import Xaxis from "../../modules/chartModules/xAxis";
 
 function Charting() {
   const { selectedStock, interval } = useContext(StockContext);
@@ -92,7 +92,7 @@ function Charting() {
 
     // Draw candlestick body
     context.fillStyle = fillColor;
-    context.fillRect(x - 3, bodyY, 6, bodyHeight);
+    context.fillRect(x - 1, bodyY, 2, bodyHeight);
 
     // Draw candlestick wicks
     context.strokeStyle = borderColor;
@@ -115,56 +115,59 @@ function Charting() {
     let height = canvas.height;
     let offsetHeight = 15;
     let offsetWidth = 15;
-    console.log(width, height);
-    ctx.strokeStyle = "#000000";
-    ctx.beginPath();
-    ctx.moveTo(0,height-marginX);
-    ctx.lineTo(width,height-marginX);
-    ctx.moveTo(width-marginY, 0);
-    ctx.lineTo(width-marginY, height);
-    ctx.stroke();
 
-    // console.table(data);
+    const xAxis = new Xaxis();
+    xAxis.draw(width, height, interval, data[data.length - 1].Date, data[0].Date, ctx, marginX);
+    // console.log(width, height);
+    // ctx.strokeStyle = "#000000";
+    // ctx.beginPath();
+    // ctx.moveTo(0,height-marginX);
+    // ctx.lineTo(width,height-marginX);
+    // ctx.moveTo(width-marginY, 0);
+    // ctx.lineTo(width-marginY, height);
+    // ctx.stroke();
+
+    // // console.table(data);
 
 
-    // set x-axis
-    const startDate = data[data.length-1].Date;
-    const endDate = data.length > 252 ? data[data.length - 251].Date : data[0].Date; 
-    const startMonthIndex = new Date(startDate).getMonth();
-    // console.log(startDate, endDate, startMonthIndex);
-    ctx.font = '15px Arial';
-    ctx.fillStyle = 'black';
-    for(let i = 0; i < 12 ;i++){
-      const currentMonth = monthMap[(i+startMonthIndex+1)%12];
-      ctx.fillText(currentMonth, parseInt(i*(width-marginY)/12), parseInt(height - marginX + offsetHeight) );
-    }
+    // // set x-axis
+    // const startDate = data[data.length-1].Date;
+    // const endDate = data.length > 252 ? data[data.length - 251].Date : data[0].Date; 
+    // const startMonthIndex = new Date(startDate).getMonth();
+    // // console.log(startDate, endDate, startMonthIndex);
+    // ctx.font = '15px Arial';
+    // ctx.fillStyle = 'black';
+    // for(let i = 0; i < 12 ;i++){
+    //   const currentMonth = monthMap[(i+startMonthIndex+1)%12];
+    //   ctx.fillText(currentMonth, parseInt(i*(width-marginY)/12), parseInt(height - marginX + offsetHeight) );
+    // }
 
-    // set y-axis
-    const adjClosedPrice = data.map(d => d["Adj Close"]);
-    const maxPrice = Math.ceil(Math.max(...adjClosedPrice));
-    const minPrice = Math.floor(Math.min(...adjClosedPrice));
-    // console.log(adjClosedPrice, maxPrice, minPrice);
-    for(let i = 1; i <= 12 ;i++){
-      ctx.fillText(parseInt(maxPrice-(maxPrice - minPrice)/12 * i), parseInt(width - marginY + offsetWidth), parseInt((height - marginX)*i/12));
-    }
+    // // set y-axis
+    // const adjClosedPrice = data.map(d => d["Adj Close"]);
+    // const maxPrice = Math.ceil(Math.max(...adjClosedPrice));
+    // const minPrice = Math.floor(Math.min(...adjClosedPrice));
+    // // console.log(adjClosedPrice, maxPrice, minPrice);
+    // for(let i = 1; i <= 12 ;i++){
+    //   ctx.fillText(parseInt(maxPrice-(maxPrice - minPrice)/12 * i), parseInt(width - marginY + offsetWidth), parseInt((height - marginX)*i/12));
+    // }
 
-    // plot data points
-    ctx.beginPath();
-    data.forEach(d => {
-      const date = d.Date.split("-");
-      if(date[0] !== "2022"){
-        const xValue = ((parseInt(date[1])-1)*(width-marginY)/12) + (width-marginY)*parseInt(date[2])/(31*12);
-        const k = (height-marginX)/12;
-        // const yValue = getYCoordinate(d["Adj Close"], minPrice, maxPrice, height, marginX);
-        // console.log(xValue, yValue);
-        // ctx.beginPath();
-        // ctx.arc(xValue, yValue, 1, 0, 2 * Math.PI);
-        // ctx.fill();
-        // ctx.lineTo(xValue, yValue);
-        drawCandleStick(d, minPrice, maxPrice, height, marginX, xValue, ctx);
-      }
-    })
-    ctx.stroke();
+    // // plot data points
+    // ctx.beginPath();
+    // data.forEach(d => {
+    //   const date = d.Date.split("-");
+    //   if(date[0] !== "2022"){
+    //     const xValue = ((parseInt(date[1])-1)*(width-marginY)/12) + (width-marginY)*parseInt(date[2])/(31*12);
+    //     const k = (height-marginX)/12;
+    //     // const yValue = getYCoordinate(d["Adj Close"], minPrice, maxPrice, height, marginX);
+    //     // console.log(xValue, yValue);
+    //     // ctx.beginPath();
+    //     // ctx.arc(xValue, yValue, 1, 0, 2 * Math.PI);
+    //     // ctx.fill();
+    //     // ctx.lineTo(xValue, yValue);
+    //     drawCandleStick(d, minPrice, maxPrice, height, marginX, xValue, ctx);
+    //   }
+    // })
+    // ctx.stroke();
   },[windowSize]);
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">

@@ -8,7 +8,7 @@ import StockContext, { selectedStock } from './context/stock_context';
 
 function App() {
   const [selectedStock , setSelectedStock] = useState("");
-  const [interval, setInterval] = useState("1D");
+  const [interval, setInterval] = useState("1d");
   const value = useMemo(
     () => ({selectedStock, setSelectedStock, interval, setInterval}),
     [selectedStock, interval]
