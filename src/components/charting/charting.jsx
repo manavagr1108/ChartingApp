@@ -73,6 +73,36 @@ function Charting() {
     return () => window.removeEventListener('resize', updateSize);
   }, [windowSize]);
 
+  const getYCoordinate = (price, minPrice, maxPrice, height, margin) => {
+    return height - margin - (height-margin)/12*((price - minPrice)/((maxPrice - minPrice)/12))
+  }
+  const drawCandleStick = (data, minPrice, maxPrice, height, margin, x, context) => {
+    let fillColor, borderColor = "black";
+    if(data["Close"] > data["Open"]){
+      fillColor = "green";
+    } else{
+      fillColor = "red";
+    }
+    const open = getYCoordinate(data["Open"], minPrice, maxPrice, height, margin);
+    const close = getYCoordinate(data["Close"], minPrice, maxPrice, height, margin);
+    const high = getYCoordinate(data["High"], minPrice, maxPrice, height, margin);
+    const low = getYCoordinate(data["Low"], minPrice, maxPrice, height, margin);
+    const bodyHeight = Math.abs(open - close);
+    const bodyY = Math.min(open, close);
+
+    // Draw candlestick body
+    context.fillStyle = fillColor;
+    context.fillRect(x - 3, bodyY, 6, bodyHeight);
+
+    // Draw candlestick wicks
+    context.strokeStyle = borderColor;
+    context.beginPath();
+    context.moveTo(x, high);
+    context.lineTo(x, Math.min(open, close));
+    context.moveTo(x, low);
+    context.lineTo(x, Math.max(open, close));
+    context.stroke();
+  }
   useEffect(()=>{
     const data = stockData.data;
     const canvas = ChartContainerRef1.current;
@@ -125,12 +155,13 @@ function Charting() {
       if(date[0] !== "2022"){
         const xValue = ((parseInt(date[1])-1)*(width-marginY)/12) + (width-marginY)*parseInt(date[2])/(31*12);
         const k = (height-marginX)/12;
-        const yValue = height - marginX - k*((d["Adj Close"] - minPrice)/((maxPrice - minPrice)/12));
+        // const yValue = getYCoordinate(d["Adj Close"], minPrice, maxPrice, height, marginX);
         // console.log(xValue, yValue);
         // ctx.beginPath();
         // ctx.arc(xValue, yValue, 1, 0, 2 * Math.PI);
         // ctx.fill();
-        ctx.lineTo(xValue, yValue);
+        // ctx.lineTo(xValue, yValue);
+        drawCandleStick(d, minPrice, maxPrice, height, marginX, xValue, ctx);
       }
     })
     ctx.stroke();
