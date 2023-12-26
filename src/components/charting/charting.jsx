@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import StockContext from "../../context/stock_context";
 import { createChart } from "lightweight-charts";
 import stockData from "../../csvjson.json";
@@ -7,14 +13,18 @@ import Xaxis from "../../modules/chartModules/xAxis";
 
 function Charting() {
   const { selectedStock, interval } = useContext(StockContext);
-  const [windowSize, setWindowSize] = useState([window.innerWidth,window.innerHeight]);
+  const [windowSize, setWindowSize] = useState([
+    window.innerWidth,
+    window.innerHeight,
+  ]);
+  const [scrollOffset, setScrollOffset] = useState(0);
   const ChartContainerRef = useRef(null);
   const ChartContainerRef1 = useRef(null);
   useEffect(() => {
     if (!selectedStock) return;
 
     const chart = createChart(ChartContainerRef.current, {
-      width: 1650,
+      width: 1250,
       height: 740,
       layout: {
         backgroundColor: "#000000",
@@ -69,23 +79,64 @@ function Charting() {
     function updateSize() {
       setWindowSize([window.innerWidth, window.innerHeight]);
     }
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    window.addEventListener("resize", updateSize);
+    return () => window.removeEventListener("resize", updateSize);
   }, [windowSize]);
 
+  const handleScroll = () => {
+    setScrollOffset(window.scrollX);
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const getYCoordinate = (price, minPrice, maxPrice, height, margin) => {
-    return height - margin - (height-margin)/12*((price - minPrice)/((maxPrice - minPrice)/12))
-  }
-  const drawCandleStick = (data, minPrice, maxPrice, height, margin, x, context) => {
-    let fillColor, borderColor = "black";
-    if(data["Close"] > data["Open"]){
+    return (
+      height -
+      margin -
+      ((height - margin) / 12) *
+        ((price - minPrice) / ((maxPrice - minPrice) / 12))
+    );
+  };
+  const drawCandleStick = (
+    data,
+    minPrice,
+    maxPrice,
+    height,
+    margin,
+    x,
+    context,
+  ) => {
+    let fillColor,
+      borderColor = "black";
+    if (data["Close"] > data["Open"]) {
       fillColor = "green";
-    } else{
+    } else {
       fillColor = "red";
     }
-    const open = getYCoordinate(data["Open"], minPrice, maxPrice, height, margin);
-    const close = getYCoordinate(data["Close"], minPrice, maxPrice, height, margin);
-    const high = getYCoordinate(data["High"], minPrice, maxPrice, height, margin);
+    const open = getYCoordinate(
+      data["Open"],
+      minPrice,
+      maxPrice,
+      height,
+      margin
+    );
+    const close = getYCoordinate(
+      data["Close"],
+      minPrice,
+      maxPrice,
+      height,
+      margin
+    );
+    const high = getYCoordinate(
+      data["High"],
+      minPrice,
+      maxPrice,
+      height,
+      margin
+    );
     const low = getYCoordinate(data["Low"], minPrice, maxPrice, height, margin);
     const bodyHeight = Math.abs(open - close);
     const bodyY = Math.min(open, close);
@@ -102,12 +153,12 @@ function Charting() {
     context.moveTo(x, low);
     context.lineTo(x, Math.max(open, close));
     context.stroke();
-  }
-  useEffect(()=>{
+  };
+  useEffect(() => {
     const data = stockData.data;
     const canvas = ChartContainerRef1.current;
-    canvas.width = ChartContainerRef1.current.parentElement.offsetWidth
-    canvas.height = ChartContainerRef1.current.parentElement.offsetHeight
+    canvas.width = ChartContainerRef1.current.parentElement.offsetWidth;
+    canvas.height = ChartContainerRef1.current.parentElement.offsetHeight;
     const ctx = ChartContainerRef1.current.getContext("2d");
     let marginX = 30;
     let marginY = 55;
@@ -117,64 +168,25 @@ function Charting() {
     let offsetWidth = 15;
 
     const xAxis = new Xaxis();
-    xAxis.draw(width, height, interval, data[data.length - 1].Date, data[0].Date, ctx, marginX);
-    // console.log(width, height);
-    // ctx.strokeStyle = "#000000";
-    // ctx.beginPath();
-    // ctx.moveTo(0,height-marginX);
-    // ctx.lineTo(width,height-marginX);
-    // ctx.moveTo(width-marginY, 0);
-    // ctx.lineTo(width-marginY, height);
-    // ctx.stroke();
-
-    // // console.table(data);
-
-
-    // // set x-axis
-    // const startDate = data[data.length-1].Date;
-    // const endDate = data.length > 252 ? data[data.length - 251].Date : data[0].Date; 
-    // const startMonthIndex = new Date(startDate).getMonth();
-    // // console.log(startDate, endDate, startMonthIndex);
-    // ctx.font = '15px Arial';
-    // ctx.fillStyle = 'black';
-    // for(let i = 0; i < 12 ;i++){
-    //   const currentMonth = monthMap[(i+startMonthIndex+1)%12];
-    //   ctx.fillText(currentMonth, parseInt(i*(width-marginY)/12), parseInt(height - marginX + offsetHeight) );
-    // }
-
-    // // set y-axis
-    // const adjClosedPrice = data.map(d => d["Adj Close"]);
-    // const maxPrice = Math.ceil(Math.max(...adjClosedPrice));
-    // const minPrice = Math.floor(Math.min(...adjClosedPrice));
-    // // console.log(adjClosedPrice, maxPrice, minPrice);
-    // for(let i = 1; i <= 12 ;i++){
-    //   ctx.fillText(parseInt(maxPrice-(maxPrice - minPrice)/12 * i), parseInt(width - marginY + offsetWidth), parseInt((height - marginX)*i/12));
-    // }
-
-    // // plot data points
-    // ctx.beginPath();
-    // data.forEach(d => {
-    //   const date = d.Date.split("-");
-    //   if(date[0] !== "2022"){
-    //     const xValue = ((parseInt(date[1])-1)*(width-marginY)/12) + (width-marginY)*parseInt(date[2])/(31*12);
-    //     const k = (height-marginX)/12;
-    //     // const yValue = getYCoordinate(d["Adj Close"], minPrice, maxPrice, height, marginX);
-    //     // console.log(xValue, yValue);
-    //     // ctx.beginPath();
-    //     // ctx.arc(xValue, yValue, 1, 0, 2 * Math.PI);
-    //     // ctx.fill();
-    //     // ctx.lineTo(xValue, yValue);
-    //     drawCandleStick(d, minPrice, maxPrice, height, marginX, xValue, ctx);
-    //   }
-    // })
-    // ctx.stroke();
-  },[windowSize]);
+    xAxis.draw(
+      width,
+      height,
+      interval,
+      data[data.length - 1].Date,
+      data[0].Date,
+      ctx,
+      marginX,
+      scrollOffset
+    );
+  }, [windowSize, scrollOffset]);
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
       {/* <div ref={ChartContainerRef} className="w-full h-[95%]"></div> */}
       <div className="w-[100%] h-[95%]">
-        <canvas ref={ChartContainerRef1} className="w-[100%] border-b-2 border-gray-300" >
-        </canvas>
+        <canvas
+          ref={ChartContainerRef1}
+          className="w-[100%] border-b-2 border-gray-300"
+        ></canvas>
       </div>
 
       <div className="w-full h-[5%]"></div>
