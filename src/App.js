@@ -4,35 +4,32 @@ import Charting from './components/charting/charting';
 import SearchBar from './components/search_bar/search_bar';
 import StockSelect from './components/stock_select/stock_select';
 import ToolBar from './components/tool_bar/tool_bar';
-import StockContext, { selectedStock } from './context/stock_context';
+import StockContext from './context/stock_context';
+import xAxisContext from './context/xAxis_context';
 
 function App() {
-  const [selectedStock , setSelectedStock] = useState("");
+  const [selectedStock, setSelectedStock] = useState("");
   const [interval, setInterval] = useState("1d");
-  const value = useMemo(
-    () => ({selectedStock, setSelectedStock, interval, setInterval}),
+  const stockContextValue = useMemo(
+    () => ({ selectedStock, setSelectedStock, interval, setInterval }),
     [selectedStock, interval]
   )
-
-  // useLayoutEffect(() => {
-  //   function updateSize() {
-  //     setWindowSize([window.innerWidth, window.innerHeight]);
-  //   }
-  //   window.addEventListener('resize', updateSize);
-  //   console.log("manav")
-  //   updateSize();
-  //   return () => window.removeEventListener('resize', updateSize);
-  // }, []);
+  // const xAxisValue = useMemo(
+  //   () => ({ startTime, setStartTime, endTime, setEndTime }),
+  //   [startTime, endTime]
+  // )
 
   return (
     <div className='app'>
-      <StockContext.Provider value={ value }>
+      <StockContext.Provider value={stockContextValue}>
+        {/* <xAxisContext.Provider value={xAxisValue} > */}
         <div className='grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen'>
           <StockSelect />
           <SearchBar />
           <ToolBar />
-          <Charting/>
+          <Charting />
         </div>
+        {/* </xAxisContext.Provider> */}
       </StockContext.Provider>
     </div>
   );

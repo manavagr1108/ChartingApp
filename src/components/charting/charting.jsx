@@ -7,9 +7,19 @@ import React, {
 } from "react";
 import StockContext from "../../context/stock_context";
 import { createChart } from "lightweight-charts";
-import stockData from "../../csvjson.json";
+import stockData from "../../data/csvjson.json";
+import {
+  getTime,
+  getWeekDates,
+  getDataPointsCount,
+  getCSWidth,
+  getCandleSticksMoved,
+  getNewTime,
+  getFirstMonthStart,
+  getColumnWidth,
+  getObjtoStringTime,
+} from "../../utility/utils";
 import { monthMap } from "../../data/TIME_MAP";
-import Xaxis from "../../modules/chartModules/xAxis";
 
 function Charting() {
   const { selectedStock, interval } = useContext(StockContext);
@@ -17,7 +27,24 @@ function Charting() {
     window.innerWidth,
     window.innerHeight,
   ]);
+  let marginY = 55;
+  const data = stockData.data;
   const [scrollOffset, setScrollOffset] = useState(0);
+  const [xAxisConfig, setXAxisConfig] = useState({
+    canvasWidth: 0,
+    canvasHeight: 0,
+    interval: interval,
+    margin: 30,
+    noOfDataPoints: 0,
+    noOfColumns: 12,
+    widthOfOneCS: 0,
+    startTime: getTime(data[data.length - 1].Date),
+    endTime: getTime(data[0].Date),
+    dates: getWeekDates(
+      getTime(data[data.length - 1].Date),
+      getTime(data[0].Date)
+    ),
+  });
   const ChartContainerRef = useRef(null);
   const ChartContainerRef1 = useRef(null);
   useEffect(() => {
@@ -83,12 +110,14 @@ function Charting() {
     return () => window.removeEventListener("resize", updateSize);
   }, [windowSize]);
 
-  const handleScroll = () => {
-    setScrollOffset(window.scrollX);
+  const handleScroll = (event) => {
+    setScrollOffset(event.deltaX);
+    event.preventDefault();
+    return false;
   };
-
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    const canvas = ChartContainerRef1.current;
+    canvas.addEventListener("wheel", handleScroll, false);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -107,7 +136,7 @@ function Charting() {
     height,
     margin,
     x,
-    context,
+    context
   ) => {
     let fillColor,
       borderColor = "black";
@@ -154,31 +183,102 @@ function Charting() {
     context.lineTo(x, Math.max(open, close));
     context.stroke();
   };
-  useEffect(() => {
-    const data = stockData.data;
-    const canvas = ChartContainerRef1.current;
-    canvas.width = ChartContainerRef1.current.parentElement.offsetWidth;
-    canvas.height = ChartContainerRef1.current.parentElement.offsetHeight;
-    const ctx = ChartContainerRef1.current.getContext("2d");
-    let marginX = 30;
-    let marginY = 55;
-    let width = canvas.width;
-    let height = canvas.height;
-    let offsetHeight = 15;
-    let offsetWidth = 15;
 
-    const xAxis = new Xaxis();
-    xAxis.draw(
-      width,
-      height,
-      interval,
-      data[data.length - 1].Date,
-      data[0].Date,
-      ctx,
-      marginX,
-      scrollOffset
+  useEffect(() => {
+    const canvas = ChartContainerRef1.current;
+    const ctx = canvas.getContext("2d");
+    let currentMonth = xAxisConfig.startTime.Month;
+    let currentYear = xAxisConfig.startTime.Year;
+    let firstMonthStart = getFirstMonthStart(
+      xAxisConfig.startTime,
+      xAxisConfig.dates
     );
-  }, [windowSize, scrollOffset]);
+    const firstMonthCSCount = getDataPointsCount(
+      firstMonthStart,
+      xAxisConfig.startTime,
+      interval,
+      xAxisConfig.dates
+    );
+    const CSWidth = getCSWidth(
+      xAxisConfig.noOfDataPoints,
+      xAxisConfig.noOfColumns,
+      xAxisConfig.canvasWidth
+    );
+    const columnWidth = getColumnWidth(
+      xAxisConfig.canvasWidth,
+      xAxisConfig.noOfColumns
+    );
+    console.log(firstMonthCSCount);
+    ctx.clearRect(0,0,xAxisConfig.canvasWidth, xAxisConfig.canvasHeight);
+    ctx.font = "12px Arial";
+    for (let i = 0; i < xAxisConfig.noOfColumns; i++) {
+      const xCoord =
+        xAxisConfig.canvasWidth -
+        xAxisConfig.margin -
+        (CSWidth * firstMonthCSCount - CSWidth / 2) -
+        i * columnWidth;
+      const yCoord = xAxisConfig.canvasHeight - xAxisConfig.margin;
+      if (currentMonth === 1) {
+        ctx.fillText(currentYear, xCoord, yCoord);
+        currentYear -= 1;
+      } else if(currentMonth === 0){
+        ctx.fillText(monthMap[currentMonth + 12 - 1], xCoord, yCoord);
+      } else {
+        ctx.fillText(monthMap[currentMonth - 1], xCoord, yCoord);
+      }
+      currentMonth = (currentMonth - 1 + 12) % 12;
+    }
+  }, [xAxisConfig]);
+  useEffect(() => {
+    const noOfCSMoved = getCandleSticksMoved(
+      scrollOffset,
+      xAxisConfig.widthOfOneCS
+    );
+    const startTime = getNewTime(
+      xAxisConfig.startTime,
+      noOfCSMoved,
+      xAxisConfig.dates
+    );
+    const endTime = getNewTime(
+      xAxisConfig.endTime,
+      noOfCSMoved,
+      xAxisConfig.dates
+    );
+    console.log(noOfCSMoved, getObjtoStringTime(startTime), getObjtoStringTime(endTime));
+    setXAxisConfig((prev) => {
+      return {
+        ...prev,
+        startTime: startTime,
+        endTime: endTime,
+      };
+    });
+  }, [scrollOffset]);
+  useEffect(() => {
+    const canvas = ChartContainerRef1.current;
+    let width = ChartContainerRef1.current.parentElement.offsetWidth;
+    let height = ChartContainerRef1.current.parentElement.offsetHeight;
+    canvas.width = width;
+    canvas.height = height;
+    const noOfDataPoints = getDataPointsCount(
+      xAxisConfig.startTime,
+      xAxisConfig.endTime,
+      interval,
+      xAxisConfig.dates
+    );
+    setXAxisConfig((prev) => {
+      return {
+        ...prev,
+        canvasWidth: width,
+        canvasHeight: height,
+        noOfDataPoints: noOfDataPoints,
+        widthOfOneCS: getCSWidth(
+          noOfDataPoints,
+          xAxisConfig.noOfColumns,
+          width
+        ),
+      };
+    });
+  }, [windowSize]);
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
       {/* <div ref={ChartContainerRef} className="w-full h-[95%]"></div> */}
