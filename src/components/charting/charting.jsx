@@ -6,7 +6,6 @@ import React, {
   useState,
 } from "react";
 import StockContext from "../../context/stock_context";
-import { createChart } from "lightweight-charts";
 import stockData from "../../data/csvjson.json";
 import {
   getTime,
@@ -39,68 +38,13 @@ function Charting() {
     noOfColumns: 12,
     widthOfOneCS: 0,
     startTime: getTime(data[data.length - 1].Date),
-    endTime: getTime(data[0].Date),
+    endTime: getTime(data[data.length - 251].Date),
     dates: getWeekDates(
       getTime(data[data.length - 1].Date),
       getTime(data[0].Date)
     ),
   });
   const ChartContainerRef = useRef(null);
-  const ChartContainerRef1 = useRef(null);
-  useEffect(() => {
-    if (!selectedStock) return;
-
-    const chart = createChart(ChartContainerRef.current, {
-      width: 1250,
-      height: 740,
-      layout: {
-        backgroundColor: "#000000",
-        textColor: "rgba(255, 255, 255, 0.9)",
-      },
-      grid: {
-        vertLines: {
-          color: "rgba(197, 203, 206, 0.5)",
-        },
-        horzLines: {
-          color: "rgba(197, 203, 206, 0.5)",
-        },
-      },
-      crosshair: {
-        mode: "normal",
-      },
-      rightPriceScale: {
-        borderColor: "rgba(197, 203, 206, 0.8)",
-      },
-      timeScale: {
-        borderColor: "rgba(197, 203, 206, 0.8)",
-      },
-    });
-
-    const candleSeries = chart.addCandlestickSeries({
-      upColor: "#2ECC71",
-      downColor: "#E74C3C",
-      borderDownColor: "#E74C3C",
-      borderUpColor: "#2ECC71",
-      wickDownColor: "#E74C3C",
-      wickUpColor: "#2ECC71",
-    });
-
-    const mappedData = stockData.data.map((item) => ({
-      time: item.Date,
-      open: item.Open,
-      high: item.High,
-      low: item.Low,
-      close: item.Close,
-    }));
-
-    candleSeries.setData(mappedData);
-
-    chart.timeScale().fitContent();
-
-    return () => {
-      chart.remove();
-    };
-  }, [selectedStock, interval]);
 
   useLayoutEffect(() => {
     function updateSize() {
@@ -116,9 +60,9 @@ function Charting() {
     return false;
   };
   useEffect(() => {
-    const canvas = ChartContainerRef1.current;
+    const canvas = ChartContainerRef.current;
     canvas.addEventListener("wheel", handleScroll, false);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("wheel", handleScroll);
   }, []);
 
   const getYCoordinate = (price, minPrice, maxPrice, height, margin) => {
@@ -185,7 +129,7 @@ function Charting() {
   };
 
   useEffect(() => {
-    const canvas = ChartContainerRef1.current;
+    const canvas = ChartContainerRef.current;
     const ctx = canvas.getContext("2d");
     let currentMonth = xAxisConfig.startTime.Month;
     let currentYear = xAxisConfig.startTime.Year;
@@ -201,20 +145,18 @@ function Charting() {
     );
     const CSWidth = getCSWidth(
       xAxisConfig.noOfDataPoints,
-      xAxisConfig.noOfColumns,
       xAxisConfig.canvasWidth
     );
     const columnWidth = getColumnWidth(
       xAxisConfig.canvasWidth,
       xAxisConfig.noOfColumns
     );
-    console.log(firstMonthCSCount);
     ctx.clearRect(0,0,xAxisConfig.canvasWidth, xAxisConfig.canvasHeight);
     ctx.font = "12px Arial";
     for (let i = 0; i < xAxisConfig.noOfColumns; i++) {
       const xCoord =
         xAxisConfig.canvasWidth -
-        xAxisConfig.margin -
+        marginY -
         (CSWidth * firstMonthCSCount - CSWidth / 2) -
         i * columnWidth;
       const yCoord = xAxisConfig.canvasHeight - xAxisConfig.margin;
@@ -229,22 +171,24 @@ function Charting() {
       currentMonth = (currentMonth - 1 + 12) % 12;
     }
   }, [xAxisConfig]);
-  useEffect(() => {
-    const noOfCSMoved = getCandleSticksMoved(
+  useLayoutEffect(() => {
+    let noOfCSMoved = getCandleSticksMoved(
       scrollOffset,
       xAxisConfig.widthOfOneCS
     );
-    const startTime = getNewTime(
+    if(noOfCSMoved  > 0 && getObjtoStringTime(xAxisConfig.startTime) === xAxisConfig.dates[xAxisConfig.dates.length-1]){
+      noOfCSMoved = 0;
+      return;
+    } else if(noOfCSMoved < 0 && getObjtoStringTime(xAxisConfig.endTime) === xAxisConfig.dates[0]){
+      noOfCSMoved = 0;
+      return;
+    }
+    const {startTime, endTime} = getNewTime(
       xAxisConfig.startTime,
-      noOfCSMoved,
-      xAxisConfig.dates
-    );
-    const endTime = getNewTime(
       xAxisConfig.endTime,
       noOfCSMoved,
-      xAxisConfig.dates
+      xAxisConfig.dates,
     );
-    console.log(noOfCSMoved, getObjtoStringTime(startTime), getObjtoStringTime(endTime));
     setXAxisConfig((prev) => {
       return {
         ...prev,
@@ -254,37 +198,40 @@ function Charting() {
     });
   }, [scrollOffset]);
   useEffect(() => {
-    const canvas = ChartContainerRef1.current;
-    let width = ChartContainerRef1.current.parentElement.offsetWidth;
-    let height = ChartContainerRef1.current.parentElement.offsetHeight;
-    canvas.width = width;
-    canvas.height = height;
+    const canvas = ChartContainerRef.current;
+    let width = ChartContainerRef.current.parentElement.offsetWidth;
+    let height = ChartContainerRef.current.parentElement.offsetHeight;
+    const dpr = window.devicePixelRatio | 1;
+    canvas.width = width*dpr;
+    canvas.height = height*dpr;
+    const ctx = canvas.getContext("2d");
+    ctx.scale(dpr,dpr);
+
     const noOfDataPoints = getDataPointsCount(
       xAxisConfig.startTime,
       xAxisConfig.endTime,
       interval,
-      xAxisConfig.dates
-    );
+      xAxisConfig.dates,
+      );
+    const widthOfOneCS = getCSWidth(
+      noOfDataPoints,
+      width
+    )
     setXAxisConfig((prev) => {
       return {
         ...prev,
         canvasWidth: width,
         canvasHeight: height,
         noOfDataPoints: noOfDataPoints,
-        widthOfOneCS: getCSWidth(
-          noOfDataPoints,
-          xAxisConfig.noOfColumns,
-          width
-        ),
+        widthOfOneCS: widthOfOneCS,
       };
     });
   }, [windowSize]);
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
-      {/* <div ref={ChartContainerRef} className="w-full h-[95%]"></div> */}
       <div className="w-[100%] h-[95%]">
         <canvas
-          ref={ChartContainerRef1}
+          ref={ChartContainerRef}
           className="w-[100%] border-b-2 border-gray-300"
         ></canvas>
       </div>

@@ -21,20 +21,20 @@ export function getDataPointsCount(startTime, endTime, interval, dates) {
 export function noOfDays(startDate, endDate, dates) {
     let index1, index2;
     if(startDate.Date < 10){
-        index1 = dates.indexOf(startDate.Year + "-" + startDate.Month + "-0" + startDate.Date);
+        index1 = dates.indexOf(startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-0" + startDate.Date);
     }else{
-        index1 = dates.indexOf(startDate.Year + "-" + startDate.Month + "-" + startDate.Date);
+        index1 = dates.indexOf(startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-" + startDate.Date);
     }
     if(endDate.Date < 10){
-        index2 = dates.indexOf(endDate.Year + "-" + endDate.Month + "-0" + endDate.Date);
+        index2 = dates.indexOf(endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-0" + endDate.Date);
     } else{
-        index2 = dates.indexOf(endDate.Year + "-" + endDate.Month + "-" + endDate.Date);
+        index2 = dates.indexOf(endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-" + endDate.Date);
     }
     return Math.abs(index1 - index2) + 1;
 }
 
-export function getCSWidth(noOfDataPoints, noOfColumns, canvasWidth) {
-    return noOfDataPoints / (noOfColumns * getColumnWidth(canvasWidth, noOfColumns));
+export function getCSWidth(noOfDataPoints, canvasWidth) {
+    return canvasWidth/noOfDataPoints;
 }
 
 export function getColumnWidth(canvasWidth, noOfColumns) {
@@ -54,14 +54,21 @@ export function getTime(time) {
 }
 
 export function getCandleSticksMoved(scrollOffset, widthOfOneCS) {
+    if(Math.abs(scrollOffset) > 25){
+        scrollOffset = 25 * (scrollOffset/Math.abs(scrollOffset));
+    }
     const result = scrollOffset / widthOfOneCS;
-    return Math.floor(result/2);
+    return Math.floor(result);
 }
 
 export function getObjtoStringTime(time){
     let result = new Date(time.Year + "-" + time.Month + "-" + time.Date);
-    if(time.Date < 10){
+    if(time.Date < 10 && time.Month < 10){
+        result = result.getFullYear() + '-0' + (result.getMonth()+1) + '-0' + result.getDate();
+    } else if(time.Date < 10){
         result = result.getFullYear() + '-' + (result.getMonth()+1) + '-0' + result.getDate();
+    } else if(time.Month < 10){
+        result = result.getFullYear() + '-0' + (result.getMonth()+1) + '-' + result.getDate();
     } else {
         result = result.getFullYear() + '-' + (result.getMonth()+1) + '-' + result.getDate();
     }
@@ -69,11 +76,25 @@ export function getObjtoStringTime(time){
 }
 
 // rename the func
-export function getNewTime(time, noOfCSMoved, dates) {
-    const prevTime = time;
-    time = getObjtoStringTime(time);
-    const currInd = dates.indexOf(time) === -1 ? dates.length : dates.indexOf(time);
-    return getTime(dates[currInd + noOfCSMoved]).Date ? getTime(dates[currInd + noOfCSMoved]) : prevTime;
+export function getNewTime(startTime, endTime, noOfCSMoved, dates) {
+    let prevStartTime = startTime;
+    let prevEndTime = endTime;
+    prevStartTime = getObjtoStringTime(prevStartTime);
+    prevEndTime = getObjtoStringTime(prevEndTime);
+    const prevStartIndex = dates.indexOf(prevStartTime);
+    const prevEndIndex = dates.indexOf(prevEndTime);
+    if(prevStartIndex === -1 || prevEndIndex === -1 || prevStartIndex + noOfCSMoved >= dates.length || prevEndIndex + noOfCSMoved < 0){
+        return {startTime, endTime};
+    } else {
+        if(dates[prevStartIndex + noOfCSMoved] !== -1 && dates[prevEndIndex + noOfCSMoved] !== -1){
+            const newStartTime = getTime(dates[prevStartIndex + noOfCSMoved]);
+            const newEndTime = getTime(dates[prevEndIndex + noOfCSMoved]);
+            if(newStartTime && newEndTime && newStartTime.Month && newEndTime.Month){
+                return { startTime: newStartTime, endTime: newEndTime};
+            }
+        }
+        return {startTime, endTime};
+    }
 }
 
 export function getWeekDates(startDate, endDate) {
@@ -84,9 +105,9 @@ export function getWeekDates(startDate, endDate) {
     while (currentDate <= endDate) {
         if (currentDate.getDay() >= 1 && currentDate.getDay() <= 5) {
             if(currentDate.getDate() < 10){
-                weekDates.push(currentDate.getFullYear() + '-' + (currentDate.getMonth()+1) + '-0' + currentDate.getDate());
+                weekDates.push(currentDate.getFullYear() + '-' + (currentDate.getMonth() < 9 ? "0"+(currentDate.getMonth()+1):currentDate.getMonth()+1) + '-0' + currentDate.getDate());
             }else{
-                weekDates.push(currentDate.getFullYear() + '-' + (currentDate.getMonth()+1) + '-' + currentDate.getDate());
+                weekDates.push(currentDate.getFullYear() + '-' + (currentDate.getMonth() < 9 ? "0"+(currentDate.getMonth()+1):currentDate.getMonth()+1) + '-' + currentDate.getDate());
             }
             index += 1;
         }
@@ -104,7 +125,7 @@ export function getWeekDates(startDate, endDate) {
 export function getFirstMonthStart(startTime, dates) {
     let index = 1;
     while (true) {
-        let result = startTime.Year + "-" + startTime.Month + "-0" + index;
+        let result = startTime.Year + (startTime.Month < 10 ? "-0" + startTime.Month : "-"+startTime.Month) + "-0" + index;
         if (dates.includes(result)) {
             return getTime(result);
         }
