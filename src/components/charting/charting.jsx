@@ -23,7 +23,7 @@ import {
   buildSegmentTree,
   getMinMaxPrices,
   getYCoordinate,
-  drawCandleStick
+  drawCandleStick,
 } from "../../utility/yAxisUtils";
 import { monthMap } from "../../data/TIME_MAP";
 
@@ -51,14 +51,14 @@ function Charting() {
     ),
   });
   const [yAxisConfig, setYAxisConfig] = useState({
-    margin:55,
+    margin: 55,
     noOfColumns: 12,
     segmentTreeData: buildSegmentTree(data),
-  })
+  });
   const [priceRange, setPriceRange] = useState({
     minPrice: 0,
-    maxPrice: 0
-  })
+    maxPrice: 0,
+  });
   const ChartContainerRef = useRef(null);
 
   useLayoutEffect(() => {
@@ -81,63 +81,188 @@ function Charting() {
   }, []);
 
   useEffect(() => {
-    const canvas = ChartContainerRef.current;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0,0,xAxisConfig.canvasWidth, xAxisConfig.canvasHeight);
-    ctx.font = "12px Arial";
-    const pDiff = priceRange.maxPrice - priceRange.minPrice;
-    for(let i = yAxisConfig.noOfColumns; i > 0; i--){
-      const text = priceRange.maxPrice-(pDiff)/yAxisConfig.noOfColumns * (yAxisConfig.noOfColumns-i);
-      const xCoord = xAxisConfig.canvasWidth - yAxisConfig.margin;
-      const yCoord = xAxisConfig.canvasHeight - xAxisConfig.margin - i*((xAxisConfig.canvasHeight - xAxisConfig.margin)/yAxisConfig.noOfColumns);
-      ctx.fillStyle = "black";
-      ctx.fillText(parseInt(text),parseInt(xCoord-5),parseInt(yCoord+5));
-    }
-    const startIndex = yAxisConfig.segmentTreeData.datesToIndex[getObjtoStringTime(xAxisConfig.endTime)]
-    const endIndex = yAxisConfig.segmentTreeData.datesToIndex[getObjtoStringTime(xAxisConfig.startTime)]
-    const Data = Object.values(data).slice(startIndex, endIndex).reverse();
-    console.log(Data);
-    Data.forEach((d, i) => {
-      const xCoord = xAxisConfig.canvasWidth - yAxisConfig.margin - i*xAxisConfig.widthOfOneCS - xAxisConfig.widthOfOneCS/2;
-      if(xCoord < 0) return;
-      if(i < Data.length - 1  && parseInt(d.Date.split('-')[1]) != parseInt(Data[i+1].Date.split('-')[1])){
-        const yCoord = xAxisConfig.canvasHeight - xAxisConfig.margin;
-        const currentMonth = parseInt(d.Date.split('-')[1]);
-        const currentYear = parseInt(d.Date.split('-')[0]);
-        console.log(d.Date, currentMonth, currentYear);
-        ctx.fillStyle = "black";
-        if(currentMonth === 1){
-          ctx.fillText(currentYear, xCoord, yCoord);
-        } else {
-          ctx.fillText(monthMap[currentMonth-1], xCoord, yCoord);
+    fetch(
+      `http://localhost:8080/getHistory?symbol=JPM&start_date=${getObjtoStringTime(
+        xAxisConfig.endTime
+      )}&end_date=${getObjtoStringTime(xAxisConfig.startTime)}`
+    )
+      .then((response) => response.text())
+      .then((csvData) => {
+        const rows = csvData.split("\n");
+        const headers = rows[0].split(",");
+        console.log("headers:", headers);
+        const jsonData = rows
+          .slice(1)
+          .filter((row) => row.trim() !== "")
+          .map((row) => {
+            const values = row.split(",");
+            return headers.reduce((obj, header, index) => {
+              obj[header.trim()] =
+                index === 0
+                  ? values[index].trim()
+                  : parseFloat(values[index].trim());
+              return obj;
+            }, {});
+          });
+
+        const fetchedData = jsonData.map((item) => ({
+          Date: item.Date,
+          Open: item.Open,
+          High: item.High,
+          Low: item.Low,
+          Close: item.Close,
+          AdjClose: item["Adj Close"],
+          Volume: item.Volume,
+        }));
+
+        console.log("fetchedData:", fetchedData);
+
+        const result = getMinMaxPrices(
+          buildSegmentTree(fetchedData),
+          fetchedData.reduce((acc, curr, index) => {
+            acc[getObjtoStringTime(curr.Date)] = index;
+            return acc;
+          }, {}),
+          getObjtoStringTime(xAxisConfig.endTime),
+          getObjtoStringTime(xAxisConfig.startTime),
+          fetchedData.length
+        );
+
+        if (
+          result &&
+          (result.maxPrice !== priceRange.maxPrice ||
+            result.minPrice !== priceRange.minPrice) &&
+          (result.maxPrice !== Number.MIN_SAFE_INTEGER ||
+            result.minPrice !== Number.MAX_SAFE_INTEGER)
+        ) {
+          setPriceRange({ ...result });
         }
-      }
-      drawCandleStick(d, priceRange.minPrice, priceRange.maxPrice, xAxisConfig.canvasHeight, xAxisConfig.margin, xCoord, ctx, xAxisConfig.widthOfOneCS - 4);
-    })
+        const canvas = ChartContainerRef.current;
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, xAxisConfig.canvasWidth, xAxisConfig.canvasHeight);
+        ctx.font = "12px Arial";
+        const pDiff = priceRange.maxPrice - priceRange.minPrice;
+        for (let i = yAxisConfig.noOfColumns; i > 0; i--) {
+          const text =
+            priceRange.maxPrice -
+            (pDiff / yAxisConfig.noOfColumns) * (yAxisConfig.noOfColumns - i);
+          const xCoord = xAxisConfig.canvasWidth - yAxisConfig.margin;
+          const yCoord =
+            xAxisConfig.canvasHeight -
+            xAxisConfig.margin -
+            i *
+              ((xAxisConfig.canvasHeight - xAxisConfig.margin) /
+                yAxisConfig.noOfColumns);
+          ctx.fillStyle = "black";
+          ctx.fillText(
+            parseInt(text),
+            parseInt(xCoord - 5),
+            parseInt(yCoord + 5)
+          );
+        }
+
+        const startIndex =
+          yAxisConfig.segmentTreeData.datesToIndex[
+            getObjtoStringTime(xAxisConfig.endTime)
+          ];
+        const endIndex =
+          yAxisConfig.segmentTreeData.datesToIndex[
+            getObjtoStringTime(xAxisConfig.startTime)
+          ];
+
+        console.log("startIndex:", startIndex);
+        console.log("endIndex:", endIndex);
+
+        if (startIndex === undefined || endIndex === undefined) {
+          console.log("Undefined startIndex or endIndex:");
+          return;
+        }
+
+        const resultData = fetchedData.reverse();
+        console.log("resultData:", resultData);
+
+        resultData.forEach((d, i) => {
+          const xCoord =
+            xAxisConfig.canvasWidth -
+            yAxisConfig.margin -
+            i * xAxisConfig.widthOfOneCS -
+            xAxisConfig.widthOfOneCS / 2;
+          if (xCoord < 0) return;
+          if (
+            i < resultData.length - 1 &&
+            parseInt(d.Date.split("-")[1]) !=
+              parseInt(resultData[i + 1].Date.split("-")[1])
+          ) {
+            const yCoord = xAxisConfig.canvasHeight - xAxisConfig.margin;
+            const currentMonth = parseInt(d.Date.split("-")[1]);
+            const currentYear = parseInt(d.Date.split("-")[0]);
+            console.log(d.Date, currentMonth, currentYear);
+            ctx.fillStyle = "black";
+            if (currentMonth === 1) {
+              ctx.fillText(currentYear, xCoord, yCoord);
+            } else {
+              ctx.fillText(monthMap[currentMonth - 1], xCoord, yCoord);
+            }
+          }
+          drawCandleStick(
+            d,
+            priceRange.minPrice,
+            priceRange.maxPrice,
+            xAxisConfig.canvasHeight,
+            xAxisConfig.margin,
+            xCoord,
+            ctx,
+            xAxisConfig.widthOfOneCS - 4
+          );
+        });
+      })
+      .catch((error) => {
+        console.error("Error fetching data from API:", error);
+      });
   }, [xAxisConfig, priceRange]);
+
   useLayoutEffect(() => {
-    const result = getMinMaxPrices(yAxisConfig.segmentTreeData.segmentTree, yAxisConfig.segmentTreeData.datesToIndex, getObjtoStringTime(xAxisConfig.endTime), getObjtoStringTime(xAxisConfig.startTime), data.length);
-    if(result && (result.maxPrice !== priceRange.maxPrice || result.minPrice !== priceRange.minPrice ) && ( result.maxPrice !== Number.MIN_SAFE_INTEGER || result.minPrice !== Number.MAX_SAFE_INTEGER)){
+    const result = getMinMaxPrices(
+      yAxisConfig.segmentTreeData.segmentTree,
+      yAxisConfig.segmentTreeData.datesToIndex,
+      getObjtoStringTime(xAxisConfig.endTime),
+      getObjtoStringTime(xAxisConfig.startTime),
+      data.length
+    );
+    if (
+      result &&
+      (result.maxPrice !== priceRange.maxPrice ||
+        result.minPrice !== priceRange.minPrice) &&
+      (result.maxPrice !== Number.MIN_SAFE_INTEGER ||
+        result.minPrice !== Number.MAX_SAFE_INTEGER)
+    ) {
       setPriceRange(() => {
-        return {...result};
+        return { ...result };
       });
     }
     let noOfCSMoved = getCandleSticksMoved(
       scrollOffset,
       xAxisConfig.widthOfOneCS
     );
-    if(noOfCSMoved  > 0 && getObjtoStringTime(xAxisConfig.startTime) === xAxisConfig.dates[xAxisConfig.dates.length-1]){
+    if (
+      noOfCSMoved > 0 &&
+      getObjtoStringTime(xAxisConfig.startTime) ===
+        xAxisConfig.dates[xAxisConfig.dates.length - 1]
+    ) {
       noOfCSMoved = 0;
       return;
-    } else if(noOfCSMoved < 0 && getObjtoStringTime(xAxisConfig.endTime) === xAxisConfig.dates[0]){
+    } else if (
+      noOfCSMoved < 0 &&
+      getObjtoStringTime(xAxisConfig.endTime) === xAxisConfig.dates[0]
+    ) {
       noOfCSMoved = 0;
       return;
     }
-    const {startTime, endTime} = getNewTime(
+    const { startTime, endTime } = getNewTime(
       xAxisConfig.startTime,
       xAxisConfig.endTime,
       noOfCSMoved,
-      xAxisConfig.dates,
+      xAxisConfig.dates
     );
     setXAxisConfig((prev) => {
       return {
@@ -152,28 +277,25 @@ function Charting() {
     let width = ChartContainerRef.current.parentElement.offsetWidth;
     let height = ChartContainerRef.current.parentElement.offsetHeight;
     const dpr = window.devicePixelRatio | 1;
-    canvas.width = width*dpr;
-    canvas.height = height*dpr;
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
     const ctx = canvas.getContext("2d");
-    ctx.scale(dpr,dpr);
+    ctx.scale(dpr, dpr);
 
     const noOfDataPoints = getDataPointsCount(
       xAxisConfig.startTime,
       xAxisConfig.endTime,
       interval,
-      xAxisConfig.dates,
+      xAxisConfig.dates
     );
-    const widthOfOneCS = getCSWidth(
-      noOfDataPoints,
-      width
-    );
+    const widthOfOneCS = getCSWidth(noOfDataPoints, width);
     setXAxisConfig((prev) => {
       return {
         ...prev,
         canvasWidth: width,
         canvasHeight: height,
         noOfDataPoints: noOfDataPoints,
-        widthOfOneCS: widthOfOneCS+4,
+        widthOfOneCS: widthOfOneCS + 4,
       };
     });
   }, [windowSize]);
