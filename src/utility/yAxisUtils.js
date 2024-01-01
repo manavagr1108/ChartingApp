@@ -61,8 +61,12 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n){
             maxPrice = Math.max(maxPrice, ele[0].High);
         }
     }
-    
-    return {minPrice, maxPrice};
+    if(maxPrice != Number.MIN_SAFE_INTEGER && minPrice != Number.MAX_SAFE_INTEGER){
+        const priceDiff = (maxPrice - minPrice)/12;
+        minPrice = minPrice -priceDiff;
+        maxPrice = maxPrice + priceDiff;
+    }
+    return {minPrice,maxPrice};
 }
 
 export const getYCoordinate = (price, minPrice, maxPrice, height, margin) => {

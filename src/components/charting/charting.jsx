@@ -1,5 +1,4 @@
 import React, {
-  useCallback,
   useContext,
   useEffect,
   useLayoutEffect,
@@ -39,7 +38,7 @@ function Charting() {
     canvasWidth: 0,
     canvasHeight: 0,
     interval: interval,
-    margin: 30,
+    margin: 10,
     noOfDataPoints: 0,
     noOfColumns: 12,
     widthOfOneCS: 0,
@@ -67,7 +66,7 @@ function Charting() {
     }
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
-  }, [windowSize]);
+  }, []);
 
   const handleScroll = (event) => {
     setScrollOffset(event.deltaX);
@@ -142,7 +141,7 @@ function Charting() {
         ctx.clearRect(0, 0, xAxisConfig.canvasWidth, xAxisConfig.canvasHeight);
         ctx.font = "12px Arial";
         const pDiff = priceRange.maxPrice - priceRange.minPrice;
-        for (let i = yAxisConfig.noOfColumns; i > 0; i--) {
+        for (let i = yAxisConfig.noOfColumns - 1; i > 0; i--) {
           const text =
             priceRange.maxPrice -
             (pDiff / yAxisConfig.noOfColumns) * (yAxisConfig.noOfColumns - i);
@@ -184,6 +183,7 @@ function Charting() {
         resultData.forEach((d, i) => {
           const xCoord =
             xAxisConfig.canvasWidth -
+            5 -
             yAxisConfig.margin -
             i * xAxisConfig.widthOfOneCS -
             xAxisConfig.widthOfOneCS / 2;
@@ -277,8 +277,13 @@ function Charting() {
     let width = ChartContainerRef.current.parentElement.offsetWidth;
     let height = ChartContainerRef.current.parentElement.offsetHeight;
     const dpr = window.devicePixelRatio | 1;
-    canvas.width = width * dpr;
-    canvas.height = height * dpr;
+    if (width < windowSize[0]) {
+      canvas.width = width * dpr;
+    }
+    if (height < windowSize[1]) {
+      canvas.height = height * dpr;
+    }
+    console.log(canvas.width, canvas.height, windowSize);
     const ctx = canvas.getContext("2d");
     ctx.scale(dpr, dpr);
 
@@ -292,8 +297,8 @@ function Charting() {
     setXAxisConfig((prev) => {
       return {
         ...prev,
-        canvasWidth: width,
-        canvasHeight: height,
+        canvasWidth: canvas.width / dpr,
+        canvasHeight: canvas.height / dpr,
         noOfDataPoints: noOfDataPoints,
         widthOfOneCS: widthOfOneCS + 4,
       };
