@@ -39,6 +39,7 @@ export function buildSegmentTree(data){
 }
 
 export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n){
+    if(!segmentTree) return;
     let l = datesToIndex[`${left}`] + n;
     let r = datesToIndex[`${right}`] + n + 1;
     let minPrice = Number.MAX_SAFE_INTEGER;
@@ -85,7 +86,6 @@ export const drawCandleStick = (data, minPrice, maxPrice, height, margin, x, con
     const low = getYCoordinate(data["Low"], minPrice, maxPrice, height, margin);
     const bodyHeight = Math.abs(open - close);
     const bodyY = Math.min(open, close);
-
     // Draw candlestick body
     context.fillStyle = fillColor;
     context.fillRect(x - width/2 , bodyY, width, bodyHeight);

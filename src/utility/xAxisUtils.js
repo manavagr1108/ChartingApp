@@ -15,20 +15,25 @@ export const TimeFrames = {
 }
 
 export function getDataPointsCount(startTime, endTime, interval, dates) {
+    if(!dates) return 0;
     return noOfDays(startTime, endTime, dates) * intervalMap[interval];
 }
 
 export function noOfDays(startDate, endDate, dates) {
-    let index1, index2;
+    let index1 = 0, index2 = 0;
     if(startDate.Date < 10){
-        index1 = dates.indexOf(startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-0" + startDate.Date);
+        const key = startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-0" + startDate.Date;
+        index1 = dates[key];
     }else{
-        index1 = dates.indexOf(startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-" + startDate.Date);
+        const key = startDate.Year + (startDate.Month < 10 ? "-0" + startDate.Month : "-"+startDate.Month) + "-" + startDate.Date;
+        index1 = dates[key];
     }
     if(endDate.Date < 10){
-        index2 = dates.indexOf(endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-0" + endDate.Date);
+        const key = endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-0" + endDate.Date;
+        index2 = dates[key];
     } else{
-        index2 = dates.indexOf(endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-" + endDate.Date);
+        const key = endDate.Year + (endDate.Month < 10 ? "-0" + endDate.Month : "-"+endDate.Month) + "-" + endDate.Date;
+        index2 = dates[key];
     }
     return Math.abs(index1 - index2) + 1;
 }
@@ -81,15 +86,17 @@ export function getNewTime(startTime, endTime, noOfCSMoved, dates) {
     let prevEndTime = endTime;
     prevStartTime = getObjtoStringTime(prevStartTime);
     prevEndTime = getObjtoStringTime(prevEndTime);
-    const prevStartIndex = dates.indexOf(prevStartTime);
-    const prevEndIndex = dates.indexOf(prevEndTime);
+    const prevStartIndex = dates[prevStartTime];
+    const prevEndIndex = dates[prevEndTime];
     if(prevStartIndex === -1 || prevEndIndex === -1 || prevStartIndex + noOfCSMoved >= dates.length || prevEndIndex + noOfCSMoved < 0){
         return {startTime, endTime};
     } else {
-        if(dates[prevStartIndex + noOfCSMoved] !== -1 && dates[prevEndIndex + noOfCSMoved] !== -1){
-            const newStartTime = getTime(dates[prevStartIndex + noOfCSMoved]);
-            const newEndTime = getTime(dates[prevEndIndex + noOfCSMoved]);
+        const values = Object.keys(dates);
+        if(values[prevStartIndex + noOfCSMoved] !== -1 && values[prevEndIndex + noOfCSMoved] !== -1){
+            const newStartTime = getTime(values[prevStartIndex + noOfCSMoved]);
+            const newEndTime = getTime(values[prevEndIndex + noOfCSMoved]);
             if(newStartTime && newEndTime && newStartTime.Month && newEndTime.Month){
+                console.log(newStartTime, newEndTime); 
                 return { startTime: newStartTime, endTime: newEndTime};
             }
         }

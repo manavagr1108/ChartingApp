@@ -8,11 +8,12 @@ import StockContext from './context/stock_context';
 import xAxisContext from './context/xAxis_context';
 
 function App() {
-  const [selectedStock, setSelectedStock] = useState("");
+  const [selectedStock, setSelectedStock] = useState("AAPL");
   const [interval, setInterval] = useState("1d");
+  const [stockData, setStockData] = useState([]);
   const stockContextValue = useMemo(
-    () => ({ selectedStock, setSelectedStock, interval, setInterval }),
-    [selectedStock, interval]
+    () => ({ selectedStock, setSelectedStock, interval, setInterval, stockData, setStockData }),
+    [selectedStock, interval, stockData]
   )
   // const xAxisValue = useMemo(
   //   () => ({ startTime, setStartTime, endTime, setEndTime }),
