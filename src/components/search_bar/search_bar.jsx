@@ -1,12 +1,10 @@
-import React, { useContext, useState } from "react";
-import StockContext from "../../context/stock_context.jsx";
+import React, { useState } from "react";
 import { searchSymbol } from "../../utility/stock_api.js";
 import { FaSearch } from "react-icons/fa";
 import { MdOutlineCandlestickChart } from "react-icons/md";
 
 
-function SearchBar(){
-  const {setSelectedStock, interval} = useContext(StockContext);
+function SearchBar({selectedStock, interval}){
   const [searchVal, setSearchVal] = useState([]);
   const [filteredProduct, setFilteredProduct] = useState([]);
   const updateBestMatches = async() => {
@@ -17,9 +15,7 @@ function SearchBar(){
     setSearchVal(() => {
       return stock;
     });
-    setSelectedStock(() => {
-      return stock;
-    });
+    selectedStock.value = stock;
     setFilteredProduct([]);
   };
   return (

@@ -7,8 +7,10 @@ function getRightDate(date){
 }
 
 export function buildSegmentTree(data){
+    if(!data.length) return;
     const segmentTree = [];
     const datesToIndex = {};
+    const indexToDates = {};
     const array = Object.values(data);
     let n = array.length;
     for(let i = 0 ; i < n ; i++){
@@ -20,6 +22,7 @@ export function buildSegmentTree(data){
             'High': ele.High
         }
         datesToIndex[`${ele.Date}`] = i;
+        indexToDates[`${i}`] = ele.Date;
         segmentTree[n+i] = d;
     }
     for(let i = n - 1; i > 0; i--){
@@ -35,7 +38,7 @@ export function buildSegmentTree(data){
         }
         segmentTree[i] = d;
     }
-    return {segmentTree, datesToIndex};  
+    return {segmentTree, datesToIndex, indexToDates};  
 }
 
 export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n){

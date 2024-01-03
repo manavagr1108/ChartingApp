@@ -96,7 +96,6 @@ export function getNewTime(startTime, endTime, noOfCSMoved, dates) {
             const newStartTime = getTime(values[prevStartIndex + noOfCSMoved]);
             const newEndTime = getTime(values[prevEndIndex + noOfCSMoved]);
             if(newStartTime && newEndTime && newStartTime.Month && newEndTime.Month){
-                console.log(newStartTime, newEndTime); 
                 return { startTime: newStartTime, endTime: newEndTime};
             }
         }
