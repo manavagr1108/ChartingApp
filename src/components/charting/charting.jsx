@@ -10,6 +10,7 @@ import {
   canvasSize,
   dateConfig,
   priceRange,
+  selectedStock,
   stockData,
   timeRange,
   xAxisConfig,
@@ -19,21 +20,26 @@ import {
   getObjtoStringTime,
   getTime,
   getCandleSticksMoved,
-  getNewTime,
+  getNewScrollTime,
+  getNewZoomTime,
 } from "../../utility/xAxisUtils";
 import { monthMap } from "../../data/TIME_MAP";
+
+const updateXAxisConfig = (startTime, endTime, datesToIndex) =>{ 
+  const noOfDataPoints =
+    datesToIndex[getObjtoStringTime(startTime)] -
+    datesToIndex[getObjtoStringTime(endTime)];
+  const widthOfOneCS = canvasSize.peek().width / noOfDataPoints;
+  xAxisConfig.value.noOfDataPoints = noOfDataPoints;
+  xAxisConfig.value.widthOfOneCS = widthOfOneCS;
+}
 
 const updateConfig = () => {
   if (stockData.peek().length) {
     const segmentTreeData = buildSegmentTree(stockData.peek());
     const startTime = getTime(stockData.peek()[stockData.peek().length - 1].Date);
     const endTime = getTime(stockData.peek()[stockData.peek().length - 150].Date);
-    const noOfDataPoints =
-      segmentTreeData.datesToIndex[getObjtoStringTime(startTime)] -
-      segmentTreeData.datesToIndex[getObjtoStringTime(endTime)];
-    const widthOfOneCS = canvasSize.peek().width / noOfDataPoints;
-    xAxisConfig.value.noOfDataPoints = noOfDataPoints;
-    xAxisConfig.value.widthOfOneCS = widthOfOneCS;
+    updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
     timeRange.value = { startTime, endTime };
     yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
     dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
@@ -54,6 +60,8 @@ function drawChart(ChartContainerRef) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
   ctx.font = "12px Arial";
+  ctx.fillStyle = "black";
+  ctx.fillText(selectedStock.peek(), 10, 20);
   const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
   for (let i = yAxisConfig.peek().noOfColumns - 1; i > 0; i--) {
     const text =
@@ -194,29 +202,44 @@ function setCanvasSize(element) {
 
 function handleScroll(e) {
   e.preventDefault();
-  updatePriceRange();
-  let noOfCSMoved = Math.floor(e.deltaX);
-  if (
-    noOfCSMoved > 0 &&
-    getObjtoStringTime(timeRange.peek().startTime) ===
-      dateConfig.peek().indexToDate[stockData.peek().length - 1]
-  ) {
-    noOfCSMoved = 0;
-    return;
-  } else if (
-    noOfCSMoved < 0 &&
-    getObjtoStringTime(timeRange.peek().endTime) ===
-      dateConfig.peek().indexToDate[0]
-  ) {
-    noOfCSMoved = 0;
-    return;
+  if(e.ctrlKey){
+    let noOfCSMovedLeft = -Math.floor(e.deltaY);
+    if(getObjtoStringTime(timeRange.peek().endTime) === dateConfig.peek().indexToDate[0]){
+      return;
+    }
+    if(noOfCSMovedLeft === 0)return;
+    timeRange.value = getNewZoomTime(
+      timeRange.peek().startTime,
+      timeRange.peek().endTime,
+      noOfCSMovedLeft,
+      dateConfig.value.dateToIndex
+    );
+    updateXAxisConfig(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex);
+  } else{
+    let noOfCSMoved = Math.floor(e.deltaX);
+    if (
+      noOfCSMoved > 0 &&
+      getObjtoStringTime(timeRange.peek().startTime) ===
+        dateConfig.peek().indexToDate[stockData.peek().length - 1]
+    ) {
+      noOfCSMoved = 0;
+      return;
+    } else if (
+      noOfCSMoved < 0 &&
+      getObjtoStringTime(timeRange.peek().endTime) ===
+        dateConfig.peek().indexToDate[0]
+    ) {
+      noOfCSMoved = 0;
+      return;
+    }
+    timeRange.value = getNewScrollTime(
+      timeRange.peek().startTime,
+      timeRange.peek().endTime,
+      noOfCSMoved,
+      dateConfig.value.dateToIndex
+    );
   }
-  timeRange.value = getNewTime(
-    timeRange.peek().startTime,
-    timeRange.peek().endTime,
-    noOfCSMoved,
-    dateConfig.value.dateToIndex
-  );
+  updatePriceRange();
 }
 
 function Charting({ selectedStock, interval, stockData }) {
@@ -226,9 +249,11 @@ function Charting({ selectedStock, interval, stockData }) {
     setCanvasSize(ChartContainerRef.current);
     updateConfig();
   }
+  effect(() => {
+    if(selectedStock.value && interval.value)setStockData(selectedStock, interval, stockData);
+  });
   useLayoutEffect(() => {
     setCanvasSize(ChartContainerRef.current);
-    setStockData(selectedStock, interval, stockData);
     ChartContainerRef.current.addEventListener(
       "wheel",
       (e) => handleScroll(e),

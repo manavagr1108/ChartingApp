@@ -81,7 +81,7 @@ export function getObjtoStringTime(time){
 }
 
 // rename the func
-export function getNewTime(startTime, endTime, noOfCSMoved, dates) {
+export function getNewScrollTime(startTime, endTime, noOfCSMoved, dates) {
     let prevStartTime = startTime;
     let prevEndTime = endTime;
     prevStartTime = getObjtoStringTime(prevStartTime);
@@ -100,6 +100,30 @@ export function getNewTime(startTime, endTime, noOfCSMoved, dates) {
             }
         }
         return {startTime, endTime};
+    }
+}
+
+export function getNewZoomTime(startTime, endTime, noOfCSMovedLeft, dates) {
+    let prevStartTime = getObjtoStringTime(startTime);
+    let prevEndTime = getObjtoStringTime(endTime);
+    const prevStartIndex = dates[prevStartTime];
+    const prevEndIndex = dates[prevEndTime];
+    if(prevEndIndex === -1 || prevEndIndex + noOfCSMovedLeft < 0){
+        return {startTime, endTime};
+    } else {
+        const values = Object.keys(dates);
+        let newEndTime = endTime;
+        const noOfCS = prevStartIndex - (prevEndIndex + noOfCSMovedLeft);
+        if(noOfCS < 10 || noOfCS > 2500){
+            return {startTime, endTime};
+        }
+        if(values[prevEndIndex + noOfCSMovedLeft] !== -1){
+            newEndTime = getTime(values[prevEndIndex + noOfCSMovedLeft]);
+            if(!newEndTime || !newEndTime.Month){
+                newEndTime = endTime;
+            }
+        }
+        return {startTime, endTime: newEndTime};
     }
 }
 
