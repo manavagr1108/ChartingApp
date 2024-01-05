@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { getStockData } from "../../utility/stock_api";
 import { effect } from "@preact/signals-react";
 import {
@@ -15,6 +15,7 @@ import {
   timeRange,
   xAxisConfig,
   yAxisConfig,
+  dateCursor,
 } from "../../signals/stockSignals";
 import {
   getObjtoStringTime,
@@ -25,20 +26,24 @@ import {
 } from "../../utility/xAxisUtils";
 import { monthMap } from "../../data/TIME_MAP";
 
-const updateXAxisConfig = (startTime, endTime, datesToIndex) =>{ 
+const updateXAxisConfig = (startTime, endTime, datesToIndex) => {
   const noOfDataPoints =
     datesToIndex[getObjtoStringTime(startTime)] -
     datesToIndex[getObjtoStringTime(endTime)];
   const widthOfOneCS = canvasSize.peek().width / noOfDataPoints;
   xAxisConfig.value.noOfDataPoints = noOfDataPoints;
   xAxisConfig.value.widthOfOneCS = widthOfOneCS;
-}
+};
 
 const updateConfig = () => {
   if (stockData.peek().length) {
     const segmentTreeData = buildSegmentTree(stockData.peek());
-    const startTime = getTime(stockData.peek()[stockData.peek().length - 1].Date);
-    const endTime = getTime(stockData.peek()[stockData.peek().length - 150].Date);
+    const startTime = getTime(
+      stockData.peek()[stockData.peek().length - 1].Date
+    );
+    const endTime = getTime(
+      stockData.peek()[stockData.peek().length - 150].Date
+    );
     updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
     timeRange.value = { startTime, endTime };
     yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
@@ -81,7 +86,9 @@ function drawChart(ChartContainerRef) {
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
-    dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
+    dateConfig.peek().dateToIndex[
+      getObjtoStringTime(timeRange.peek().startTime)
+    ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
     return;
@@ -96,6 +103,7 @@ function drawChart(ChartContainerRef) {
       xAxisConfig.peek().widthOfOneCS / 2;
 
     if (xCoord < 0) return;
+
     if (
       i < resultData.length - 1 &&
       parseInt(d.Date.split("-")[1]) !==
@@ -202,59 +210,121 @@ function setCanvasSize(element) {
 
 function handleScroll(e) {
   e.preventDefault();
-  if(e.ctrlKey){
+
+  if (e.ctrlKey) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
-    if(getObjtoStringTime(timeRange.peek().endTime) === dateConfig.peek().indexToDate[0]){
+    if (
+      getObjtoStringTime(timeRange.peek().endTime) ===
+      dateConfig.peek().indexToDate[0]
+    ) {
       return;
     }
-    if(noOfCSMovedLeft === 0)return;
+    if (noOfCSMovedLeft === 0) return;
+
     timeRange.value = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       noOfCSMovedLeft,
       dateConfig.value.dateToIndex
     );
-    updateXAxisConfig(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex);
-  } else{
-    let noOfCSMoved = Math.floor(e.deltaX);
+    updateXAxisConfig(
+      timeRange.peek().startTime,
+      timeRange.peek().endTime,
+      dateConfig.peek().dateToIndex
+    );
+  } else {
+    let pixelMovement = Math.floor(e.deltaX / 10);
+    console.log(pixelMovement);
     if (
-      noOfCSMoved > 0 &&
-      getObjtoStringTime(timeRange.peek().startTime) ===
-        dateConfig.peek().indexToDate[stockData.peek().length - 1]
+      (pixelMovement > 0 &&
+        getObjtoStringTime(timeRange.peek().startTime) ===
+          dateConfig.peek().indexToDate[stockData.peek().length - 1]) ||
+      (pixelMovement < 0 &&
+        getObjtoStringTime(timeRange.peek().endTime) ===
+          dateConfig.peek().indexToDate[0])
     ) {
-      noOfCSMoved = 0;
-      return;
-    } else if (
-      noOfCSMoved < 0 &&
-      getObjtoStringTime(timeRange.peek().endTime) ===
-        dateConfig.peek().indexToDate[0]
-    ) {
-      noOfCSMoved = 0;
       return;
     }
     timeRange.value = getNewScrollTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
-      noOfCSMoved,
+      pixelMovement,
       dateConfig.value.dateToIndex
     );
   }
+
   updatePriceRange();
 }
+
+effect(() => {
+  if (
+    dateCursor.value &&
+    dateCursor.value.x !== null &&
+    dateCursor.value.y !== null
+  ) {
+    const canvas = document.querySelector("canvas:nth-child(2)");
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
+
+    const dateText = dateCursor.value.date;
+    const xCoord = dateCursor.value.x - 75;
+    const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin + 10;
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(dateText, xCoord, yCoord);
+
+    const price =
+      priceRange.peek().minPrice +
+      ((canvasSize.peek().height -
+        xAxisConfig.peek().margin -
+        dateCursor.value.y +
+        50) *
+        (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
+        (canvasSize.peek().height - xAxisConfig.peek().margin);
+    const priceText = price.toFixed(2);
+    const xCoord1 = canvasSize.peek().width - yAxisConfig.peek().margin - 50;
+    const yCoord1 = dateCursor.value.y - 50;
+    ctx.font = "12px Arial";
+    ctx.fillStyle = "black";
+    ctx.fillText(priceText, xCoord1, yCoord1);
+
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
+
+    ctx.moveTo(dateCursor.value.x - 50, 0);
+    ctx.lineTo(dateCursor.value.x - 50, canvasSize.peek().height);
+
+    ctx.moveTo(0, dateCursor.value.y - 50);
+    ctx.lineTo(canvasSize.peek().width, dateCursor.value.y - 50);
+
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+});
 
 function Charting({ selectedStock, interval, stockData }) {
   console.log("render");
   const ChartContainerRef = useRef(null);
+  const ChartContainerRef1 = useRef(null);
   function handleResize() {
     setCanvasSize(ChartContainerRef.current);
+    setCanvasSize(ChartContainerRef1.current);
     updateConfig();
   }
   effect(() => {
-    if(selectedStock.value && interval.value)setStockData(selectedStock, interval, stockData);
+    if (selectedStock.value && interval.value)
+      setStockData(selectedStock, interval, stockData);
   });
   useLayoutEffect(() => {
     setCanvasSize(ChartContainerRef.current);
+    setCanvasSize(ChartContainerRef1.current);
     ChartContainerRef.current.addEventListener(
+      "wheel",
+      (e) => handleScroll(e),
+      false
+    );
+    ChartContainerRef1.current.addEventListener(
       "wheel",
       (e) => handleScroll(e),
       false
@@ -269,15 +339,47 @@ function Charting({ selectedStock, interval, stockData }) {
       if (ChartContainerRef.current !== null) drawChart(ChartContainerRef);
     }
   });
+  function handleOnMouseMove(e) {
+    const x = e.pageX - ChartContainerRef1.current.offsetLeft;
+    const y = e.pageY - ChartContainerRef1.current.offsetTop;
+    if (
+      x >= 0 &&
+      x <= canvasSize.peek().width &&
+      y >= 0 &&
+      y <= canvasSize.peek().height
+    ) {
+      const dateIndex = Math.floor(
+        (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
+      );
+
+      const data = stockData.peek()[stockData.peek().length - dateIndex];
+      if (data) {
+        dateCursor.value = {
+          date: data.Date,
+          text: `${data.Date} Open: ${data.Open} High: ${data.High} Low: ${data.Low} Close: ${data.Close} Volume: ${data.Volume}`,
+          x: e.pageX,
+          y: e.pageY,
+        };
+      }
+    } else {
+      dateCursor.value = null;
+    }
+  }
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
-      <div className="w-[100%] h-[95%]">
+      <div className="w-[100%] h-[95%] relative">
         <canvas
           ref={ChartContainerRef}
-          className="w-[100%] border-b-2 border-gray-300"
+          className="w-[100%] border-b-2 border-gray-300 cursor-crosshair absolute top-0 left-0 z-2"
+        ></canvas>
+        <canvas
+          ref={ChartContainerRef1}
+          className="w-[100%] border-b-2 border-gray-300 cursor-crosshair absolute top-0 left-0 z-10"
+          onMouseMove={(e) => {
+            handleOnMouseMove(e);
+          }}
         ></canvas>
       </div>
-
       <div className="w-full h-[5%]"></div>
     </div>
   );
