@@ -2,6 +2,7 @@ import { signal } from "@preact/signals-react";
 
 export const selectedStock = signal("AAPL");
 export const interval = signal("1d");
+export const chartType = signal("Candles");
 export const stockData = signal([]);
 
 export const timeRange = signal({
@@ -21,7 +22,8 @@ export const timeRange = signal({
     Min: 0,
     Sec: 0,
   },
-  offset: 0
+  offset: 0,
+  multiplier: 0,
 });
 export const canvasSize = signal({
   width: 0,
