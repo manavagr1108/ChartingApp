@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from "react";
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { getStockData } from "../../utility/stock_api";
 import { effect } from "@preact/signals-react";
 import {
@@ -45,7 +45,7 @@ const updateConfig = () => {
       stockData.peek()[stockData.peek().length - 150].Date
     );
     updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
-    timeRange.value = { startTime, endTime };
+    timeRange.value = { startTime, endTime, offset: 0 };
     yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
     dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
     dateConfig.value.indexToDate = segmentTreeData.indexToDates;
@@ -81,7 +81,7 @@ function drawChart(ChartContainerRef) {
         ((canvasSize.peek().height - xAxisConfig.peek().margin) /
           yAxisConfig.peek().noOfColumns);
     ctx.fillStyle = "black";
-    ctx.fillText(parseInt(text), parseInt(xCoord - 5), parseInt(yCoord + 5));
+    ctx.fillText(text.toFixed(2), parseInt(xCoord - 5), parseInt(yCoord + 5));
   }
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
@@ -207,6 +207,42 @@ function setCanvasSize(element) {
     height: height,
   };
 }
+function handleOnMouseMove(e) {
+  const canvas = document.querySelector("canvas:nth-child(2)");
+  const x = e.pageX - canvas.offsetLeft;
+  const y = e.pageY - canvas.offsetTop;
+  if (
+    x >= 0 &&
+    x <= canvasSize.peek().width &&
+    y >= 0 &&
+    y <= canvasSize.peek().height
+  ) {
+    const dateIndex = Math.floor(
+      (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
+    );
+    const firstIndex =
+      dateConfig.peek().dateToIndex[
+        getObjtoStringTime(timeRange.peek().startTime)
+      ];
+    const data = stockData.peek()[firstIndex - dateIndex];
+    if (data) {
+      dateCursor.value = {
+        date: data.Date,
+        text: `${data.Date} Open: ${data.Open.toFixed(
+          2
+        )} High: ${data.High.toFixed(2)} Low: ${data.Low.toFixed(
+          2
+        )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
+        x:
+          canvasSize.peek().width -
+          dateIndex * xAxisConfig.peek().widthOfOneCS,
+        y: e.pageY,
+      };
+    }
+  } else {
+    dateCursor.value = null;
+  }
+}
 
 function handleScroll(e) {
   e.preventDefault();
@@ -224,18 +260,20 @@ function handleScroll(e) {
     timeRange.value = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
+      timeRange.peek().offset,
       noOfCSMovedLeft,
       dateConfig.value.dateToIndex
     );
+    console.log(timeRange.value.offset);
     updateXAxisConfig(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       dateConfig.peek().dateToIndex
     );
   } else {
-    let pixelMovement = Math.floor(e.deltaX / 10);
-    console.log(pixelMovement);
+    let pixelMovement = e.deltaX;
     if (
+      Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
           dateConfig.peek().indexToDate[stockData.peek().length - 1]) ||
@@ -248,12 +286,15 @@ function handleScroll(e) {
     timeRange.value = getNewScrollTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
+      timeRange.peek().offset,
+      xAxisConfig.peek().widthOfOneCS,
       pixelMovement,
       dateConfig.value.dateToIndex
     );
+    console.log(timeRange.value.offset);
   }
-
   updatePriceRange();
+  handleOnMouseMove(e);
 }
 
 effect(() => {
@@ -273,6 +314,7 @@ effect(() => {
     ctx.font = "12px Arial";
     ctx.fillStyle = "black";
     ctx.fillText(dateText, xCoord, yCoord);
+    ctx.fillText(dateCursor.value.text, 50, 20);
 
     const price =
       priceRange.peek().minPrice +
@@ -283,7 +325,7 @@ effect(() => {
         (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
         (canvasSize.peek().height - xAxisConfig.peek().margin);
     const priceText = price.toFixed(2);
-    const xCoord1 = canvasSize.peek().width - yAxisConfig.peek().margin - 50;
+    const xCoord1 = canvasSize.peek().width - xAxisConfig.peek().margin - 50;
     const yCoord1 = dateCursor.value.y - 50;
     ctx.font = "12px Arial";
     ctx.fillStyle = "black";
@@ -307,11 +349,11 @@ function Charting({ selectedStock, interval, stockData }) {
   console.log("render");
   const ChartContainerRef = useRef(null);
   const ChartContainerRef1 = useRef(null);
-  function handleResize() {
+  const handleResize = useCallback(() => {
     setCanvasSize(ChartContainerRef.current);
     setCanvasSize(ChartContainerRef1.current);
     updateConfig();
-  }
+  },[])
   effect(() => {
     if (selectedStock.value && interval.value)
       setStockData(selectedStock, interval, stockData);
@@ -330,6 +372,9 @@ function Charting({ selectedStock, interval, stockData }) {
       false
     );
     window.addEventListener("resize", handleResize);
+    return(() => {
+      window.removeEventListener("resize",handleResize);
+    })
   });
   effect(() => {
     if (
@@ -339,32 +384,6 @@ function Charting({ selectedStock, interval, stockData }) {
       if (ChartContainerRef.current !== null) drawChart(ChartContainerRef);
     }
   });
-  function handleOnMouseMove(e) {
-    const x = e.pageX - ChartContainerRef1.current.offsetLeft;
-    const y = e.pageY - ChartContainerRef1.current.offsetTop;
-    if (
-      x >= 0 &&
-      x <= canvasSize.peek().width &&
-      y >= 0 &&
-      y <= canvasSize.peek().height
-    ) {
-      const dateIndex = Math.floor(
-        (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
-      );
-
-      const data = stockData.peek()[stockData.peek().length - dateIndex];
-      if (data) {
-        dateCursor.value = {
-          date: data.Date,
-          text: `${data.Date} Open: ${data.Open} High: ${data.High} Low: ${data.Low} Close: ${data.Close} Volume: ${data.Volume}`,
-          x: e.pageX,
-          y: e.pageY,
-        };
-      }
-    } else {
-      dateCursor.value = null;
-    }
-  }
   return (
     <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
       <div className="w-[100%] h-[95%] relative">

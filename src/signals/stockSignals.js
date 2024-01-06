@@ -21,6 +21,7 @@ export const timeRange = signal({
     Min: 0,
     Sec: 0,
   },
+  offset: 0
 });
 export const canvasSize = signal({
   width: 0,
