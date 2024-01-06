@@ -1,9 +1,9 @@
 import testData from "../data/testData.json";
 import { xAxisConfig } from "../signals/stockSignals";
 export const intervalMap = {
-  "1m": 375,
-  "1h": 6.25,
   "1d": 1,
+  "1wk": 1 / 5,
+  "1mo": 1 / 22,
 };
 
 export const TimeFrames = {
@@ -118,56 +118,92 @@ export function getObjtoStringTime(time) {
   return result;
 }
 
-export function getNewScrollTime(startTime, endTime, offset, widthOfOneCS, noOfPMoved, dates) {
-    const multiplier = noOfPMoved / Math.abs(noOfPMoved);
-    if(offset + multiplier*noOfPMoved < widthOfOneCS){
-        offset += multiplier*noOfPMoved;
-        console.log(offset, noOfPMoved, widthOfOneCS);
-        return {
-            startTime,
-            endTime,
-            offset
-        }
+export function getNewScrollTime(
+  startTime,
+  endTime,
+  offset,
+  multiplier,
+  widthOfOneCS,
+  noOfPMoved,
+  dates
+) {
+  multiplier = noOfPMoved / Math.abs(noOfPMoved);
+  if (offset + multiplier * noOfPMoved < widthOfOneCS) {
+    offset += multiplier * noOfPMoved;
+    console.log(offset, noOfPMoved, widthOfOneCS);
+    return {
+      startTime,
+      endTime,
+      offset,
+      multiplier,
+    };
+  } else {
+    const noOfCSMoved =
+      multiplier *
+      Math.floor((offset + multiplier * noOfPMoved) / widthOfOneCS);
+    offset = (offset + multiplier * noOfPMoved) % widthOfOneCS;
+    let prevStartTime = startTime;
+    let prevEndTime = endTime;
+    prevStartTime = getObjtoStringTime(prevStartTime);
+    prevEndTime = getObjtoStringTime(prevEndTime);
+    const prevStartIndex = dates[prevStartTime];
+    const prevEndIndex = dates[prevEndTime];
+    if (
+      prevStartIndex === -1 ||
+      prevEndIndex === -1 ||
+      prevStartIndex + noOfCSMoved >= dates.length ||
+      prevEndIndex + noOfCSMoved < 0
+    ) {
+      console.log(offset, noOfPMoved, widthOfOneCS);
+      return { startTime, endTime, offset, multiplier };
     } else {
-        const noOfCSMoved = multiplier*Math.floor((offset + multiplier*noOfPMoved)/widthOfOneCS);
-        offset = (offset + multiplier*noOfPMoved) % widthOfOneCS;
-        let prevStartTime = startTime;
-        let prevEndTime = endTime;
-        prevStartTime = getObjtoStringTime(prevStartTime);
-        prevEndTime = getObjtoStringTime(prevEndTime);
-        const prevStartIndex = dates[prevStartTime];
-        const prevEndIndex = dates[prevEndTime];
-        if(prevStartIndex === -1 || prevEndIndex === -1 || prevStartIndex + noOfCSMoved >= dates.length || prevEndIndex + noOfCSMoved < 0){
-            console.log(offset, noOfPMoved, widthOfOneCS);
-            return {startTime, endTime};
-        } else {
-            const values = Object.keys(dates);
-            if(values[prevStartIndex + noOfCSMoved] !== -1 && values[prevEndIndex + noOfCSMoved] !== -1){
-                const newStartTime = getTime(values[prevStartIndex + noOfCSMoved]);
-                const newEndTime = getTime(values[prevEndIndex + noOfCSMoved]);
-                if(newStartTime && newEndTime && newStartTime.Month && newEndTime.Month){
-                    return { startTime: newStartTime, endTime: newEndTime, offset};
-                }
-            }
-            console.log(offset, noOfPMoved, widthOfOneCS);
-            return {startTime, endTime, offset};
+      const values = Object.keys(dates);
+      if (
+        values[prevStartIndex + noOfCSMoved] !== -1 &&
+        values[prevEndIndex + noOfCSMoved] !== -1
+      ) {
+        const newStartTime = getTime(values[prevStartIndex + noOfCSMoved]);
+        const newEndTime = getTime(values[prevEndIndex + noOfCSMoved]);
+        if (
+          newStartTime &&
+          newEndTime &&
+          newStartTime.Month &&
+          newEndTime.Month
+        ) {
+          return {
+            startTime: newStartTime,
+            endTime: newEndTime,
+            offset,
+            multiplier,
+          };
         }
+      }
+      console.log(offset, noOfPMoved, widthOfOneCS);
+      return { startTime, endTime, offset, multiplier };
     }
+  }
 }
 
-export function getNewZoomTime(startTime, endTime, offset, noOfCSMovedLeft, dates) {
+export function getNewZoomTime(
+  startTime,
+  endTime,
+  offset,
+  multiplier,
+  noOfCSMovedLeft,
+  dates
+) {
   let prevStartTime = getObjtoStringTime(startTime);
   let prevEndTime = getObjtoStringTime(endTime);
   const prevStartIndex = dates[prevStartTime];
   const prevEndIndex = dates[prevEndTime];
   if (prevEndIndex === -1 || prevEndIndex + noOfCSMovedLeft < 0) {
-    return { startTime, endTime, offset };
+    return { startTime, endTime, offset, multiplier };
   } else {
     const values = Object.keys(dates);
     let newEndTime = endTime;
     const noOfCS = prevStartIndex - (prevEndIndex + noOfCSMovedLeft);
     if (noOfCS < 10 || noOfCS > 2500) {
-      return { startTime, endTime, offset };
+      return { startTime, endTime, offset, multiplier };
     }
     if (values[prevEndIndex + noOfCSMovedLeft] !== -1) {
       newEndTime = getTime(values[prevEndIndex + noOfCSMovedLeft]);
@@ -175,7 +211,7 @@ export function getNewZoomTime(startTime, endTime, offset, noOfCSMovedLeft, date
         newEndTime = endTime;
       }
     }
-    return { startTime, endTime: newEndTime, offset };
+    return { startTime, endTime: newEndTime, offset, multiplier };
   }
 }
 

@@ -5,6 +5,7 @@ import {
   buildSegmentTree,
   getMinMaxPrices,
   drawCandleStick,
+  drawLineChart,
 } from "../../utility/yAxisUtils";
 import {
   canvasSize,
@@ -16,6 +17,7 @@ import {
   xAxisConfig,
   yAxisConfig,
   dateCursor,
+  chartType,
 } from "../../signals/stockSignals";
 import {
   getObjtoStringTime,
@@ -26,7 +28,7 @@ import {
 } from "../../utility/xAxisUtils";
 import { monthMap } from "../../data/TIME_MAP";
 
-const updateXAxisConfig = (startTime, endTime, datesToIndex) => {
+const updateXAxisConfig = (startTime, endTime, datesToIndex, chartType) => {
   const noOfDataPoints =
     datesToIndex[getObjtoStringTime(startTime)] -
     datesToIndex[getObjtoStringTime(endTime)];
@@ -45,7 +47,7 @@ const updateConfig = () => {
       stockData.peek()[stockData.peek().length - 150].Date
     );
     updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
-    timeRange.value = { startTime, endTime, offset: 0 };
+    timeRange.value = { startTime, endTime, offset: 0, multiplier: 0 };
     yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
     dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
     dateConfig.value.indexToDate = segmentTreeData.indexToDates;
@@ -94,13 +96,15 @@ function drawChart(ChartContainerRef, mode) {
     return;
   }
   const resultData = stockData.peek().slice(startIndex, endIndex).reverse();
+  ctx.strokeStyle = "blue";
+  ctx.beginPath();
   resultData.forEach((d, i) => {
     const xCoord =
       canvasSize.peek().width -
-      5 -
       yAxisConfig.peek().margin -
       i * xAxisConfig.peek().widthOfOneCS -
-      xAxisConfig.peek().widthOfOneCS / 2;
+      xAxisConfig.peek().widthOfOneCS / 2 -
+      timeRange.peek().multiplier * timeRange.peek().offset;
 
     if (xCoord < 0) return;
 
@@ -119,18 +123,33 @@ function drawChart(ChartContainerRef, mode) {
         ctx.fillText(monthMap[currentMonth - 1], xCoord, yCoord);
       }
     }
-    drawCandleStick(
-      d,
-      priceRange.peek().minPrice,
-      priceRange.peek().maxPrice,
-      canvasSize.peek().height,
-      xAxisConfig.peek().margin,
-      xCoord,
-      ctx,
-      xAxisConfig.peek().widthOfOneCS - 4,
-      mode
-    );
+    if (chartType.peek() === "Candles") {
+      drawCandleStick(
+        d,
+        priceRange.peek().minPrice,
+        priceRange.peek().maxPrice,
+        canvasSize.peek().height,
+        xAxisConfig.peek().margin,
+        xCoord,
+        ctx,
+        xAxisConfig.peek().widthOfOneCS - 4,
+        mode
+      );
+    } else if (chartType.peek() === "Line") {
+      console.log("line");
+      drawLineChart(
+        d,
+        priceRange.peek().minPrice,
+        priceRange.peek().maxPrice,
+        canvasSize.peek().height,
+        xAxisConfig.peek().margin,
+        xCoord,
+        ctx,
+        xAxisConfig.peek().widthOfOneCS - 4
+      );
+    }
   });
+  ctx.stroke();
 }
 
 function updatePriceRange() {
@@ -154,35 +173,7 @@ function updatePriceRange() {
 
 async function setStockData(symbol, interval, stockData) {
   try {
-    const data = await getStockData(symbol.value, interval.value);
-    const rows = data.split("\n");
-    const headers = rows[0].split(",");
-    const jsonData = rows
-      .slice(1)
-      .filter((row) => row.trim() !== "")
-      .map((row) => {
-        const values = row.split(",");
-        return headers.reduce((obj, header, index) => {
-          obj[header.trim()] =
-            index === 0
-              ? values[index].trim()
-              : parseFloat(values[index].trim());
-          return obj;
-        }, {});
-      });
-
-    const fetchedData = [];
-    jsonData.forEach((item) => {
-      fetchedData.push({
-        Date: item.Date,
-        Open: item.Open,
-        High: item.High,
-        Low: item.Low,
-        Close: item.Close,
-        AdjClose: item["Adj Close"],
-        Volume: item.Volume,
-      });
-    });
+    const fetchedData = await getStockData(symbol.value, interval.value);
     stockData.value = [...fetchedData];
     updateConfig();
   } catch {
@@ -261,6 +252,7 @@ function handleScroll(e) {
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       timeRange.peek().offset,
+      timeRange.peek().multiplier,
       noOfCSMovedLeft,
       dateConfig.value.dateToIndex
     );
@@ -287,6 +279,7 @@ function handleScroll(e) {
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       timeRange.peek().offset,
+      timeRange.peek().multiplier,
       xAxisConfig.peek().widthOfOneCS,
       pixelMovement,
       dateConfig.value.dateToIndex
@@ -297,7 +290,7 @@ function handleScroll(e) {
   handleOnMouseMove(e);
 }
 
-function Charting({ selectedStock, interval, stockData, mode }) {
+function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   console.log("render");
   const ChartContainerRef = useRef(null);
   const ChartContainerRef1 = useRef(null);
@@ -338,8 +331,8 @@ function Charting({ selectedStock, interval, stockData, mode }) {
       const yCoord1 = dateCursor.value.y - 50;
       ctx.font = "12px Arial";
       ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-      ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
       ctx.fillText(priceText, xCoord1, yCoord1);
+      ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
 
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -379,7 +372,8 @@ function Charting({ selectedStock, interval, stockData, mode }) {
   effect(() => {
     if (
       timeRange.value.endTime.Date !== 0 &&
-      timeRange.value.startTime.Date !== 0
+      timeRange.value.startTime.Date !== 0 &&
+      chartType.value
     ) {
       if (ChartContainerRef.current !== null)
         drawChart(ChartContainerRef, mode);
@@ -404,7 +398,7 @@ function Charting({ selectedStock, interval, stockData, mode }) {
           ref={ChartContainerRef1}
           className={`w-[100%] border-b-2 ${
             mode === "Light" ? "border-gray-300" : "border-gray-800"
-          } cursor-crosshair absolute top-0 left-0 z-10`}
+          } cursor-crosshair absolute top-0 left-0 z-3`}
           onMouseMove={(e) => {
             handleOnMouseMove(e);
           }}

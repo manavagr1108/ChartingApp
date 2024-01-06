@@ -4,7 +4,12 @@ import Charting from "./components/charting/charting";
 import SearchBar from "./components/search_bar/search_bar";
 import StockSelect from "./components/stock_select/stock_select";
 import ToolBar from "./components/tool_bar/tool_bar";
-import { selectedStock, interval, stockData } from "./signals/stockSignals";
+import {
+  selectedStock,
+  interval,
+  stockData,
+  chartType,
+} from "./signals/stockSignals";
 
 function App() {
   const [mode, setMode] = useState("Light");
@@ -20,6 +25,7 @@ function App() {
           interval={interval}
           mode={mode}
           toggleMode={toggleMode}
+          chartType={chartType}
         />
         <ToolBar mode={mode} />
         <Charting
@@ -27,6 +33,7 @@ function App() {
           interval={interval}
           stockData={stockData}
           mode={mode}
+          chartType={chartType}
         />
       </div>
     </div>

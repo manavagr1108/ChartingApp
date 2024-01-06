@@ -117,13 +117,18 @@ export const drawCandleStick = (
   context.fillStyle = fillColor;
   context.fillRect(x - width / 2, bodyY, width, bodyHeight);
 
-  // Draw candlestick wicks
-  context.strokeStyle = borderColor;
-  context.lineWidth = width / 5;
-  context.beginPath();
-  context.moveTo(x, high);
-  context.lineTo(x, Math.min(open, close));
-  context.moveTo(x, low);
-  context.lineTo(x, Math.max(open, close));
-  context.stroke();
-};
+    // Draw candlestick wicks
+    context.strokeStyle = borderColor;
+    context.lineWidth = 1;
+    context.beginPath();
+    context.moveTo(x, high);
+    context.lineTo(x, Math.min(open, close));
+    context.moveTo(x, low);
+    context.lineTo(x, Math.max(open, close));
+    context.stroke();
+}
+
+export const drawLineChart = (data, minPrice, maxPrice, height, margin, x, context, width) => {
+    const y = getYCoordinate(data["AdjClose"], minPrice, maxPrice, height, margin);
+    context.lineTo(x,y);
+}
