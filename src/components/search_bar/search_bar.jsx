@@ -53,7 +53,7 @@ function SearchBar({ selectedStock, interval, chartType, mode, toggleMode }) {
       <div className="flex items-center w-full h-full">
         <div
           ref={dropRefSelectStock}
-          className={`flex relative flex-row justify-evenly items-center border ${
+          className={`flex relative flex-row justify-evenly items-center border${
             mode === "Light" ? "border-gray-800" : "border-gray-300"
           } p-2 rounded-full`}
         >
@@ -83,7 +83,7 @@ function SearchBar({ selectedStock, interval, chartType, mode, toggleMode }) {
                 searchVal !== ""
                   ? `absolute shadow-md rounded-lg cursor-pointer flex flex-col items-start z-10 ${
                       mode === "Light" ? "bg-gray-100" : "bg-gray-900"
-                    } top-10 left-[-2px] w-fit h-fit max-h-[300px] overflow-y-auto`
+                    } top-10 left-[-2px] w-[400px] h-fit max-h-[300px] overflow-y-auto no-scrollbar`
                   : "hidden"
               }
             >

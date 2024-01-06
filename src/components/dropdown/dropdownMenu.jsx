@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useOutsideClick } from "../search_bar/search_bar";
 
-function DropdownMenuItems({itemKey, itemValue, stateToBeUpdated, mode}) {
+function DropdownMenuItems({ itemKey, itemValue, stateToBeUpdated, mode }) {
   return (
     <div
       className={`w-full ${
@@ -18,7 +18,7 @@ function DropdownMenuItems({itemKey, itemValue, stateToBeUpdated, mode}) {
   );
 }
 
-function DropdownMenu({ menuList, stateToBeUpdated, mode}) {
+function DropdownMenu({ menuList, stateToBeUpdated, mode }) {
   const [toogleMenu, setToogleMenu] = useState(false);
   const checkOutsideClick = useOutsideClick(() => setToogleMenu(false));
   return (
@@ -37,14 +37,19 @@ function DropdownMenu({ menuList, stateToBeUpdated, mode}) {
           className={
             toogleMenu
               ? `absolute shadow-md rounded-lg cursor-pointer flex flex-col items-start z-10 ${
-                mode === "Light" ? "bg-gray-100" : "bg-gray-800"
-              } top-10 left-[-2px] w-fit h-fit max-h-[300px] overflow-y-auto`
+                  mode === "Light" ? "bg-gray-100" : "bg-gray-800"
+                } top-10 left-[-2px] w-fit h-fit max-h-[300px] overflow-y-auto`
               : "hidden"
           }
         >
           {Object.keys(menuList).map((key) => {
             return (
-              <DropdownMenuItems itemKey={key}  itemValue={menuList[key]} stateToBeUpdated={stateToBeUpdated} mode={mode}/>
+              <DropdownMenuItems
+                itemKey={key}
+                itemValue={menuList[key]}
+                stateToBeUpdated={stateToBeUpdated}
+                mode={mode}
+              />
             );
           })}
         </div>

@@ -309,10 +309,19 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
 
       const dateText = dateCursor.value.date;
       const xCoord = dateCursor.value.x - 75;
-      const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin + 10;
+      const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin;
       ctx.font = "12px Arial";
       ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      ctx.fillRect(
+        xCoord - 10,
+        yCoord - 14,
+        dateText.length * 8,
+        20,
+        mode === "Light" ? "white" : "black"
+      );
+      ctx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
       ctx.fillText(dateText, xCoord, yCoord);
+      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       ctx.fillText(dateCursor.value.text, 50, 20);
 
       const price =
@@ -328,6 +337,14 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       const yCoord1 = dateCursor.value.y - 50;
       ctx.font = "12px Arial";
       ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      ctx.fillRect(
+        xCoord1 - 5,
+        yCoord1 - 14,
+        priceText.length * 8,
+        20,
+        mode === "Light" ? "white" : "black"
+      );
+      ctx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
       ctx.fillText(priceText, xCoord1, yCoord1);
       ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
 
