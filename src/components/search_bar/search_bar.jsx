@@ -4,18 +4,18 @@ import { FaSearch } from "react-icons/fa";
 import { MdOutlineCandlestickChart, MdOutlineShowChart } from "react-icons/md";
 import { intervalMap } from "../../utility/xAxisUtils.js";
 import { effect } from "@preact/signals-react";
+import DropdownMenu from "../dropdown/dropdownMenu.jsx";
 
 const chartTypes = {
   Candles: <MdOutlineCandlestickChart size={22} />,
   Line: <MdOutlineShowChart size={22} />,
 };
 
-const useOutsideClick = (callBackFunc) => {
+export const useOutsideClick = (callBackFunc) => {
   const dropRef = useRef();
   useEffect(() => {
     let handler = (event) => {
       if (!dropRef.current?.contains(event.target)) {
-        console.log("func called");
         callBackFunc();
       }
     };
@@ -29,11 +29,7 @@ const useOutsideClick = (callBackFunc) => {
 
 function SearchBar({ selectedStock, interval, chartType, mode, toggleMode }) {
   const [searchVal, setSearchVal] = useState("");
-  const [toggleInterval, setToggleInterval] = useState(true);
-  const [toogleChartType, setToogleChartType] = useState(true);
   const [filteredProduct, setFilteredProduct] = useState([]);
-  const dropRefInterval = useOutsideClick(() => setToggleInterval(true));
-  const dropRefChartType = useOutsideClick(() => setToogleChartType(true));
   const dropRefSelectStock = useOutsideClick(() => setSearchVal(""));
   const updateBestMatches = async () => {
     const data = await searchSymbol(searchVal);
@@ -46,9 +42,6 @@ function SearchBar({ selectedStock, interval, chartType, mode, toggleMode }) {
     selectedStock.value = stock;
     setFilteredProduct([]);
   };
-  effect(() => {
-    console.log(selectedStock.value);
-  });
   return (
     <div
       className={`flex justify-between items-center pl-2 pr-5 border-l-2 border-b-2 ${
@@ -128,84 +121,9 @@ function SearchBar({ selectedStock, interval, chartType, mode, toggleMode }) {
           }
         </div>
         <div className="border-l-2 ml-2 h-2/3"></div>
-        <button
-          ref={dropRefInterval}
-          onClick={() => setToggleInterval(!toggleInterval)}
-          className={`relative m-1 p-2 ${
-            mode === "Light"
-              ? "hover:bg-gray-200 text-gray-600"
-              : "hover:bg-gray-800 text-gray-200"
-          } rounded-md `}
-        >
-          {interval}
-          {
-            <div
-              className={
-                toggleInterval
-                  ? "hidden"
-                  : `absolute shadow-md rounded-lg cursor-pointer flex flex-col items-start z-10 ${
-                      mode === "Light" ? "bg-gray-100" : "bg-gray-800"
-                    } top-10 left-[-2px] w-fit h-fit max-h-[300px] overflow-y-auto`
-              }
-            >
-              {Object.keys(intervalMap).map((ele) => {
-                return (
-                  <div
-                    className={`w-full ${
-                      mode === "Light"
-                        ? "hover:bg-gray-300 hover:text-gray-800"
-                        : "hover:bg-gray-200 hover:text-gray-900"
-                    } px-2 py-1`}
-                    value={ele}
-                    onClick={() => (interval.value = ele)}
-                  >
-                    {ele}
-                  </div>
-                );
-              })}
-            </div>
-          }
-        </button>
+        <DropdownMenu menuList={intervalMap} stateToBeUpdated={interval} mode={mode}/>
         <div className="border-l-2 h-2/3"></div>
-        <button
-          ref={dropRefChartType}
-          onClick={() => setToogleChartType(!toogleChartType)}
-          className={`relative m-1 p-2 ${
-            mode === "Light"
-              ? "hover:bg-gray-200 text-gray-600"
-              : "hover:bg-gray-800 text-gray-200"
-          } rounded-md`}
-        >
-          {chartTypes[chartType]}
-          {
-            <div
-              className={
-                toogleChartType
-                  ? "hidden"
-                  : `absolute shadow-md rounded-lg cursor-pointer flex flex-col items-start z-10 ${
-                      mode === "Light" ? "bg-gray-100" : "bg-gray-900"
-                    } top-10 left-[-2px] w-fit h-fit max-h-[300px] overflow-y-auto`
-              }
-            >
-              {Object.keys(chartTypes).map((ele) => {
-                return (
-                  <div
-                    className={`flex w-full ${
-                      mode === "Light"
-                        ? "hover:bg-gray-300 hover:text-gray-800"
-                        : "hover:bg-white hover:text-gray-800"
-                    } px-2 py-1`}
-                    value={ele}
-                    onClick={() => (chartType.value = ele)}
-                  >
-                    {chartTypes[ele]}
-                    {ele}
-                  </div>
-                );
-              })}
-            </div>
-          }
-        </button>
+        <DropdownMenu menuList={chartTypes} stateToBeUpdated={chartType} mode={mode}/>
       </div>
       <div className="flex items-center ml-2">
         <label

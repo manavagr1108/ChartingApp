@@ -136,7 +136,6 @@ function drawChart(ChartContainerRef, mode) {
         mode
       );
     } else if (chartType.peek() === "Line") {
-      console.log("line");
       drawLineChart(
         d,
         priceRange.peek().minPrice,
@@ -256,7 +255,6 @@ function handleScroll(e) {
       noOfCSMovedLeft,
       dateConfig.value.dateToIndex
     );
-    console.log(timeRange.value.offset);
     updateXAxisConfig(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
@@ -284,7 +282,6 @@ function handleScroll(e) {
       pixelMovement,
       dateConfig.value.dateToIndex
     );
-    console.log(timeRange.value.offset);
   }
   updatePriceRange();
   handleOnMouseMove(e);
