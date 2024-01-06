@@ -53,7 +53,7 @@ const updateConfig = () => {
   }
 };
 
-function drawChart(ChartContainerRef) {
+function drawChart(ChartContainerRef, mode) {
   if (
     ChartContainerRef !== null &&
     ChartContainerRef.current !== null &&
@@ -65,7 +65,7 @@ function drawChart(ChartContainerRef) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
   ctx.font = "12px Arial";
-  ctx.fillStyle = "black";
+  ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillText(selectedStock.peek(), 10, 20);
   const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
   for (let i = yAxisConfig.peek().noOfColumns - 1; i > 0; i--) {
@@ -80,7 +80,7 @@ function drawChart(ChartContainerRef) {
       i *
         ((canvasSize.peek().height - xAxisConfig.peek().margin) /
           yAxisConfig.peek().noOfColumns);
-    ctx.fillStyle = "black";
+    ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     ctx.fillText(text.toFixed(2), parseInt(xCoord - 5), parseInt(yCoord + 5));
   }
   const startIndex =
@@ -112,7 +112,7 @@ function drawChart(ChartContainerRef) {
       const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin;
       const currentMonth = parseInt(d.Date.split("-")[1]);
       const currentYear = parseInt(d.Date.split("-")[0]);
-      ctx.fillStyle = "black";
+      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
         ctx.fillText(currentYear, xCoord, yCoord);
       } else {
@@ -127,7 +127,8 @@ function drawChart(ChartContainerRef) {
       xAxisConfig.peek().margin,
       xCoord,
       ctx,
-      xAxisConfig.peek().widthOfOneCS - 4
+      xAxisConfig.peek().widthOfOneCS - 4,
+      mode
     );
   });
 }
@@ -218,7 +219,7 @@ function handleOnMouseMove(e) {
     y <= canvasSize.peek().height
   ) {
     const dateIndex = Math.floor(
-      (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
+      (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS + 0.5
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
@@ -234,8 +235,7 @@ function handleOnMouseMove(e) {
           2
         )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
         x:
-          canvasSize.peek().width -
-          dateIndex * xAxisConfig.peek().widthOfOneCS,
+          canvasSize.peek().width - dateIndex * xAxisConfig.peek().widthOfOneCS,
         y: e.pageY,
       };
     }
@@ -297,55 +297,7 @@ function handleScroll(e) {
   handleOnMouseMove(e);
 }
 
-effect(() => {
-  if (
-    dateCursor.value &&
-    dateCursor.value.x !== null &&
-    dateCursor.value.y !== null
-  ) {
-    const canvas = document.querySelector("canvas:nth-child(2)");
-    const ctx = canvas.getContext("2d");
-
-    ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
-
-    const dateText = dateCursor.value.date;
-    const xCoord = dateCursor.value.x - 75;
-    const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin + 10;
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText(dateText, xCoord, yCoord);
-    ctx.fillText(dateCursor.value.text, 50, 20);
-
-    const price =
-      priceRange.peek().minPrice +
-      ((canvasSize.peek().height -
-        xAxisConfig.peek().margin -
-        dateCursor.value.y +
-        50) *
-        (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
-        (canvasSize.peek().height - xAxisConfig.peek().margin);
-    const priceText = price.toFixed(2);
-    const xCoord1 = canvasSize.peek().width - xAxisConfig.peek().margin - 50;
-    const yCoord1 = dateCursor.value.y - 50;
-    ctx.font = "12px Arial";
-    ctx.fillStyle = "black";
-    ctx.fillText(priceText, xCoord1, yCoord1);
-
-    ctx.setLineDash([5, 5]);
-    ctx.beginPath();
-
-    ctx.moveTo(dateCursor.value.x - 50, 0);
-    ctx.lineTo(dateCursor.value.x - 50, canvasSize.peek().height);
-
-    ctx.moveTo(0, dateCursor.value.y - 50);
-    ctx.lineTo(canvasSize.peek().width, dateCursor.value.y - 50);
-
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-});
-
-function Charting({ selectedStock, interval, stockData }) {
+function Charting({ selectedStock, interval, stockData, mode }) {
   console.log("render");
   const ChartContainerRef = useRef(null);
   const ChartContainerRef1 = useRef(null);
@@ -353,7 +305,55 @@ function Charting({ selectedStock, interval, stockData }) {
     setCanvasSize(ChartContainerRef.current);
     setCanvasSize(ChartContainerRef1.current);
     updateConfig();
-  },[])
+  }, []);
+  effect(() => {
+    if (
+      dateCursor.value &&
+      dateCursor.value.x !== null &&
+      dateCursor.value.y !== null
+    ) {
+      const canvas = document.querySelector("canvas:nth-child(2)");
+      const ctx = canvas.getContext("2d");
+
+      ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
+
+      const dateText = dateCursor.value.date;
+      const xCoord = dateCursor.value.x - 75;
+      const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin + 10;
+      ctx.font = "12px Arial";
+      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      ctx.fillText(dateText, xCoord, yCoord);
+      ctx.fillText(dateCursor.value.text, 50, 20);
+
+      const price =
+        priceRange.peek().minPrice +
+        ((canvasSize.peek().height -
+          xAxisConfig.peek().margin -
+          dateCursor.value.y +
+          50) *
+          (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
+          (canvasSize.peek().height - xAxisConfig.peek().margin);
+      const priceText = price.toFixed(2);
+      const xCoord1 = canvasSize.peek().width - xAxisConfig.peek().margin - 50;
+      const yCoord1 = dateCursor.value.y - 50;
+      ctx.font = "12px Arial";
+      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
+      ctx.fillText(priceText, xCoord1, yCoord1);
+
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+
+      ctx.moveTo(dateCursor.value.x - 50, 0);
+      ctx.lineTo(dateCursor.value.x - 50, canvasSize.peek().height);
+
+      ctx.moveTo(0, dateCursor.value.y - 50);
+      ctx.lineTo(canvasSize.peek().width, dateCursor.value.y - 50);
+
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
   effect(() => {
     if (selectedStock.value && interval.value)
       setStockData(selectedStock, interval, stockData);
@@ -372,28 +372,39 @@ function Charting({ selectedStock, interval, stockData }) {
       false
     );
     window.addEventListener("resize", handleResize);
-    return(() => {
-      window.removeEventListener("resize",handleResize);
-    })
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
   });
   effect(() => {
     if (
       timeRange.value.endTime.Date !== 0 &&
       timeRange.value.startTime.Date !== 0
     ) {
-      if (ChartContainerRef.current !== null) drawChart(ChartContainerRef);
+      if (ChartContainerRef.current !== null)
+        drawChart(ChartContainerRef, mode);
     }
   });
   return (
-    <div className="flex w-[100%] flex-col border-l-2 border-gray-300">
+    <div
+      className={`flex w-[100%] flex-col border-l-2 ${
+        mode === "Light"
+          ? "border-gray-300 bg-gray-100"
+          : "border-gray-800  bg-gray-900"
+      }`}
+    >
       <div className="w-[100%] h-[95%] relative">
         <canvas
           ref={ChartContainerRef}
-          className="w-[100%] border-b-2 border-gray-300 cursor-crosshair absolute top-0 left-0 z-2"
+          className={`w-[100%] border-b-2 ${
+            mode === "Light" ? "border-gray-300" : "border-gray-800"
+          } cursor-crosshair absolute top-0 left-0 z-2`}
         ></canvas>
         <canvas
           ref={ChartContainerRef1}
-          className="w-[100%] border-b-2 border-gray-300 cursor-crosshair absolute top-0 left-0 z-10"
+          className={`w-[100%] border-b-2 ${
+            mode === "Light" ? "border-gray-300" : "border-gray-800"
+          } cursor-crosshair absolute top-0 left-0 z-10`}
           onMouseMove={(e) => {
             handleOnMouseMove(e);
           }}
