@@ -1,3 +1,6 @@
+import { dateConfig, priceRange, stockData, timeRange, yAxisConfig } from "../signals/stockSignals";
+import { getObjtoStringTime } from "./xAxisUtils";
+
 function getLeftDate(date) {
   return date.slice(0, 10);
 }
@@ -117,18 +120,52 @@ export const drawCandleStick = (
   context.fillStyle = fillColor;
   context.fillRect(x - width / 2, bodyY, width, bodyHeight);
 
-    // Draw candlestick wicks
-    context.strokeStyle = borderColor;
-    context.lineWidth = 1;
-    context.beginPath();
-    context.moveTo(x, high);
-    context.lineTo(x, Math.min(open, close));
-    context.moveTo(x, low);
-    context.lineTo(x, Math.max(open, close));
-    context.stroke();
-}
+  // Draw candlestick wicks
+  context.strokeStyle = borderColor;
+  context.lineWidth = 1;
+  context.beginPath();
+  context.moveTo(x, high);
+  context.lineTo(x, Math.min(open, close));
+  context.moveTo(x, low);
+  context.lineTo(x, Math.max(open, close));
+  context.stroke();
+};
 
-export const drawLineChart = (data, minPrice, maxPrice, height, margin, x, context, width) => {
-    const y = getYCoordinate(data["AdjClose"], minPrice, maxPrice, height, margin);
-    context.lineTo(x,y);
+export const drawLineChart = (
+  data,
+  minPrice,
+  maxPrice,
+  height,
+  margin,
+  x,
+  context,
+  width
+) => {
+  const y = getYCoordinate(
+    data["AdjClose"],
+    minPrice,
+    maxPrice,
+    height,
+    margin
+  );
+  context.lineTo(x, y);
+};
+
+export function updatePriceRange() {
+  const result = getMinMaxPrices(
+    yAxisConfig.peek().segmentTree,
+    dateConfig.peek().dateToIndex,
+    getObjtoStringTime(timeRange.value.endTime),
+    getObjtoStringTime(timeRange.value.startTime),
+    stockData.peek().length
+  );
+  if (
+    result &&
+    (result.maxPrice !== priceRange.peek().maxPrice ||
+      result.minPrice !== priceRange.peek().minPrice) &&
+    (result.maxPrice !== Number.MIN_SAFE_INTEGER ||
+      result.minPrice !== Number.MAX_SAFE_INTEGER)
+  ) {
+    priceRange.value = result;
+  }
 }

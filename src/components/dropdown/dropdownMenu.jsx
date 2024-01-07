@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useOutsideClick } from "../search_bar/search_bar";
+import { useOutsideClick } from "../nav_bar/nav_bar";
 
 function DropdownMenuItems({ itemKey, itemValue, stateToBeUpdated, mode }) {
   return (
