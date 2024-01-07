@@ -1,21 +1,15 @@
 import React, { useCallback, useLayoutEffect, useRef } from "react";
 import { effect } from "@preact/signals-react";
 import {
-  buildSegmentTree,
-  getMinMaxPrices,
-  drawCandleStick,
-  drawLineChart,
-} from "../../utility/yAxisUtils";
-import {
   chartCanvasSize,
   xAxisCanvasSize,
   yAxisCanvasSize,
-  dateConfig,
   priceRange,
-  selectedStock,
-  stockData,
   timeRange,
   dateCursor,
+  dateConfig,
+  xAxisConfig,
+  yAxisConfig,
 } from "../../signals/stockSignals";
 import {
   updateConfig,
@@ -24,11 +18,11 @@ import {
   setCanvasSize,
   handleOnMouseMove,
   handleScroll,
-  updateCursorValue,
+  drawGridLines,
 } from "../../utility/chartUtils";
+import { getObjtoStringTime } from "../../utility/xAxisUtils";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  console.log("render");
   const ChartRef = useRef(null);
   const ChartRef1 = useRef(null);
   const xAxisRef = useRef(null);
@@ -99,11 +93,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
 
       const price =
         priceRange.peek().minPrice +
-        ((chartCanvasSize.peek().height -
-          dateCursor.value.y +
-          50) *
+        ((chartCanvasSize.peek().height - dateCursor.value.y + 50) *
           (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
-          (chartCanvasSize.peek().height);
+          chartCanvasSize.peek().height;
       const priceText = price.toFixed(2);
       const yCoord1 = dateCursor.value.y;
       yAxisCtx.fillRect(
@@ -141,8 +133,16 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     setCanvasSize(xAxisRef1.current);
     yAxisCanvasSize.value = setCanvasSize(yAxisRef.current);
     setCanvasSize(yAxisRef1.current);
-    ChartRef.current.addEventListener("wheel", (e) => handleScroll(e, ChartRef), false);
-    ChartRef1.current.addEventListener("wheel", (e) => handleScroll(e, ChartRef1), false);
+    ChartRef.current.addEventListener(
+      "wheel",
+      (e) => handleScroll(e, ChartRef),
+      false
+    );
+    ChartRef1.current.addEventListener(
+      "wheel",
+      (e) => handleScroll(e, ChartRef1),
+      false
+    );
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -158,8 +158,33 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         ChartRef.current !== null &&
         xAxisRef.current !== null &&
         yAxisRef.current !== null
-      )
-        drawChart(ChartRef, xAxisRef, yAxisRef, mode);
+      ) {
+        const chartContext = ChartRef.current.getContext("2d");
+        if (chartContext !== null) {
+          drawChart(ChartRef, xAxisRef, yAxisRef, mode);
+
+          const chartData = stockData
+            .peek()
+            .slice(
+              dateConfig.peek().dateToIndex[
+                getObjtoStringTime(timeRange.peek().endTime)
+              ],
+              dateConfig.peek().dateToIndex[
+                getObjtoStringTime(timeRange.peek().startTime)
+              ]
+            );
+
+          drawGridLines(
+            chartContext,
+            chartCanvasSize.peek().width,
+            chartCanvasSize.peek().height,
+            mode,
+            xAxisConfig,
+            yAxisConfig,
+            chartData
+          );
+        }
+      }
     }
   });
   return (
