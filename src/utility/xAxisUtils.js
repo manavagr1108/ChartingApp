@@ -1,5 +1,5 @@
 import testData from "../data/testData.json";
-import { canvasSize, xAxisConfig } from "../signals/stockSignals";
+import { canvasSize, chartCanvasSize, xAxisConfig } from "../signals/stockSignals";
 export const intervalMap = {
   "1d": "1d",
   "1wk": "1W",
@@ -155,10 +155,11 @@ export function getNewZoomTime(
 }
 
 export const updateXAxisConfig = (startTime, endTime, datesToIndex) => {
-  const noOfDataPoints =
-    datesToIndex[getObjtoStringTime(startTime)] -
-    datesToIndex[getObjtoStringTime(endTime)];
-  const widthOfOneCS = canvasSize.peek().width / noOfDataPoints;
-  xAxisConfig.value.noOfDataPoints = noOfDataPoints;
-  xAxisConfig.value.widthOfOneCS = widthOfOneCS;
-};
+    const noOfDataPoints =
+      datesToIndex[getObjtoStringTime(startTime)] -
+      datesToIndex[getObjtoStringTime(endTime)];
+    const widthOfOneCS = chartCanvasSize.peek().width / noOfDataPoints;
+    xAxisConfig.value.noOfDataPoints = noOfDataPoints;
+    xAxisConfig.value.widthOfOneCS = widthOfOneCS;
+  };
+  

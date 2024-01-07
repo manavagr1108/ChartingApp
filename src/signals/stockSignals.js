@@ -25,7 +25,15 @@ export const timeRange = signal({
   offset: 0,
   multiplier: 0,
 });
-export const canvasSize = signal({
+export const chartCanvasSize = signal({
+  width: 0,
+  height: 0,
+});
+export const xAxisCanvasSize = signal({
+  width: 0,
+  height: 0,
+});
+export const yAxisCanvasSize = signal({
   width: 0,
   height: 0,
 });
@@ -34,7 +42,6 @@ export const priceRange = signal({
   maxPrice: 0,
 });
 export const xAxisConfig = signal({
-  margin: 10,
   noOfDataPoints: 0,
   noOfColumns: 12,
   widthOfOneCS: 0,
@@ -44,7 +51,6 @@ export const dateConfig = signal({
   indexToDate: {},
 });
 export const yAxisConfig = signal({
-  margin: 55,
   priceDiff: 0,
   noOfColumns: 12,
   segmentTree: [],

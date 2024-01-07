@@ -1,6 +1,6 @@
 import { monthMap } from "../data/TIME_MAP";
 import {
-  canvasSize,
+  chartCanvasSize,
   chartType,
   dateConfig,
   dateCursor,
@@ -8,7 +8,9 @@ import {
   selectedStock,
   stockData,
   timeRange,
+  xAxisCanvasSize,
   xAxisConfig,
+  yAxisCanvasSize,
   yAxisConfig,
 } from "../signals/stockSignals";
 import { getStockData } from "./stock_api";
@@ -45,35 +47,56 @@ export const updateConfig = () => {
   }
 };
 
-export function drawChart(ChartContainerRef, mode) {
+export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
   if (
-    ChartContainerRef !== null &&
-    ChartContainerRef.current !== null &&
-    (!stockData.peek().length ||
-      priceRange.peek().maxPrice === priceRange.peek().minPrice)
+    !stockData.peek().length ||
+    priceRange.peek().maxPrice === priceRange.peek().minPrice
   )
     return;
-  const canvas = ChartContainerRef.current;
+  const canvas = ChartRef.current;
+  const canvasXAxis = xAxisRef.current;
+  const canvasYAxis = yAxisRef.current;
   const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
+  const xAxisCtx = canvasXAxis.getContext("2d");
+  const yAxisCtx = canvasYAxis.getContext("2d");
+  ctx.clearRect(
+    0,
+    0,
+    chartCanvasSize.peek().width,
+    chartCanvasSize.peek().height
+  );
+  xAxisCtx.clearRect(
+    0,
+    0,
+    xAxisCanvasSize.peek().width,
+    xAxisCanvasSize.peek().height
+  );
+  yAxisCtx.clearRect(
+    0,
+    0,
+    yAxisCanvasSize.peek().width,
+    yAxisCanvasSize.peek().height
+  );
   ctx.font = "12px Arial";
   ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  xAxisCtx.font = "12px Arial";
+  xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  yAxisCtx.font = "12px Arial";
+  yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillText(selectedStock.peek(), 10, 20);
   const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-  for (let i = yAxisConfig.peek().noOfColumns - 1; i > 0; i--) {
+  for (let i = yAxisConfig.peek().noOfColumns - 1; i >= 0; i--) {
     const text =
       priceRange.peek().maxPrice -
       (pDiff / yAxisConfig.peek().noOfColumns) *
         (yAxisConfig.peek().noOfColumns - i);
-    const xCoord = canvasSize.peek().width - yAxisConfig.peek().margin;
     const yCoord =
-      canvasSize.peek().height -
-      xAxisConfig.peek().margin -
+      chartCanvasSize.peek().height -
       i *
-        ((canvasSize.peek().height - xAxisConfig.peek().margin) /
+        ((chartCanvasSize.peek().height) /
           yAxisConfig.peek().noOfColumns);
-    ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-    ctx.fillText(text.toFixed(2), parseInt(xCoord - 5), parseInt(yCoord + 5));
+    yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    yAxisCtx.fillText(text.toFixed(2), 0, yCoord);
   }
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
@@ -85,32 +108,29 @@ export function drawChart(ChartContainerRef, mode) {
     console.log("Undefined startIndex or endIndex!");
     return;
   }
-  const resultData = stockData.peek().slice(startIndex, endIndex).reverse();
+  const resultData = stockData.peek().slice(startIndex, endIndex+1).reverse();
   ctx.strokeStyle = "blue";
   ctx.beginPath();
   resultData.forEach((d, i) => {
     const xCoord =
-      canvasSize.peek().width -
-      yAxisConfig.peek().margin -
+      chartCanvasSize.peek().width -
       i * xAxisConfig.peek().widthOfOneCS -
       xAxisConfig.peek().widthOfOneCS / 2 -
       timeRange.peek().multiplier * timeRange.peek().offset;
-
     if (xCoord < 0) return;
 
     if (
       i < resultData.length - 1 &&
-      parseInt(d.Date.split("-")[1]) !==
-        parseInt(resultData[i + 1].Date.split("-")[1])
+      d.Date.split("-")[1] !==
+        resultData[i + 1].Date.split("-")[1]
     ) {
-      const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin;
       const currentMonth = parseInt(d.Date.split("-")[1]);
       const currentYear = parseInt(d.Date.split("-")[0]);
-      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        ctx.fillText(currentYear, xCoord, yCoord);
+        xAxisCtx.fillText(currentYear, xCoord, 12);
       } else {
-        ctx.fillText(monthMap[currentMonth - 1], xCoord, yCoord);
+        xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord, 12);
       }
     }
     if (chartType.peek() === "Candles") {
@@ -118,23 +138,19 @@ export function drawChart(ChartContainerRef, mode) {
         d,
         priceRange.peek().minPrice,
         priceRange.peek().maxPrice,
-        canvasSize.peek().height,
-        xAxisConfig.peek().margin,
+        chartCanvasSize.peek().height,
         xCoord,
         ctx,
         xAxisConfig.peek().widthOfOneCS - 4,
-        mode
       );
     } else if (chartType.peek() === "Line") {
       drawLineChart(
         d,
         priceRange.peek().minPrice,
         priceRange.peek().maxPrice,
-        canvasSize.peek().height,
-        xAxisConfig.peek().margin,
+        chartCanvasSize.peek().height,
         xCoord,
         ctx,
-        xAxisConfig.peek().widthOfOneCS - 4
       );
     }
   });
@@ -164,24 +180,25 @@ export function setCanvasSize(element) {
     canvas.height = height * dpr;
   }
   ctx.scale(dpr, dpr);
-  canvasSize.value = {
+  return {
     width: width,
     height: height,
   };
 }
 
-export function handleOnMouseMove(e) {
-  const canvas = document.querySelector("canvas:nth-child(2)");
-  const x = e.pageX - canvas.offsetLeft;
-  const y = e.pageY - canvas.offsetTop;
+export function handleOnMouseMove(e, ChartRef) {
+  const canvas = ChartRef.current;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.pageX - rect.left;
+  const y = e.pageY - rect.top;
   if (
     x >= 0 &&
-    x <= canvasSize.peek().width &&
+    x <= chartCanvasSize.peek().width &&
     y >= 0 &&
-    y <= canvasSize.peek().height
+    y <= chartCanvasSize.peek().height
   ) {
     const dateIndex = Math.floor(
-      (canvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS + 0.5
+      (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
@@ -197,8 +214,8 @@ export function handleOnMouseMove(e) {
           2
         )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
         x:
-          canvasSize.peek().width - dateIndex * xAxisConfig.peek().widthOfOneCS,
-        y: e.pageY,
+          chartCanvasSize.peek().width - dateIndex * xAxisConfig.peek().widthOfOneCS - xAxisConfig.peek().widthOfOneCS/2 - timeRange.peek().multiplier*timeRange.peek().offset,
+        y: y,
       };
     }
   } else {
@@ -206,7 +223,7 @@ export function handleOnMouseMove(e) {
   }
 }
 
-export function handleScroll(e) {
+export function handleScroll(e, ChartRef) {
   e.preventDefault();
 
   if (e.ctrlKey) {
@@ -256,18 +273,18 @@ export function handleScroll(e) {
     );
   }
   updatePriceRange();
-  handleOnMouseMove(e);
+  handleOnMouseMove(e, ChartRef);
 }
 
 export function updateCursorValue(ChartContainerRef, mode) {
   const canvas = ChartContainerRef.current;
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0, 0, canvasSize.peek().width, canvasSize.peek().height);
+  ctx.clearRect(0, 0, chartCanvasSize.peek().width, chartCanvasSize.peek().height);
 
   const dateText = dateCursor.value.date;
   const xCoord = dateCursor.value.x - 75;
-  const yCoord = canvasSize.peek().height - xAxisConfig.peek().margin;
+  const yCoord = chartCanvasSize.peek().height - xAxisConfig.peek().margin;
   ctx.font = "12px Arial";
   ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillRect(
@@ -284,14 +301,14 @@ export function updateCursorValue(ChartContainerRef, mode) {
 
   const price =
     priceRange.peek().minPrice +
-    ((canvasSize.peek().height -
+    ((chartCanvasSize.peek().height -
       xAxisConfig.peek().margin -
       dateCursor.value.y +
       50) *
       (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
-      (canvasSize.peek().height - xAxisConfig.peek().margin);
+      (chartCanvasSize.peek().height - xAxisConfig.peek().margin);
   const priceText = price.toFixed(2);
-  const xCoord1 = canvasSize.peek().width - xAxisConfig.peek().margin - 50;
+  const xCoord1 = chartCanvasSize.peek().width - xAxisConfig.peek().margin - 50;
   const yCoord1 = dateCursor.value.y - 50;
   ctx.font = "12px Arial";
   ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
@@ -310,10 +327,10 @@ export function updateCursorValue(ChartContainerRef, mode) {
   ctx.beginPath();
 
   ctx.moveTo(dateCursor.value.x - 50, 0);
-  ctx.lineTo(dateCursor.value.x - 50, canvasSize.peek().height);
+  ctx.lineTo(dateCursor.value.x - 50, chartCanvasSize.peek().height);
 
   ctx.moveTo(0, dateCursor.value.y - 50);
-  ctx.lineTo(canvasSize.peek().width, dateCursor.value.y - 50);
+  ctx.lineTo(chartCanvasSize.peek().width, dateCursor.value.y - 50);
 
   ctx.stroke();
   ctx.setLineDash([]);
