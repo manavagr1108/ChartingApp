@@ -92,9 +92,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         (yAxisConfig.peek().noOfColumns - i);
     const yCoord =
       chartCanvasSize.peek().height -
-      i *
-        ((chartCanvasSize.peek().height) /
-          yAxisConfig.peek().noOfColumns);
+      i * (chartCanvasSize.peek().height / yAxisConfig.peek().noOfColumns);
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     yAxisCtx.fillText(text.toFixed(2), 0, yCoord);
   }
@@ -108,7 +106,10 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
     console.log("Undefined startIndex or endIndex!");
     return;
   }
-  const resultData = stockData.peek().slice(startIndex, endIndex+1).reverse();
+  const resultData = stockData
+    .peek()
+    .slice(startIndex, endIndex + 1)
+    .reverse();
   ctx.strokeStyle = "blue";
   ctx.beginPath();
   resultData.forEach((d, i) => {
@@ -121,8 +122,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
 
     if (
       i < resultData.length - 1 &&
-      d.Date.split("-")[1] !==
-        resultData[i + 1].Date.split("-")[1]
+      d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
     ) {
       const currentMonth = parseInt(d.Date.split("-")[1]);
       const currentYear = parseInt(d.Date.split("-")[0]);
@@ -141,7 +141,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         chartCanvasSize.peek().height,
         xCoord,
         ctx,
-        xAxisConfig.peek().widthOfOneCS - 4,
+        xAxisConfig.peek().widthOfOneCS - 4
       );
     } else if (chartType.peek() === "Line") {
       drawLineChart(
@@ -150,11 +150,34 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         priceRange.peek().maxPrice,
         chartCanvasSize.peek().height,
         xCoord,
-        ctx,
+        ctx
       );
     }
   });
   ctx.stroke();
+}
+
+export function drawGridLines(ctx, width, height, mode) {
+  const gridSizeX = 50;
+  const gridSizeY = 50;
+  const gridColor =
+    mode === "Light" ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.1)";
+
+  for (let x = gridSizeX; x < width; x += gridSizeX) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.strokeStyle = gridColor;
+    ctx.stroke();
+  }
+
+  for (let y = gridSizeY; y < height; y += gridSizeY) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.strokeStyle = gridColor;
+    ctx.stroke();
+  }
 }
 
 export async function setStockData(symbol, interval, stockData) {
@@ -214,7 +237,10 @@ export function handleOnMouseMove(e, ChartRef) {
           2
         )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
         x:
-          chartCanvasSize.peek().width - dateIndex * xAxisConfig.peek().widthOfOneCS - xAxisConfig.peek().widthOfOneCS/2 - timeRange.peek().multiplier*timeRange.peek().offset,
+          chartCanvasSize.peek().width -
+          dateIndex * xAxisConfig.peek().widthOfOneCS -
+          xAxisConfig.peek().widthOfOneCS / 2 -
+          timeRange.peek().multiplier * timeRange.peek().offset,
         y: y,
       };
     }
@@ -280,7 +306,12 @@ export function updateCursorValue(ChartContainerRef, mode) {
   const canvas = ChartContainerRef.current;
   const ctx = canvas.getContext("2d");
 
-  ctx.clearRect(0, 0, chartCanvasSize.peek().width, chartCanvasSize.peek().height);
+  ctx.clearRect(
+    0,
+    0,
+    chartCanvasSize.peek().width,
+    chartCanvasSize.peek().height
+  );
 
   const dateText = dateCursor.value.date;
   const xCoord = dateCursor.value.x - 75;
