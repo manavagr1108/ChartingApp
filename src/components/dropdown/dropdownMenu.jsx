@@ -45,6 +45,7 @@ function DropdownMenu({ menuList, stateToBeUpdated, mode }) {
           {Object.keys(menuList).map((key) => {
             return (
               <DropdownMenuItems
+                key={key}
                 itemKey={key}
                 itemValue={menuList[key]}
                 stateToBeUpdated={stateToBeUpdated}

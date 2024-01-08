@@ -22,8 +22,10 @@ export const timeRange = signal({
     Min: 0,
     Sec: 0,
   },
-  offset: 0,
-  multiplier: 0,
+  scrollOffset: 0,
+  scrollDirection: 0,
+  zoomOffset: 0,
+  zoomDirection: 0,
 });
 export const chartCanvasSize = signal({
   width: 0,
@@ -57,3 +59,9 @@ export const yAxisConfig = signal({
 });
 
 export const dateCursor = signal(null);
+
+export const xAxisMovement = signal({
+  mouseDown: false,
+  mouseMove: false,
+  prevXCoord: 0,
+});

@@ -1,5 +1,13 @@
 import testData from "../data/testData.json";
-import { canvasSize, chartCanvasSize, xAxisConfig } from "../signals/stockSignals";
+import {
+  chartCanvasSize,
+  dateConfig,
+  stockData,
+  timeRange,
+  xAxisConfig,
+  xAxisMovement
+} from "../signals/stockSignals";
+import { updatePriceRange } from "./yAxisUtils";
 export const intervalMap = {
   "1d": "1d",
   "1wk": "1W",
@@ -64,26 +72,30 @@ export function getObjtoStringTime(time) {
 export function getNewScrollTime(
   startTime,
   endTime,
-  offset,
-  multiplier,
+  scrollOffset,
+  scrollDirection,
+  zoomOffset,
+  zoomDirection,
   widthOfOneCS,
   noOfPMoved,
   dates
 ) {
-  multiplier = noOfPMoved / Math.abs(noOfPMoved);
-  if (offset + multiplier * noOfPMoved < widthOfOneCS) {
-    offset += multiplier * noOfPMoved;
+  scrollDirection = noOfPMoved / Math.abs(noOfPMoved);
+  if (scrollOffset + scrollDirection * noOfPMoved < widthOfOneCS) {
+    scrollOffset += scrollDirection * noOfPMoved;
     return {
       startTime,
       endTime,
-      offset,
-      multiplier,
+      scrollOffset,
+      scrollDirection,
+      zoomOffset,
+      zoomDirection,
     };
   } else {
     const noOfCSMoved =
-      multiplier *
-      Math.floor((offset + multiplier * noOfPMoved) / widthOfOneCS);
-    offset = (offset + multiplier * noOfPMoved) % widthOfOneCS;
+      scrollDirection *
+      Math.floor((scrollOffset + scrollDirection * noOfPMoved) / widthOfOneCS);
+    scrollOffset = (scrollOffset + scrollDirection * noOfPMoved) % widthOfOneCS;
     let prevStartTime = startTime;
     let prevEndTime = endTime;
     prevStartTime = getObjtoStringTime(prevStartTime);
@@ -96,7 +108,14 @@ export function getNewScrollTime(
       prevStartIndex + noOfCSMoved >= dates.length ||
       prevEndIndex + noOfCSMoved < 0
     ) {
-      return { startTime, endTime, offset, multiplier };
+      return {
+        startTime,
+        endTime,
+        scrollOffset,
+        scrollDirection,
+        zoomOffset,
+        zoomDirection,
+      };
     } else {
       const values = Object.keys(dates);
       if (
@@ -114,52 +133,148 @@ export function getNewScrollTime(
           return {
             startTime: newStartTime,
             endTime: newEndTime,
-            offset,
-            multiplier,
+            scrollOffset,
+            scrollDirection,
+            zoomOffset,
+            zoomDirection,
           };
         }
       }
-      return { startTime, endTime, offset, multiplier };
+      return {
+        startTime,
+        endTime,
+        scrollOffset,
+        scrollDirection,
+        zoomOffset,
+        zoomDirection,
+      };
     }
   }
 }
 export function getNewZoomTime(
   startTime,
   endTime,
-  offset,
-  multiplier,
-  noOfCSMovedLeft,
+  scrollOffset,
+  scrollDirection,
+  zoomOffset,
+  zoomDirection,
+  widthOfOneCS,
+  noOfPMoved,
   dates
 ) {
-  let prevStartTime = getObjtoStringTime(startTime);
-  let prevEndTime = getObjtoStringTime(endTime);
-  const prevStartIndex = dates[prevStartTime];
-  const prevEndIndex = dates[prevEndTime];
-  if (prevEndIndex === -1 || prevEndIndex + noOfCSMovedLeft < 0) {
-    return { startTime, endTime, offset, multiplier };
+  zoomDirection = noOfPMoved / Math.abs(noOfPMoved);
+  if (zoomOffset + zoomDirection * noOfPMoved < widthOfOneCS) {
+    zoomOffset += (zoomDirection * noOfPMoved) / 2;
+    return {
+      startTime,
+      endTime,
+      scrollOffset,
+      scrollDirection,
+      zoomOffset,
+      zoomDirection,
+    };
   } else {
-    const values = Object.keys(dates);
-    let newEndTime = endTime;
-    const noOfCS = prevStartIndex - (prevEndIndex + noOfCSMovedLeft);
-    if (noOfCS < 10 || noOfCS > 2500) {
-      return { startTime, endTime, offset, multiplier };
-    }
-    if (values[prevEndIndex + noOfCSMovedLeft] !== -1) {
-      newEndTime = getTime(values[prevEndIndex + noOfCSMovedLeft]);
-      if (!newEndTime || !newEndTime.Month) {
-        newEndTime = endTime;
+    const noOfCSMovedLeft =
+      zoomDirection *
+      Math.floor(
+        (zoomOffset + (zoomDirection * noOfPMoved) / 2) / widthOfOneCS
+      );
+    zoomOffset = (zoomOffset + (zoomDirection * noOfPMoved) / 2) % widthOfOneCS;
+    let prevStartTime = getObjtoStringTime(startTime);
+    let prevEndTime = getObjtoStringTime(endTime);
+    const prevStartIndex = dates[prevStartTime];
+    const prevEndIndex = dates[prevEndTime];
+    if (prevEndIndex === -1 || prevEndIndex + noOfCSMovedLeft < 0) {
+      return {
+        startTime,
+        endTime,
+        scrollOffset,
+        scrollDirection,
+        zoomOffset,
+        zoomDirection,
+      };
+    } else {
+      const values = Object.keys(dates);
+      let newEndTime = endTime;
+      const noOfCS = prevStartIndex - (prevEndIndex + noOfCSMovedLeft);
+      if (noOfCS < 10 || noOfCS > 1500) {
+        return {
+          startTime,
+          endTime,
+          scrollOffset,
+          scrollDirection,
+          zoomOffset,
+          zoomDirection,
+        };
       }
+      if (values[prevEndIndex + noOfCSMovedLeft] !== -1) {
+        newEndTime = getTime(values[prevEndIndex + noOfCSMovedLeft]);
+        if (!newEndTime || !newEndTime.Month) {
+          newEndTime = endTime;
+        }
+      }
+      return {
+        startTime,
+        endTime: newEndTime,
+        scrollOffset,
+        scrollDirection,
+        zoomOffset,
+        zoomDirection,
+      };
     }
-    return { startTime, endTime: newEndTime, offset, multiplier };
   }
 }
 
 export const updateXAxisConfig = (startTime, endTime, datesToIndex) => {
-    const noOfDataPoints =
-      datesToIndex[getObjtoStringTime(startTime)] -
-      datesToIndex[getObjtoStringTime(endTime)];
-    const widthOfOneCS = chartCanvasSize.peek().width / noOfDataPoints;
-    xAxisConfig.value.noOfDataPoints = noOfDataPoints;
-    xAxisConfig.value.widthOfOneCS = widthOfOneCS;
-  };
-  
+  const noOfDataPoints =
+    datesToIndex[getObjtoStringTime(startTime)] -
+    datesToIndex[getObjtoStringTime(endTime)];
+  const widthOfOneCS = chartCanvasSize.peek().width / noOfDataPoints;
+  xAxisConfig.value.noOfDataPoints = noOfDataPoints;
+  xAxisConfig.value.widthOfOneCS = widthOfOneCS;
+};
+
+export const xAxisMouseDown = (e) => {
+  xAxisMovement.value.mouseDown = true;
+  xAxisMovement.value.prevXCoord = e.pageX;
+  console.log(e.pageX);
+  const canvas = e.target;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+export const xAxisMouseMove = (e) => {
+  if(xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0){
+    if(!xAxisMovement.peek().mouseMove){
+      xAxisMovement.value.mouseMove = true;
+    }
+    // if(dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)] === 0 || dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)] === stockData.peek().length - 1){
+    //   return;
+    // }
+    console.log("move", e.pageX);
+    const pixelMovement = e.pageX - xAxisMovement.peek().prevXCoord;
+    timeRange.value = getNewZoomTime(
+      timeRange.peek().startTime,
+      timeRange.peek().endTime,
+      timeRange.peek().scrollOffset,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().zoomOffset,
+      timeRange.peek().zoomDirection,
+      xAxisConfig.peek().widthOfOneCS,
+      pixelMovement*xAxisConfig.peek().widthOfOneCS,
+      dateConfig.value.dateToIndex
+    )
+    updateXAxisConfig(
+      timeRange.peek().startTime,
+      timeRange.peek().endTime,
+      dateConfig.peek().dateToIndex
+    );
+    updatePriceRange();
+    xAxisMovement.value.prevXCoord = e.pageX;
+  }
+};
+export const xAxisMouseUp = (e) => {
+  if(xAxisMovement.peek().mouseMove){
+    console.log("mouse up");
+    xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+  }
+};

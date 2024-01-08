@@ -20,7 +20,7 @@ import {
   handleScroll,
   drawGridLines,
 } from "../../utility/chartUtils";
-import { getObjtoStringTime } from "../../utility/xAxisUtils";
+import { getObjtoStringTime, xAxisMouseDown, xAxisMouseMove, xAxisMouseUp } from "../../utility/xAxisUtils";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   const ChartRef = useRef(null);
@@ -79,7 +79,12 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
 
       const dateText = dateCursor.value.date;
-      const xCoord = dateCursor.value.x - 30;
+      let xCoord = dateCursor.value.x - 30;
+      if(xCoord - 10 + dateText.length*8 > chartCanvasSize.peek().width){
+        xCoord = chartCanvasSize.peek().width - dateText.length*8 + 10;
+      } else if(xCoord - 10 < 0){
+        xCoord = 10;
+      }
       xAxisCtx.fillRect(
         xCoord - 10,
         10 - 14,
@@ -99,14 +104,14 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       const priceText = price.toFixed(2);
       const yCoord1 = dateCursor.value.y;
       yAxisCtx.fillRect(
-        5 - 5,
+        0,
         yCoord1 - 14,
-        priceText.length * 8,
+        priceText.length * 12,
         20,
         mode === "Light" ? "white" : "black"
       );
       yAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
-      yAxisCtx.fillText(priceText, 5, yCoord1);
+      yAxisCtx.fillText(priceText, 15, yCoord1);
       ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
 
       ctx.setLineDash([5, 5]);
@@ -133,6 +138,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     setCanvasSize(xAxisRef1.current);
     yAxisCanvasSize.value = setCanvasSize(yAxisRef.current);
     setCanvasSize(yAxisRef1.current);
+    xAxisRef1.current.addEventListener('mousedown', xAxisMouseDown)
+    window.addEventListener('mousemove', xAxisMouseMove)
+    window.addEventListener('mouseup', xAxisMouseUp)
     ChartRef.current.addEventListener(
       "wheel",
       (e) => handleScroll(e, ChartRef),
@@ -145,7 +153,20 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     );
     window.addEventListener("resize", handleResize);
     return () => {
+      ChartRef.current.removeEventListener(
+        "wheel",
+        (e) => handleScroll(e, ChartRef),
+        false
+      );
+      ChartRef1.current.removeEventListener(
+        "wheel",
+        (e) => handleScroll(e, ChartRef1),
+        false
+      );
       window.removeEventListener("resize", handleResize);
+      xAxisRef1.current.removeEventListener('mousedown', xAxisMouseDown)
+      window.removeEventListener('mousemove', xAxisMouseMove)
+      window.removeEventListener('mouseup', xAxisMouseUp)
     };
   });
   effect(() => {
@@ -163,7 +184,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         if (chartContext !== null) {
           drawChart(ChartRef, xAxisRef, yAxisRef, mode);
 
-          const chartData = stockData
+          stockData
             .peek()
             .slice(
               dateConfig.peek().dateToIndex[
@@ -173,16 +194,6 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
                 getObjtoStringTime(timeRange.peek().startTime)
               ]
             );
-
-          drawGridLines(
-            chartContext,
-            chartCanvasSize.peek().width,
-            chartCanvasSize.peek().height,
-            mode,
-            xAxisConfig,
-            yAxisConfig,
-            chartData
-          );
         }
       }
     }
@@ -230,7 +241,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
           ></canvas>
           <canvas
             ref={xAxisRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
+            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ew-resize`}
           ></canvas>
         </div>
       </div>

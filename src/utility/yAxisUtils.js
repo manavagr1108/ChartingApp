@@ -114,19 +114,28 @@ export const drawLineChart = (
   minPrice,
   maxPrice,
   height,
-  margin,
   x,
   context,
-  width
+  prev
 ) => {
   const y = getYCoordinate(
     data["AdjClose"],
     minPrice,
     maxPrice,
-    height,
-    margin
-  );
-  context.lineTo(x, y);
+    height
+    );
+  if(prev === null){
+    context.beginPath();
+    context.moveTo(x, y);
+    context.moveTo(x, y);
+    context.stroke();
+  } else {
+    context.beginPath();
+    context.moveTo(prev.x, prev.y);
+    context.lineTo(x, y);
+    context.stroke();
+  }
+  return {x, y};
 };
 
 export function updatePriceRange() {
