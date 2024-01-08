@@ -1,8 +1,6 @@
-import testData from "../data/testData.json";
 import {
   chartCanvasSize,
   dateConfig,
-  stockData,
   timeRange,
   xAxisConfig,
   xAxisMovement
@@ -237,21 +235,16 @@ export const updateXAxisConfig = (startTime, endTime, datesToIndex) => {
 export const xAxisMouseDown = (e) => {
   xAxisMovement.value.mouseDown = true;
   xAxisMovement.value.prevXCoord = e.pageX;
-  console.log(e.pageX);
   const canvas = e.target;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 export const xAxisMouseMove = (e) => {
-  if(xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0){
-    if(!xAxisMovement.peek().mouseMove){
+  if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
+    if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
     }
-    // if(dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)] === 0 || dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)] === stockData.peek().length - 1){
-    //   return;
-    // }
-    console.log("move", e.pageX);
-    const pixelMovement = e.pageX - xAxisMovement.peek().prevXCoord;
+    const pixelMovement = xAxisMovement.peek().prevXCoord - e.pageX;
     timeRange.value = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
@@ -260,7 +253,7 @@ export const xAxisMouseMove = (e) => {
       timeRange.peek().zoomOffset,
       timeRange.peek().zoomDirection,
       xAxisConfig.peek().widthOfOneCS,
-      pixelMovement*xAxisConfig.peek().widthOfOneCS,
+      pixelMovement * xAxisConfig.peek().widthOfOneCS,
       dateConfig.value.dateToIndex
     )
     updateXAxisConfig(
@@ -273,8 +266,7 @@ export const xAxisMouseMove = (e) => {
   }
 };
 export const xAxisMouseUp = (e) => {
-  if(xAxisMovement.peek().mouseMove){
-    console.log("mouse up");
+  if (xAxisMovement.peek().mouseMove) {
     xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   }
 };

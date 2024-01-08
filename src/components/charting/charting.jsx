@@ -4,12 +4,8 @@ import {
   chartCanvasSize,
   xAxisCanvasSize,
   yAxisCanvasSize,
-  priceRange,
   timeRange,
   dateCursor,
-  dateConfig,
-  xAxisConfig,
-  yAxisConfig,
 } from "../../signals/stockSignals";
 import {
   updateConfig,
@@ -18,9 +14,13 @@ import {
   setCanvasSize,
   handleOnMouseMove,
   handleScroll,
-  drawGridLines,
+  updateCursorValue,
 } from "../../utility/chartUtils";
-import { getObjtoStringTime, xAxisMouseDown, xAxisMouseMove, xAxisMouseUp } from "../../utility/xAxisUtils";
+import {
+  xAxisMouseDown,
+  xAxisMouseMove,
+  xAxisMouseUp,
+} from "../../utility/xAxisUtils";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   const ChartRef = useRef(null);
@@ -47,84 +47,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       xAxisRef1.current !== null &&
       yAxisRef1.current !== null
     ) {
-      const canvas = ChartRef1.current;
-      const canvasXAxis = xAxisRef1.current;
-      const canvasYAxis = yAxisRef1.current;
-      const ctx = canvas.getContext("2d");
-      const xAxisCtx = canvasXAxis.getContext("2d");
-      const yAxisCtx = canvasYAxis.getContext("2d");
-      ctx.clearRect(
-        0,
-        0,
-        chartCanvasSize.peek().width,
-        chartCanvasSize.peek().height
-      );
-      xAxisCtx.clearRect(
-        0,
-        0,
-        xAxisCanvasSize.peek().width,
-        xAxisCanvasSize.peek().height
-      );
-      yAxisCtx.clearRect(
-        0,
-        0,
-        yAxisCanvasSize.peek().width,
-        yAxisCanvasSize.peek().height
-      );
-      ctx.font = "12px Arial";
-      ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-      xAxisCtx.font = "12px Arial";
-      xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-      yAxisCtx.font = "12px Arial";
-      yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-
-      const dateText = dateCursor.value.date;
-      let xCoord = dateCursor.value.x - 30;
-      if(xCoord - 10 + dateText.length*8 > chartCanvasSize.peek().width){
-        xCoord = chartCanvasSize.peek().width - dateText.length*8 + 10;
-      } else if(xCoord - 10 < 0){
-        xCoord = 10;
-      }
-      xAxisCtx.fillRect(
-        xCoord - 10,
-        10 - 14,
-        dateText.length * 8,
-        20,
-        mode === "Light" ? "white" : "black"
-      );
-      xAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
-      xAxisCtx.fillText(dateText, xCoord, 12);
-      ctx.fillText(dateCursor.value.text, 50, 20);
-
-      const price =
-        priceRange.peek().minPrice +
-        ((chartCanvasSize.peek().height - dateCursor.value.y + 50) *
-          (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
-          chartCanvasSize.peek().height;
-      const priceText = price.toFixed(2);
-      const yCoord1 = dateCursor.value.y;
-      yAxisCtx.fillRect(
-        0,
-        yCoord1 - 14,
-        priceText.length * 12,
-        20,
-        mode === "Light" ? "white" : "black"
-      );
-      yAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
-      yAxisCtx.fillText(priceText, 15, yCoord1);
-      ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
-
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-
-      ctx.moveTo(dateCursor.value.x, 0);
-      ctx.lineTo(dateCursor.value.x, chartCanvasSize.peek().height);
-
-      ctx.moveTo(0, dateCursor.value.y);
-      ctx.lineTo(chartCanvasSize.peek().width, dateCursor.value.y);
-
-      ctx.stroke();
-      ctx.setLineDash([]);
+      updateCursorValue(ChartRef1, xAxisRef1, yAxisRef1, mode);
     }
   });
   effect(() => {
@@ -132,15 +55,10 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       setStockData(selectedStock, interval, stockData);
   });
   useLayoutEffect(() => {
-    chartCanvasSize.value = setCanvasSize(ChartRef.current);
-    setCanvasSize(ChartRef1.current);
-    xAxisCanvasSize.value = setCanvasSize(xAxisRef.current);
-    setCanvasSize(xAxisRef1.current);
-    yAxisCanvasSize.value = setCanvasSize(yAxisRef.current);
-    setCanvasSize(yAxisRef1.current);
-    xAxisRef1.current.addEventListener('mousedown', xAxisMouseDown)
-    window.addEventListener('mousemove', xAxisMouseMove)
-    window.addEventListener('mouseup', xAxisMouseUp)
+    handleResize();
+    xAxisRef1.current.addEventListener("mousedown", xAxisMouseDown);
+    window.addEventListener("mousemove", xAxisMouseMove);
+    window.addEventListener("mouseup", xAxisMouseUp);
     ChartRef.current.addEventListener(
       "wheel",
       (e) => handleScroll(e, ChartRef),
@@ -164,9 +82,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         false
       );
       window.removeEventListener("resize", handleResize);
-      xAxisRef1.current.removeEventListener('mousedown', xAxisMouseDown)
-      window.removeEventListener('mousemove', xAxisMouseMove)
-      window.removeEventListener('mouseup', xAxisMouseUp)
+      xAxisRef1.current.removeEventListener("mousedown", xAxisMouseDown);
+      window.removeEventListener("mousemove", xAxisMouseMove);
+      window.removeEventListener("mouseup", xAxisMouseUp);
     };
   });
   effect(() => {
@@ -180,21 +98,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         xAxisRef.current !== null &&
         yAxisRef.current !== null
       ) {
-        const chartContext = ChartRef.current.getContext("2d");
-        if (chartContext !== null) {
-          drawChart(ChartRef, xAxisRef, yAxisRef, mode);
-
-          stockData
-            .peek()
-            .slice(
-              dateConfig.peek().dateToIndex[
-                getObjtoStringTime(timeRange.peek().endTime)
-              ],
-              dateConfig.peek().dateToIndex[
-                getObjtoStringTime(timeRange.peek().startTime)
-              ]
-            );
-        }
+        drawChart(ChartRef, xAxisRef, yAxisRef, mode);
       }
     }
   });
