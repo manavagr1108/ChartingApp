@@ -1,6 +1,22 @@
-import { dateConfig, priceRange, stockData, timeRange, yAxisConfig } from "../signals/stockSignals";
+import { chartCanvasSize, dateConfig, priceRange, stockData, timeRange, yAxisCanvasSize, yAxisConfig } from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 
+export const priceToColMap = {
+  5: 0.5,
+  10: 1,
+  20: 2,
+  40: 2.5,
+  55: 4,
+  85: 5,
+  105: 10,
+  210: 20,
+  415: 25,
+  520: 40,
+  840: 50,
+  1140: 100,
+  2085: 200,
+  4174: 250
+}
 function getLeftDate(date) {
   return date.slice(0, 10);
 }
@@ -99,7 +115,7 @@ export const drawCandleStick = (data, minPrice, maxPrice, height, x, context, wi
 
   // Draw candlestick wicks
   context.strokeStyle = borderColor;
-  context.lineWidth = 1;
+  context.lineWidth = 0.5;
   context.beginPath();
   context.moveTo(x, high);
   context.lineTo(x, Math.min(open, close));
@@ -153,5 +169,37 @@ export function updatePriceRange() {
       result.minPrice !== Number.MAX_SAFE_INTEGER)
   ) {
     priceRange.value = result;
+  }
+}
+
+export const updateYConfig = () => {
+  const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
+  let colDiff = null;
+  const priceMap = Object.keys(priceToColMap);
+  priceMap.forEach((price,i) => {
+    if(parseInt(price) >  pDiff && pDiff > parseInt(priceMap[i-1])){
+      colDiff = parseInt(priceToColMap[priceMap[i-1]]);
+    }
+  });
+  yAxisConfig.value.colDiff = colDiff;
+  yAxisConfig.value.priceDiff = pDiff;
+}
+
+export const drawYAxis = (ctx, yAxisCtx, mode) => {
+  const colDiff = yAxisConfig.peek().colDiff;
+  const minPrice = priceRange.peek().minPrice;
+  const maxPrice = priceRange.peek().maxPrice;
+  const noOfCols = Math.floor((maxPrice - minPrice)/colDiff);
+  for (let i = noOfCols+3; i >= 0; i--) {
+    const text = (Math.floor(priceRange.peek().minPrice/colDiff)) * colDiff + (i-1)*colDiff;
+    const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
+    yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
+    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
+    ctx.beginPath();
+    ctx.strokeStyle = lineColor;
+    ctx.moveTo(0, yCoord);
+    ctx.lineTo(chartCanvasSize.peek().width, yCoord);
+    ctx.stroke();
   }
 }

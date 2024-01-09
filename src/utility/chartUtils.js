@@ -19,7 +19,7 @@ import {
   getTime,
   updateXAxisConfig,
 } from "./xAxisUtils";
-import { buildSegmentTree, drawCandleStick, drawLineChart, updatePriceRange } from "./yAxisUtils";
+import { buildSegmentTree, drawCandleStick, drawLineChart, drawYAxis, updatePriceRange, updateYConfig } from "./yAxisUtils";
 
 export const updateConfig = () => {
   if (stockData.peek().length) {
@@ -36,6 +36,7 @@ export const updateConfig = () => {
     dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
     dateConfig.value.indexToDate = segmentTreeData.indexToDates;
     updatePriceRange();
+    updateYConfig();
   }
 };
 
@@ -76,24 +77,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillText(selectedStock.peek(), 10, 20);
-  const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-  for (let i = yAxisConfig.peek().noOfColumns - 1; i >= 0; i--) {
-    const text =
-      priceRange.peek().maxPrice -
-      (pDiff / yAxisConfig.peek().noOfColumns) *
-      (yAxisConfig.peek().noOfColumns - i);
-    const yCoord =
-      chartCanvasSize.peek().height -
-      i * (chartCanvasSize.peek().height / yAxisConfig.peek().noOfColumns);
-    yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-    yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
-    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
-    ctx.beginPath();
-    ctx.strokeStyle = lineColor;
-    ctx.moveTo(0, yCoord);
-    ctx.lineTo(chartCanvasSize.peek().width, yCoord);
-    ctx.stroke();
-  }
+  drawYAxis(ctx,yAxisCtx,mode);
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
@@ -109,7 +93,6 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
     .peek()
     .slice(startIndex, endIndex + 1)
     .reverse();
-  ctx.strokeStyle = "blue";
   ctx.beginPath();
   resultData.forEach((d, i) => {
     const xCoord =
@@ -137,6 +120,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
+        // console.log(currentMonth, currentYear);
         const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
@@ -296,6 +280,7 @@ export function handleScroll(e, ChartRef) {
     );
   }
   updatePriceRange();
+  updateYConfig();
   handleOnMouseMove(e, ChartRef);
 }
 
@@ -336,7 +321,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
 
   const price =
     priceRange.peek().minPrice +
-    ((chartCanvasSize.peek().height - dateCursor.value.y + 50) *
+    ((chartCanvasSize.peek().height - dateCursor.value.y) *
       (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
     chartCanvasSize.peek().height;
   const priceText = price.toFixed(2);
