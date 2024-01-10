@@ -138,7 +138,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         chartCanvasSize.peek().height,
         xCoord,
         ctx,
-        xAxisConfig.peek().widthOfOneCS - 4
+        xAxisConfig.peek().widthOfOneCS - 2
       );
     } else if (chartType.peek() === "Line") {
       ctx.strokeStyle = "rgba(0,0,255,0.9)"
@@ -348,4 +348,19 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
 
   ctx.stroke();
   ctx.setLineDash([]);
+}
+
+export const removeCursor = (e, ChartRef, xAxisRef1, yAxisRef1) => {
+  if(dateCursor.peek() !== null && ChartRef.current !== null){
+    const chartCanvas = ChartRef.current;
+    const xAxisCanvas = xAxisRef1.current;
+    const yAxisCanvas = yAxisRef1.current;
+    const ctx = chartCanvas.getContext("2d");
+    const xAxisCtx = xAxisCanvas.getContext("2d");
+    const yAxisCtx = yAxisCanvas.getContext("2d");
+    ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+    xAxisCtx.clearRect(0, 0, xAxisCanvas.width, xAxisCanvas.height);
+    yAxisCtx.clearRect(0, 0, yAxisCanvas.width, yAxisCanvas.height);
+    dateCursor.value = null;
+  }
 }

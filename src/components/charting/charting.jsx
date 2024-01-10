@@ -15,6 +15,7 @@ import {
   handleOnMouseMove,
   handleScroll,
   updateCursorValue,
+  removeCursor,
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
@@ -125,6 +126,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
             onMouseMove={(e) => {
               handleOnMouseMove(e, ChartRef1);
+            }}
+            onMouseLeave={(e) => {
+              removeCursor(e,ChartRef1, xAxisRef1, yAxisRef1);
             }}
           ></canvas>
         </div>

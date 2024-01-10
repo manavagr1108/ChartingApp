@@ -55,6 +55,7 @@ export const dateConfig = signal({
 export const yAxisConfig = signal({
   colDiff: 0,
   noOfColumns: 12,
+  priceDiff: 0,
   segmentTree: [],
 });
 

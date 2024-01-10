@@ -174,11 +174,11 @@ export function updatePriceRange() {
 
 export const updateYConfig = () => {
   const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-  let colDiff = null;
+  let colDiff = yAxisConfig.peek().colDiff;
   const priceMap = Object.keys(priceToColMap);
   priceMap.forEach((price,i) => {
     if(parseInt(price) >  pDiff && pDiff > parseInt(priceMap[i-1])){
-      colDiff = parseInt(priceToColMap[priceMap[i-1]]);
+      colDiff = parseFloat(priceToColMap[priceMap[i-1]]);
     }
   });
   yAxisConfig.value.colDiff = colDiff;

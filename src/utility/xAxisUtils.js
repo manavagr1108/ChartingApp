@@ -5,7 +5,7 @@ import {
   xAxisConfig,
   xAxisMovement
 } from "../signals/stockSignals";
-import { updatePriceRange } from "./yAxisUtils";
+import { updatePriceRange, updateYConfig } from "./yAxisUtils";
 export const intervalMap = {
   "1d": "1d",
   "1wk": "1W",
@@ -262,6 +262,7 @@ export const xAxisMouseMove = (e) => {
       dateConfig.peek().dateToIndex
     );
     updatePriceRange();
+    updateYConfig();
     xAxisMovement.value.prevXCoord = e.pageX;
   }
 };
