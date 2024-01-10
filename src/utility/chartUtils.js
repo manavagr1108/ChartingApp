@@ -536,3 +536,51 @@ export const chartMouseUp = (e) => {
     chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   }
 };
+
+export function drawSMAIndicator(ctx, smaData, mode) {
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  smaData.forEach((data, i) => {
+    const xCoord = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoord = getYCoordinate(
+      data.y,
+      priceRange.peek().minPrice,
+      priceRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    if (i === 0) ctx.moveTo(xCoord, yCoord);
+    else ctx.lineTo(xCoord, yCoord);
+  });
+  ctx.stroke();
+}
+
+export function drawEMAIndicator(ctx, emaData, mode) {
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < emaData.length; i++) {
+    const xCoord = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoord = getYCoordinate(
+      emaData[i].y,
+      priceRange.peek().minPrice,
+      priceRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    if (i === 0) ctx.moveTo(xCoord, yCoord);
+    else ctx.lineTo(xCoord, yCoord);
+  }
+  ctx.stroke();
+}

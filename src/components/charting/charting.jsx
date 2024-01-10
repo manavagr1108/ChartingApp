@@ -29,6 +29,7 @@ import {
 import { indicatorSignal } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
 import { yAxisMouseDown, yAxisMouseMove, yAxisMouseUp } from "../../utility/yAxisUtils";
+import { indicatorSignal } from "../../signals/indicatorsSignal";
 
 function Charting({
   ChartRef,
