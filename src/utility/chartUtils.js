@@ -4,6 +4,7 @@ import {
   chartType,
   dateConfig,
   dateCursor,
+  lockUpdatePriceRange,
   priceRange,
   selectedStock,
   stockData,
@@ -279,7 +280,7 @@ export function handleScroll(e, ChartRef) {
       dateConfig.value.dateToIndex
     );
   }
-  updatePriceRange();
+  if(!lockUpdatePriceRange.peek())updatePriceRange();
   updateYConfig();
   handleOnMouseMove(e, ChartRef);
 }

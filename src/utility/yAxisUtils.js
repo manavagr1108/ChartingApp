@@ -1,4 +1,4 @@
-import { chartCanvasSize, dateConfig, priceRange, stockData, timeRange, yAxisCanvasSize, yAxisConfig } from "../signals/stockSignals";
+import { chartCanvasSize, dateConfig, lockUpdatePriceRange, priceRange, stockData, timeRange, yAxisCanvasSize, yAxisConfig, yAxisMovement } from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 
 export const priceToColMap = {
@@ -17,6 +17,7 @@ export const priceToColMap = {
   2085: 200,
   4174: 250
 }
+
 function getLeftDate(date) {
   return date.slice(0, 10);
 }
@@ -94,6 +95,7 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
 export const getYCoordinate = (price, minPrice, maxPrice, height) => {
   return height - ((height) / (maxPrice - minPrice)) * (price - minPrice);
 }
+
 export const drawCandleStick = (data, minPrice, maxPrice, height, x, context, width) => {
   let fillColor, borderColor;
   if (data["Close"] > data["Open"]) {
@@ -161,6 +163,7 @@ export function updatePriceRange() {
     getObjtoStringTime(timeRange.value.startTime),
     stockData.peek().length
   );
+  if(priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice)return;
   if (
     result &&
     (result.maxPrice !== priceRange.peek().maxPrice ||
@@ -203,3 +206,36 @@ export const drawYAxis = (ctx, yAxisCtx, mode) => {
     ctx.stroke();
   }
 }
+
+export const yAxisMouseDown = (e) => {
+  yAxisMovement.value.mouseDown = true;
+  yAxisMovement.value.prevXCoord = e.pageY;
+  const canvas = e.target;
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+
+export const yAxisMouseMove = (e) => {
+  if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
+    if (!yAxisMovement.peek().mouseMove) {
+      yAxisMovement.value.mouseMove = true;
+      lockUpdatePriceRange.value = true;
+    }
+    const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
+    const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
+    if(pDiff > 4000 && pixelMovement < 0) return;
+    if(pDiff < 5 && pixelMovement > 0) return;
+    priceRange.value = {
+      minPrice: priceRange.peek().minPrice + pixelMovement,
+      maxPrice: priceRange.peek().maxPrice - pixelMovement
+    }
+    updateYConfig();
+    yAxisMovement.value.prevXCoord = e.pageY;
+  }
+};
+
+export const yAxisMouseUp = (e) => {
+  if (yAxisMovement.peek().mouseMove) {
+    yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+  }
+};
