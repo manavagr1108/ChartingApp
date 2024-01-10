@@ -1,9 +1,15 @@
-import React from 'react'
+import React from "react";
 
-function ToolBar() {
+function ToolBar({ mode }) {
   return (
-    <div className='bg-gray-100'></div>
-  )
+    <div
+      className={`flex justify-center items-center border-b-2 ${
+        mode === "Light"
+          ? "border-gray-300 bg-gray-100"
+          : "border-gray-800  bg-gray-900"
+      }`}
+    ></div>
+  );
 }
 
-export default ToolBar
+export default ToolBar;

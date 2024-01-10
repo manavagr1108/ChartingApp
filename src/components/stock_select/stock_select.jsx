@@ -1,13 +1,15 @@
-import React from 'react'
+import React from "react";
 
-function StockSelect() {
+function StockSelect({ mode }) {
   return (
-    <div className='flex justify-center items-center'>
-      <div className='rounded-full bg-gray-300 w-11 h-11'>
-        <img src="" alt="" />
-      </div>
-    </div>
-  )
+    <div
+      className={`flex justify-center items-center border-b-2 ${
+        mode === "Light"
+          ? "border-gray-300 bg-gray-100"
+          : "border-gray-800  bg-gray-900"
+      }`}
+    ></div>
+  );
 }
 
-export default StockSelect
+export default StockSelect;
