@@ -1,4 +1,5 @@
 import { monthMap } from "../data/TIME_MAP";
+import { indicatorConfig, indicatorSignal } from "../signals/indicatorsSignal";
 import {
   chartCanvasSize,
   chartType,
@@ -11,15 +12,25 @@ import {
   xAxisConfig,
   yAxisConfig,
 } from "../signals/stockSignals";
+import { calculateEMA, calculateSMA } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
   getNewScrollTime,
   getNewZoomTime,
   getObjtoStringTime,
   getTime,
+  getXCoordinate,
   updateXAxisConfig,
 } from "./xAxisUtils";
-import { buildSegmentTree, drawCandleStick, drawLineChart, drawYAxis, updatePriceRange, updateYConfig } from "./yAxisUtils";
+import {
+  buildSegmentTree,
+  drawCandleStick,
+  drawLineChart,
+  drawYAxis,
+  updatePriceRange,
+  updateYConfig,
+  getYCoordinate,
+} from "./yAxisUtils";
 
 export const updateConfig = () => {
   if (stockData.peek().length) {
@@ -31,7 +42,14 @@ export const updateConfig = () => {
       stockData.peek()[stockData.peek().length - 150].Date
     );
     updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
-    timeRange.value = { startTime, endTime, scrollOffset: 0, scrollDirection: 0, zoomOffset: 0, zoomDirection: 0 };
+    timeRange.value = {
+      startTime,
+      endTime,
+      scrollOffset: 0,
+      scrollDirection: 0,
+      zoomOffset: 0,
+      zoomDirection: 0,
+    };
     yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
     dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
     dateConfig.value.indexToDate = segmentTreeData.indexToDates;
@@ -52,24 +70,9 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
-  ctx.clearRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-  xAxisCtx.clearRect(
-    0,
-    0,
-    canvasXAxis.width,
-    canvasXAxis.height
-  );
-  yAxisCtx.clearRect(
-    0,
-    0,
-    canvasYAxis.width,
-    canvasYAxis.height
-  );
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
+  yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
   ctx.font = "12px Arial";
   ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   xAxisCtx.font = "12px Arial";
@@ -77,12 +80,12 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillText(selectedStock.peek(), 10, 20);
-  drawYAxis(ctx,yAxisCtx,mode);
+  drawYAxis(ctx, yAxisCtx, mode);
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-    getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -112,7 +115,9 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -121,7 +126,9 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
         // console.log(currentMonth, currentYear);
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -141,7 +148,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         xAxisConfig.peek().widthOfOneCS - 2
       );
     } else if (chartType.peek() === "Line") {
-      ctx.strokeStyle = "rgba(0,0,255,0.9)"
+      ctx.strokeStyle = "rgba(0,0,255,0.9)";
       prev = drawLineChart(
         d,
         priceRange.peek().minPrice,
@@ -153,6 +160,73 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
       );
     }
   });
+  drawIndicators(startIndex, endIndex, ctx, mode);
+}
+
+export function drawIndicators(startIndex, endIndex, ctx, mode) {
+  indicatorSignal.peek().forEach((indicator) => {
+    if (indicator.label === "Moving Average Simple") {
+      const smaData = calculateSMA(stockData.peek(), indicator.period);
+      const SMA = smaData
+        .slice(startIndex - indicator.period + 1, endIndex + 1)
+        .reverse();
+      drawSMAIndicator(ctx, SMA, mode);
+    }
+    if (indicator.label === "Moving Average Exponential") {
+      const emaData = calculateEMA(stockData.peek(), indicator.period);
+      const EMA = emaData
+        .slice(startIndex - indicator.period + 1, endIndex + 1)
+        .reverse();
+      drawEMAIndicator(ctx, EMA, mode);
+    }
+  });
+}
+
+export function drawGridLines(
+  ctx,
+  width,
+  height,
+  mode,
+  xAxisConfig,
+  yAxisConfig,
+  chartData
+) {
+  const gridColor =
+    mode === "Light" ? "rgba(0, 0, 0, 0.1)" : "rgba(255, 255, 255, 0.1)";
+
+  chartData.forEach((data, index) => {
+    const currentDate = new Date(data.Date);
+    const currentMonth = currentDate.getMonth() + 1;
+
+    if (index < chartData.length - 1) {
+      const nextDate = new Date(chartData[index + 1].Date);
+      const nextMonth = nextDate.getMonth() + 1;
+
+      if (currentMonth !== nextMonth) {
+        const xCoord =
+          width +
+          45 -
+          index * xAxisConfig.peek().widthOfOneCS -
+          timeRange.peek().multiplier * timeRange.peek().offset;
+
+        ctx.beginPath();
+        ctx.moveTo(xCoord, 0);
+        ctx.lineTo(xCoord, height);
+        ctx.strokeStyle = gridColor;
+        ctx.stroke();
+      }
+    }
+  });
+
+  for (let i = yAxisConfig.peek().noOfColumns - 1; i > 0; i--) {
+    const yCoord = height - i * (height / yAxisConfig.peek().noOfColumns) - 5;
+
+    ctx.beginPath();
+    ctx.moveTo(0, yCoord);
+    ctx.lineTo(width, yCoord);
+    ctx.strokeStyle = gridColor;
+    ctx.stroke();
+  }
 }
 
 export async function setStockData(symbol, interval, stockData) {
@@ -187,7 +261,7 @@ export function setCanvasSize(element) {
 export function handleOnMouseMove(e, ChartRef) {
   const canvas = ChartRef.current;
   const rect = canvas.getBoundingClientRect();
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext("2d");
   const x = e.pageX - rect.left;
   const y = e.pageY - rect.top;
   if (
@@ -201,7 +275,7 @@ export function handleOnMouseMove(e, ChartRef) {
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+        getObjtoStringTime(timeRange.peek().startTime)
       ];
     const data = stockData.peek()[firstIndex - dateIndex];
     if (data) {
@@ -260,10 +334,10 @@ export function handleScroll(e, ChartRef) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-        dateConfig.peek().indexToDate[stockData.peek().length - 1]) ||
+          dateConfig.peek().indexToDate[stockData.peek().length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-        dateConfig.peek().indexToDate[0])
+          dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -323,7 +397,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
     priceRange.peek().minPrice +
     ((chartCanvasSize.peek().height - dateCursor.value.y) *
       (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
-    chartCanvasSize.peek().height;
+      chartCanvasSize.peek().height;
   const priceText = price.toFixed(2);
   const yCoord1 = dateCursor.value.y;
   yAxisCtx.fillRect(
@@ -351,7 +425,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
 }
 
 export const removeCursor = (e, ChartRef, xAxisRef1, yAxisRef1) => {
-  if(dateCursor.peek() !== null && ChartRef.current !== null){
+  if (dateCursor.peek() !== null && ChartRef.current !== null) {
     const chartCanvas = ChartRef.current;
     const xAxisCanvas = xAxisRef1.current;
     const yAxisCanvas = yAxisRef1.current;
@@ -363,4 +437,51 @@ export const removeCursor = (e, ChartRef, xAxisRef1, yAxisRef1) => {
     yAxisCtx.clearRect(0, 0, yAxisCanvas.width, yAxisCanvas.height);
     dateCursor.value = null;
   }
+};
+export function drawSMAIndicator(ctx, smaData, mode) {
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  smaData.forEach((data, i) => {
+    const xCoord = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoord = getYCoordinate(
+      data.y,
+      priceRange.peek().minPrice,
+      priceRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    if (i === 0) ctx.moveTo(xCoord, yCoord);
+    else ctx.lineTo(xCoord, yCoord);
+  });
+  ctx.stroke();
+}
+
+export function drawEMAIndicator(ctx, emaData, mode) {
+  ctx.strokeStyle = "blue";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < emaData.length; i++) {
+    const xCoord = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoord = getYCoordinate(
+      emaData[i].y,
+      priceRange.peek().minPrice,
+      priceRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    if (i === 0) ctx.moveTo(xCoord, yCoord);
+    else ctx.lineTo(xCoord, yCoord);
+  }
+  ctx.stroke();
 }

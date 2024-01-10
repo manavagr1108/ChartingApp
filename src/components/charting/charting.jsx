@@ -22,9 +22,16 @@ import {
   xAxisMouseMove,
   xAxisMouseUp,
 } from "../../utility/xAxisUtils";
+import { indicatorSignal } from "../../signals/indicatorsSignal";
 
-function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  const ChartRef = useRef(null);
+function Charting({
+  ChartRef,
+  selectedStock,
+  interval,
+  stockData,
+  chartType,
+  mode,
+}) {
   const ChartRef1 = useRef(null);
   const xAxisRef = useRef(null);
   const xAxisRef1 = useRef(null);
@@ -92,7 +99,8 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     if (
       timeRange.value.endTime.Date !== 0 &&
       timeRange.value.startTime.Date !== 0 &&
-      chartType.value
+      chartType.value &&
+      indicatorSignal.value
     ) {
       if (
         ChartRef.current !== null &&
@@ -128,7 +136,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
               handleOnMouseMove(e, ChartRef1);
             }}
             onMouseLeave={(e) => {
-              removeCursor(e,ChartRef1, xAxisRef1, yAxisRef1);
+              removeCursor(e, ChartRef1, xAxisRef1, yAxisRef1);
             }}
           ></canvas>
         </div>

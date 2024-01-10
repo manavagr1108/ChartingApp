@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import "./App.css";
 import Charting from "./components/charting/charting";
 import NavBar from "./components/nav_bar/nav_bar";
@@ -12,6 +12,7 @@ import {
 } from "./signals/stockSignals";
 
 function App() {
+  const ChartRef = useRef(null);
   const [mode, setMode] = useState("Light");
   function toggleMode() {
     setMode((prev) => (prev === "Light" ? "Dark" : "Light"));
@@ -29,6 +30,7 @@ function App() {
         />
         <ToolBar mode={mode} />
         <Charting
+          ChartRef={ChartRef}
           selectedStock={selectedStock}
           interval={interval}
           stockData={stockData}

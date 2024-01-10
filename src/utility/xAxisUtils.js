@@ -271,3 +271,12 @@ export const xAxisMouseUp = (e) => {
     xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   }
 };
+export const getXCoordinate = (
+  width,
+  widthOfOneCS,
+  multiplier,
+  offset,
+  nthCS
+) => {
+  return width - nthCS * widthOfOneCS - widthOfOneCS / 2 - multiplier * offset;
+};
