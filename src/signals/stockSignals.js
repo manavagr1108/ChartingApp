@@ -71,4 +71,11 @@ export const yAxisMovement = signal({
   prevXCoord: 0,
 });
 
+export const chartMovement = signal({
+  mouseDown: false,
+  mouseMove: false,
+  prevXCoord: 0,
+  prevYCoord: 0,
+});
+
 export const lockUpdatePriceRange = signal(false);

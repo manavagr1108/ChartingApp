@@ -17,6 +17,9 @@ import {
   handleScroll,
   updateCursorValue,
   removeCursor,
+  chartMouseDown,
+  chartMouseMove,
+  chartMouseUp,
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
@@ -59,6 +62,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   });
   useLayoutEffect(() => {
     handleResize();
+    ChartRef1.current.addEventListener("mousedown", chartMouseDown);
+    window.addEventListener("mousemove", chartMouseMove);
+    window.addEventListener("mouseup", chartMouseUp);
     xAxisRef1.current.addEventListener("mousedown", xAxisMouseDown);
     window.addEventListener("mousemove", xAxisMouseMove);
     window.addEventListener("mouseup", xAxisMouseUp);
@@ -87,6 +93,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         (e) => handleScroll(e, ChartRef1),
         false
       );
+      ChartRef1.current.removeEventListener("mousedown", chartMouseDown);
+      window.removeEventListener("mousemove", chartMouseMove);
+      window.removeEventListener("mouseup", chartMouseUp);
       window.removeEventListener("resize", handleResize);
       xAxisRef1.current.removeEventListener("mousedown", xAxisMouseDown);
       window.removeEventListener("mousemove", xAxisMouseMove);
