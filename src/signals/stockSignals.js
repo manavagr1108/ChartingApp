@@ -45,7 +45,6 @@ export const priceRange = signal({
 });
 export const xAxisConfig = signal({
   noOfDataPoints: 0,
-  noOfColumns: 12,
   widthOfOneCS: 0,
 });
 export const dateConfig = signal({
@@ -53,8 +52,7 @@ export const dateConfig = signal({
   indexToDate: {},
 });
 export const yAxisConfig = signal({
-  colDiff: 0,
-  noOfColumns: 12,
+  colDiff: 2,
   priceDiff: 0,
   segmentTree: [],
 });
@@ -66,3 +64,18 @@ export const xAxisMovement = signal({
   mouseMove: false,
   prevXCoord: 0,
 });
+
+export const yAxisMovement = signal({
+  mouseDown: false,
+  mouseMove: false,
+  prevXCoord: 0,
+});
+
+export const chartMovement = signal({
+  mouseDown: false,
+  mouseMove: false,
+  prevXCoord: 0,
+  prevYCoord: 0,
+});
+
+export const lockUpdatePriceRange = signal(false);

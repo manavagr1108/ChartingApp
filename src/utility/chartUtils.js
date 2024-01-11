@@ -2,14 +2,17 @@ import { monthMap } from "../data/TIME_MAP";
 import { indicatorConfig, indicatorSignal } from "../signals/indicatorsSignal";
 import {
   chartCanvasSize,
+  chartMovement,
   chartType,
   dateConfig,
   dateCursor,
+  lockUpdatePriceRange,
   priceRange,
   selectedStock,
   stockData,
   timeRange,
   xAxisConfig,
+  yAxisCanvasSize,
   yAxisConfig,
 } from "../signals/stockSignals";
 import { calculateEMA, calculateSMA } from "./indicatorsUtil";
@@ -125,10 +128,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        // console.log(currentMonth, currentYear);
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -261,7 +261,6 @@ export function setCanvasSize(element) {
 export function handleOnMouseMove(e, ChartRef) {
   const canvas = ChartRef.current;
   const rect = canvas.getBoundingClientRect();
-  const ctx = canvas.getContext("2d");
   const x = e.pageX - rect.left;
   const y = e.pageY - rect.top;
   if (
@@ -353,7 +352,7 @@ export function handleScroll(e, ChartRef) {
       dateConfig.value.dateToIndex
     );
   }
-  updatePriceRange();
+  if (!lockUpdatePriceRange.peek()) updatePriceRange();
   updateYConfig();
   handleOnMouseMove(e, ChartRef);
 }
@@ -486,3 +485,54 @@ export function drawEMAIndicator(indicator, ctx, emaData, mode) {
   }
   ctx.stroke();
 }
+
+export const chartMouseDown = (e) => {
+  chartMovement.value.mouseDown = true;
+  chartMovement.value.prevXCoord = e.pageX;
+  chartMovement.value.prevYCoord = e.pageY;
+  const canvas = e.target;
+  canvas.classList.add("cursor-grabbing");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+};
+export const chartMouseMove = (e) => {
+  if (chartMovement.peek().mouseDown && (e.pageX - chartMovement.peek().prevXCoord !== 0 || e.pageY - chartMovement.peek().prevYCoord !== 0)) {
+    if (!chartMovement.peek().mouseMove) {
+      chartMovement.value.mouseMove = true;
+    }
+    const pixelXMovement = chartMovement.peek().prevXCoord - e.pageX;
+    const pixelYMovement = (chartMovement.peek().prevYCoord - e.pageY) * (yAxisConfig.peek().priceDiff) / yAxisCanvasSize.peek().height;
+    const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
+    if (lockUpdatePriceRange.peek() && ((pDiff < 4000 && pixelYMovement > 0) || (pDiff > 5 && pixelYMovement < 0))) {
+      priceRange.value = {
+        minPrice: priceRange.peek().minPrice - pixelYMovement,
+        maxPrice: priceRange.peek().maxPrice - pixelYMovement
+      }
+    }
+    if (pixelXMovement) {
+      timeRange.value = getNewScrollTime(
+        timeRange.peek().startTime,
+        timeRange.peek().endTime,
+        timeRange.peek().scrollOffset,
+        timeRange.peek().scrollDirection,
+        timeRange.peek().zoomOffset,
+        timeRange.peek().zoomDirection,
+        xAxisConfig.peek().widthOfOneCS,
+        pixelXMovement,
+        dateConfig.value.dateToIndex
+      )
+      if (!lockUpdatePriceRange.peek()) {
+        updatePriceRange();
+        updateYConfig();
+      }
+    }
+    chartMovement.value.prevXCoord = e.pageX;
+    chartMovement.value.prevYCoord = e.pageY;
+  }
+};
+export const chartMouseUp = (e) => {
+  if (chartMovement.peek().mouseMove) {
+    e.target.classList.remove("cursor-grabbing");
+    chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+  }
+};

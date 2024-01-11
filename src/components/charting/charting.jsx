@@ -6,6 +6,7 @@ import {
   yAxisCanvasSize,
   timeRange,
   dateCursor,
+  priceRange,
 } from "../../signals/stockSignals";
 import {
   updateConfig,
@@ -16,6 +17,9 @@ import {
   handleScroll,
   updateCursorValue,
   removeCursor,
+  chartMouseDown,
+  chartMouseMove,
+  chartMouseUp,
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
@@ -24,6 +28,7 @@ import {
 } from "../../utility/xAxisUtils";
 import { indicatorSignal } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
+import { yAxisMouseDown, yAxisMouseMove, yAxisMouseUp } from "../../utility/yAxisUtils";
 
 function Charting({
   ChartRef,
@@ -65,9 +70,15 @@ function Charting({
   });
   useLayoutEffect(() => {
     handleResize();
+    ChartRef1.current.addEventListener("mousedown", chartMouseDown);
+    window.addEventListener("mousemove", chartMouseMove);
+    window.addEventListener("mouseup", chartMouseUp);
     xAxisRef1.current.addEventListener("mousedown", xAxisMouseDown);
     window.addEventListener("mousemove", xAxisMouseMove);
     window.addEventListener("mouseup", xAxisMouseUp);
+    yAxisRef1.current.addEventListener("mousedown", yAxisMouseDown);
+    window.addEventListener("mousemove", yAxisMouseMove);
+    window.addEventListener("mouseup", yAxisMouseUp);
     ChartRef.current.addEventListener(
       "wheel",
       (e) => handleScroll(e, ChartRef),
@@ -90,10 +101,16 @@ function Charting({
         (e) => handleScroll(e, ChartRef1),
         false
       );
+      ChartRef1.current.removeEventListener("mousedown", chartMouseDown);
+      window.removeEventListener("mousemove", chartMouseMove);
+      window.removeEventListener("mouseup", chartMouseUp);
       window.removeEventListener("resize", handleResize);
       xAxisRef1.current.removeEventListener("mousedown", xAxisMouseDown);
       window.removeEventListener("mousemove", xAxisMouseMove);
       window.removeEventListener("mouseup", xAxisMouseUp);
+      yAxisRef1.current.removeEventListener("mousedown", yAxisMouseDown);
+      window.removeEventListener("mousemove", yAxisMouseMove);
+      window.removeEventListener("mouseup", yAxisMouseUp);
     };
   });
   effect(() => {
@@ -106,7 +123,8 @@ function Charting({
       if (
         ChartRef.current !== null &&
         xAxisRef.current !== null &&
-        yAxisRef.current !== null
+        yAxisRef.current !== null &&
+        priceRange.value.minPrice > 0
       ) {
         drawChart(ChartRef, xAxisRef, yAxisRef, mode);
       }
@@ -149,7 +167,7 @@ function Charting({
           ></canvas>
           <canvas
             ref={yAxisRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
+            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
           ></canvas>
         </div>
         <div className="w-[95%] h-[3%] relative">
