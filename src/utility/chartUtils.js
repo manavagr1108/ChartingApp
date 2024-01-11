@@ -165,19 +165,19 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
 
 export function drawIndicators(startIndex, endIndex, ctx, mode) {
   indicatorSignal.peek().forEach((indicator) => {
-    if (indicator.label === "Moving Average Simple") {
+    if (indicator.label === indicatorConfig['SMA'].label) {
       const smaData = calculateSMA(stockData.peek(), indicator.period);
       const SMA = smaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
-      drawSMAIndicator(ctx, SMA, mode);
+      drawSMAIndicator(indicator, ctx, SMA, mode);
     }
-    if (indicator.label === "Moving Average Exponential") {
+    if (indicator.label === indicatorConfig['EMA'].label) {
       const emaData = calculateEMA(stockData.peek(), indicator.period);
       const EMA = emaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
-      drawEMAIndicator(ctx, EMA, mode);
+      drawEMAIndicator(indicator, ctx, EMA, mode);
     }
   });
 }
@@ -438,9 +438,9 @@ export const removeCursor = (e, ChartRef, xAxisRef1, yAxisRef1) => {
     dateCursor.value = null;
   }
 };
-export function drawSMAIndicator(ctx, smaData, mode) {
-  ctx.strokeStyle = "blue";
-  ctx.lineWidth = 2;
+export function drawSMAIndicator(indicator, ctx, smaData, mode) {
+  ctx.strokeStyle = indicator.color;
+  ctx.lineWidth = indicator.stroke;
   ctx.beginPath();
   smaData.forEach((data, i) => {
     const xCoord = getXCoordinate(
@@ -460,11 +460,12 @@ export function drawSMAIndicator(ctx, smaData, mode) {
     else ctx.lineTo(xCoord, yCoord);
   });
   ctx.stroke();
+  ctx.lineWidth = 1;
 }
 
-export function drawEMAIndicator(ctx, emaData, mode) {
-  ctx.strokeStyle = "blue";
-  ctx.lineWidth = 2;
+export function drawEMAIndicator(indicator, ctx, emaData, mode) {
+  ctx.strokeStyle = indicator.color;
+  ctx.lineWidth = indicator.stroke;
   ctx.beginPath();
   for (let i = 0; i < emaData.length; i++) {
     const xCoord = getXCoordinate(

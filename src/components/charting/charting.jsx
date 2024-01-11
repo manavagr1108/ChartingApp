@@ -23,6 +23,7 @@ import {
   xAxisMouseUp,
 } from "../../utility/xAxisUtils";
 import { indicatorSignal } from "../../signals/indicatorsSignal";
+import IndicatorsList from "../indicators/indicatorsList";
 
 function Charting({
   ChartRef,
@@ -139,6 +140,7 @@ function Charting({
               removeCursor(e, ChartRef1, xAxisRef1, yAxisRef1);
             }}
           ></canvas>
+          <IndicatorsList mode={mode}/>
         </div>
         <div className="w-[5%] h-[97%] relative">
           <canvas

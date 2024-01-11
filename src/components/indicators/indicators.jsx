@@ -27,9 +27,22 @@ function Indicators({ mode }) {
       [selectedKey]: {
         ...prevValues[selectedKey],
         [property]: value,
+        'label': indicatorConfig[selectedKey].label,
       },
     }));
   };
+
+  const updateIndicatorSignal = () => {
+    const selectedIndicatorConfig = indicatorConfig[selectedKey];
+    Object.keys(selectedIndicatorConfig).forEach((key) => {
+      if(inputValues[key] === undefined)return;
+    })
+    indicatorSignal.value = [
+      ...indicatorSignal.peek(),
+      inputValues[selectedKey],
+    ]
+    setIsModalOpen(false);
+  }
 
   return (
     <div className="relative inline-block">
@@ -116,13 +129,7 @@ function Indicators({ mode }) {
                   <div className="flex items-center mx-auto h-auto my-10">
                     <button
                       className="w-[150px] h-auto px-2 py-3 bg-blue-400 rounded-md text-white"
-                      onClick={() => (
-                        (indicatorSignal.value = [
-                          ...indicatorSignal.peek(),
-                          indicatorConfig[selectedKey],
-                        ]),
-                        setIsModalOpen(false)
-                      )}
+                      onClick={updateIndicatorSignal}
                     >
                       Add Indicator
                     </button>
