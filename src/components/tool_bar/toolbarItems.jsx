@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { BiCross } from "react-icons/bi";
-import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
+import { MdKeyboardArrowRight, MdKeyboardArrowLeft, MdOutlineHorizontalSplit } from "react-icons/md";
 import { FaArrowPointer } from "react-icons/fa6";
 import { cursorConfig } from "../../signals/toolbarSignals";
 import { useOutsideClick } from "../nav_bar/nav_bar";
@@ -40,7 +40,8 @@ function ToolItems({
 
 function ToolbarItems({ mode, ChartWindow }) {
   const [toogleToolItemsIndex, setToogleToolItemsIndex] = useState(-1);
-  const { drawChartObjects, selectedTool, selectedToolItem, selectedCursor } = ChartWindow;
+  const { drawChartObjects, selectedTool, selectedToolItem, selectedCursor } =
+    ChartWindow;
   function cursorOnClickHandler(index) {
     drawChartObjects.peek().forEach((drawChartObject) => {
       const canvas = drawChartObject.ChartRef.current[1];
@@ -57,9 +58,14 @@ function ToolbarItems({ mode, ChartWindow }) {
     selectedTool.value = items[1].toolName;
     selectedToolItem.value = index;
   }
+  function fibOnClickHandler(index) {
+    setToogleToolItemsIndex(-1);
+    selectedTool.value = items[2].toolName;
+    selectedToolItem.value = index;
+  }
   const items = [
     {
-      toolName: 'Cursor',
+      toolName: "Cursor",
       toolItemsEle: [
         <BiCross color={`${mode === "Light" ? "black" : "white"}`} size={20} />,
         <FaArrowPointer
@@ -71,7 +77,7 @@ function ToolbarItems({ mode, ChartWindow }) {
       onClickFunction: cursorOnClickHandler,
     },
     {
-      toolName: 'TrendLine',
+      toolName: "Line",
       toolItemsEle: [
         <PiLineSegmentFill
           color={`${mode === "Light" ? "black" : "white"}`}
@@ -93,6 +99,17 @@ function ToolbarItems({ mode, ChartWindow }) {
       toolLabels: ["Trend Line", "Ray", "Info Line", "Extended Line"],
       onClickFunction: linesOnClickHandler,
     },
+    {
+      toolName: "Fib",
+      toolItemsEle: [
+        <MdOutlineHorizontalSplit
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
+      ],
+      toolLabels: ["Fibonacci Retracement"],
+      onClickFunction: fibOnClickHandler,
+    },
   ];
   return (
     <div className="flex flex-col w-full justify-start relative">
@@ -104,7 +121,9 @@ function ToolbarItems({ mode, ChartWindow }) {
                 mode === "Light" ? "hover:bg-gray-300" : "hover:bg-gray-700"
               } flex p-[0.3rem] peer/item rounded-md`}
             >
-              {selectedTool.peek() === item.toolName ? items[index].toolItemsEle[selectedToolItem.peek()] : items[index].toolItemsEle[0]}
+              {selectedTool.peek() === item.toolName
+                ? items[index].toolItemsEle[selectedToolItem.peek()]
+                : items[index].toolItemsEle[0]}
             </div>
             <div
               onClick={() =>

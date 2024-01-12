@@ -46,6 +46,7 @@ class DrawChart{
 
     // trend lines data;
     this.trendLinesData = signal([]);
+    this.fibData = signal([]);
   }
   #setData(data) {
     this.data.value = data;
