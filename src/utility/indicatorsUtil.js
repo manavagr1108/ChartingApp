@@ -36,3 +36,75 @@ export function calculateEMA(data, period) {
 
   return emaValues;
 }
+
+export function calculateZigZag(data, deviation, pivotLegs) {
+  let trend = null;
+  let lastPivotPrice = data[0].Close;
+  let lastPivotIndex = 0;
+  let lastPivotDate = data[0].Date;
+  let zigZagPoints = {};
+  let count = -1;
+
+  data.forEach((d, i) => {
+    if (trend === "up") {
+      if (
+        d.Low < lastPivotPrice * (1 - deviation / 100) &&
+        i - lastPivotIndex >= pivotLegs
+      ) {
+        zigZagPoints[lastPivotDate] = {
+          index: count,
+          value: lastPivotPrice,
+          date: lastPivotDate,
+        };
+        trend = "down";
+        lastPivotPrice = d.Low;
+        lastPivotIndex = i;
+        lastPivotDate = d.Date;
+        count++;
+      }
+      lastPivotPrice = Math.max(lastPivotPrice, d.High);
+      if (lastPivotPrice <= d.High) lastPivotDate = d.Date;
+    } else if (trend === "down") {
+      if (
+        d.High > lastPivotPrice * (1 + deviation / 100) &&
+        i - lastPivotIndex >= pivotLegs
+      ) {
+        zigZagPoints[lastPivotDate] = {
+          index: count,
+          value: lastPivotPrice,
+          date: lastPivotDate,
+        };
+        trend = "up";
+        lastPivotPrice = d.High;
+        lastPivotIndex = i;
+        lastPivotDate = d.Date;
+        count++;
+      }
+      if (lastPivotPrice > d.Low) lastPivotDate = d.Date;
+      lastPivotPrice = Math.min(lastPivotPrice, d.Low);
+    } else {
+      if (d.High > lastPivotPrice * (1 + deviation / 100)) {
+        trend = "up";
+        lastPivotPrice = d.High;
+        lastPivotIndex = count;
+        lastPivotDate = d.Date;
+        count++;
+      } else if (d.Low < lastPivotPrice * (1 - deviation / 100)) {
+        trend = "down";
+        lastPivotPrice = d.Low;
+        lastPivotIndex = count;
+        lastPivotDate = d.Date;
+        count++;
+      }
+    }
+  });
+
+  if (data[data.length - 1].Date !== lastPivotDate)
+    zigZagPoints[lastPivotDate] = {
+      index: count,
+      value: lastPivotPrice,
+      date: lastPivotDate,
+    };
+
+  return zigZagPoints;
+}

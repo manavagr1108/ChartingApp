@@ -27,7 +27,7 @@ function Indicators({ mode }) {
       [selectedKey]: {
         ...prevValues[selectedKey],
         [property]: value,
-        'label': indicatorConfig[selectedKey].label,
+        label: indicatorConfig[selectedKey].label,
       },
     }));
   };
@@ -35,14 +35,20 @@ function Indicators({ mode }) {
   const updateIndicatorSignal = () => {
     const selectedIndicatorConfig = indicatorConfig[selectedKey];
     Object.keys(selectedIndicatorConfig).forEach((key) => {
-      if(inputValues[key] === undefined)return;
-    })
+      if (inputValues[key] === undefined) {
+        // setInputValues((prevValues) => ({
+        //   ...prevValues,
+        //   [selectedKey]: selectedIndicatorConfig,
+        // }));
+        return;
+      }
+    });
     indicatorSignal.value = [
       ...indicatorSignal.peek(),
       inputValues[selectedKey],
-    ]
+    ];
     setIsModalOpen(false);
-  }
+  };
 
   return (
     <div className="relative inline-block">

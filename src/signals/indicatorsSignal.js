@@ -16,7 +16,8 @@ export const indicatorConfig = {
   },
   ZigZag: {
     color: "#00FF00",
-    stroke: 1,
     label: "Zig Zag",
+    deviation: 10,
+    pivotLegs: 5,
   },
 };
