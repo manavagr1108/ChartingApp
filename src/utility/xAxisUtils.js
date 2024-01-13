@@ -269,6 +269,8 @@ export const xAxisMouseMove = (e) => {
 export const xAxisMouseUp = (e) => {
   if (xAxisMovement.peek().mouseMove) {
     xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+  } else if (xAxisMovement.peek().mouseDown){
+    xAxisMovement.value.mouseDown = false;
   }
 };
 export const getXCoordinate = (

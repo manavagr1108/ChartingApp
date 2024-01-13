@@ -263,8 +263,7 @@ export function handleOnMouseMove(e, ChartRef) {
 
 export function handleScroll(e, ChartRef) {
   e.preventDefault();
-
-  if (e.ctrlKey) {
+  if (e.deltaY) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
     if (
       getObjtoStringTime(timeRange.peek().endTime) ===
@@ -290,7 +289,8 @@ export function handleScroll(e, ChartRef) {
       timeRange.peek().endTime,
       dateConfig.peek().dateToIndex
     );
-  } else {
+  } 
+  if(e.deltaX) {
     let pixelMovement = e.deltaX;
     if (
       Math.abs(pixelMovement) === 0 ||
@@ -508,6 +508,8 @@ export const chartMouseUp = (e) => {
   if (chartMovement.peek().mouseMove) {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
+  } else if(chartMovement.peek().mouseDown){
+    chartMovement.value.mouseDown = false;
   }
 };
 
@@ -518,7 +520,6 @@ export function drawZigZagIndicator(
   startIndex,
   endIndex
 ) {
-  console.log(zigZagData, "zigzag");
   const zigzagColor = mode === "Light" ? "#0b69ac" : "#f0a70b";
   ctx.lineWidth = 1;
   ctx.strokeStyle = zigzagColor;
