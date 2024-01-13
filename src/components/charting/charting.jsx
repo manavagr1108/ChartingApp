@@ -28,7 +28,11 @@ import {
 } from "../../utility/xAxisUtils";
 import { indicatorSignal } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
-import { yAxisMouseDown, yAxisMouseMove, yAxisMouseUp } from "../../utility/yAxisUtils";
+import {
+  yAxisMouseDown,
+  yAxisMouseMove,
+  yAxisMouseUp,
+} from "../../utility/yAxisUtils";
 
 function Charting({
   ChartRef,
@@ -82,24 +86,24 @@ function Charting({
     ChartRef.current.addEventListener(
       "wheel",
       (e) => handleScroll(e, ChartRef),
-      false
+      false,
     );
     ChartRef1.current.addEventListener(
       "wheel",
       (e) => handleScroll(e, ChartRef1),
-      false
+      false,
     );
     window.addEventListener("resize", handleResize);
     return () => {
       ChartRef.current.removeEventListener(
         "wheel",
         (e) => handleScroll(e, ChartRef),
-        false
+        false,
       );
       ChartRef1.current.removeEventListener(
         "wheel",
         (e) => handleScroll(e, ChartRef1),
-        false
+        false,
       );
       ChartRef1.current.removeEventListener("mousedown", chartMouseDown);
       window.removeEventListener("mousemove", chartMouseMove);
@@ -158,7 +162,7 @@ function Charting({
               removeCursor(e, ChartRef1, xAxisRef1, yAxisRef1);
             }}
           ></canvas>
-          <IndicatorsList mode={mode}/>
+          <IndicatorsList mode={mode} />
         </div>
         <div className="w-[5%] h-[97%] relative">
           <canvas

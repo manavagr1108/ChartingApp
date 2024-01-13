@@ -47,7 +47,7 @@ export function calculateZigZag(data, deviation, pivotLegs) {
 
   data.forEach((d, i) => {
     if (trend === "up") {
-      if(lastPivotPrice <= d.High){
+      if (lastPivotPrice <= d.High) {
         lastPivotPrice = d.High;
         lastPivotDate = d.Date;
         lastPivotIndex = i;
@@ -67,7 +67,7 @@ export function calculateZigZag(data, deviation, pivotLegs) {
         count++;
       }
     } else if (trend === "down") {
-      if(lastPivotPrice >= d.Low){
+      if (lastPivotPrice >= d.Low) {
         lastPivotPrice = d.Low;
         lastPivotDate = d.Date;
         lastPivotIndex = i;

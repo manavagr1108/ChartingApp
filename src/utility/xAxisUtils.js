@@ -3,7 +3,7 @@ import {
   dateConfig,
   timeRange,
   xAxisConfig,
-  xAxisMovement
+  xAxisMovement,
 } from "../signals/stockSignals";
 import { updatePriceRange, updateYConfig } from "./yAxisUtils";
 export const intervalMap = {
@@ -76,7 +76,7 @@ export function getNewScrollTime(
   zoomDirection,
   widthOfOneCS,
   noOfPMoved,
-  dates
+  dates,
 ) {
   scrollDirection = noOfPMoved / Math.abs(noOfPMoved);
   if (scrollOffset + scrollDirection * noOfPMoved < widthOfOneCS) {
@@ -158,7 +158,7 @@ export function getNewZoomTime(
   zoomDirection,
   widthOfOneCS,
   noOfPMoved,
-  dates
+  dates,
 ) {
   zoomDirection = noOfPMoved / Math.abs(noOfPMoved);
   if (zoomOffset + zoomDirection * noOfPMoved < widthOfOneCS) {
@@ -175,7 +175,7 @@ export function getNewZoomTime(
     const noOfCSMovedLeft =
       zoomDirection *
       Math.floor(
-        (zoomOffset + (zoomDirection * noOfPMoved) / 2) / widthOfOneCS
+        (zoomOffset + (zoomDirection * noOfPMoved) / 2) / widthOfOneCS,
       );
     zoomOffset = (zoomOffset + (zoomDirection * noOfPMoved) / 2) % widthOfOneCS;
     let prevStartTime = getObjtoStringTime(startTime);
@@ -240,7 +240,10 @@ export const xAxisMouseDown = (e) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 export const xAxisMouseMove = (e) => {
-  if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
+  if (
+    xAxisMovement.peek().mouseDown &&
+    e.pageX - xAxisMovement.peek().prevXCoord !== 0
+  ) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
     }
@@ -254,12 +257,12 @@ export const xAxisMouseMove = (e) => {
       timeRange.peek().zoomDirection,
       xAxisConfig.peek().widthOfOneCS,
       pixelMovement * xAxisConfig.peek().widthOfOneCS,
-      dateConfig.value.dateToIndex
-    )
+      dateConfig.value.dateToIndex,
+    );
     updateXAxisConfig(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
-      dateConfig.peek().dateToIndex
+      dateConfig.peek().dateToIndex,
     );
     updatePriceRange();
     updateYConfig();
@@ -268,7 +271,7 @@ export const xAxisMouseMove = (e) => {
 };
 export const xAxisMouseUp = (e) => {
   if (xAxisMovement.peek().mouseMove) {
-    xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+    xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
   }
 };
 export const getXCoordinate = (
@@ -276,7 +279,7 @@ export const getXCoordinate = (
   widthOfOneCS,
   multiplier,
   offset,
-  nthCS
+  nthCS,
 ) => {
   return width - nthCS * widthOfOneCS - widthOfOneCS / 2 - multiplier * offset;
 };

@@ -39,10 +39,10 @@ export const updateConfig = () => {
   if (stockData.peek().length) {
     const segmentTreeData = buildSegmentTree(stockData.peek());
     const startTime = getTime(
-      stockData.peek()[stockData.peek().length - 1].Date
+      stockData.peek()[stockData.peek().length - 1].Date,
     );
     const endTime = getTime(
-      stockData.peek()[stockData.peek().length - 150].Date
+      stockData.peek()[stockData.peek().length - 150].Date,
     );
     updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
     timeRange.value = {
@@ -147,7 +147,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         chartCanvasSize.peek().height,
         xCoord,
         ctx,
-        xAxisConfig.peek().widthOfOneCS - 2
+        xAxisConfig.peek().widthOfOneCS - 2,
       );
     } else if (chartType.peek() === "Line") {
       ctx.strokeStyle = "rgba(0,0,255,0.9)";
@@ -158,7 +158,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
         chartCanvasSize.peek().height,
         xCoord,
         ctx,
-        prev
+        prev,
       );
     }
   });
@@ -185,7 +185,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode) {
       const zigZagData = calculateZigZag(
         stockData.peek(),
         indicator.deviation,
-        indicator.pivotLegs
+        indicator.pivotLegs,
       );
       drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex);
     }
@@ -233,7 +233,7 @@ export function handleOnMouseMove(e, ChartRef) {
     y <= chartCanvasSize.peek().height
   ) {
     const dateIndex = Math.floor(
-      (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
+      (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS,
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
@@ -244,9 +244,9 @@ export function handleOnMouseMove(e, ChartRef) {
       dateCursor.value = {
         date: data.Date,
         text: `${data.Date} Open: ${data.Open.toFixed(
-          2
+          2,
         )} High: ${data.High.toFixed(2)} Low: ${data.Low.toFixed(
-          2
+          2,
         )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
         x:
           chartCanvasSize.peek().width -
@@ -283,12 +283,12 @@ export function handleScroll(e, ChartRef) {
       timeRange.peek().zoomDirection,
       xAxisConfig.peek().widthOfOneCS,
       noOfCSMovedLeft,
-      dateConfig.value.dateToIndex
+      dateConfig.value.dateToIndex,
     );
     updateXAxisConfig(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
-      dateConfig.peek().dateToIndex
+      dateConfig.peek().dateToIndex,
     );
   } else {
     let pixelMovement = e.deltaX;
@@ -312,7 +312,7 @@ export function handleScroll(e, ChartRef) {
       timeRange.peek().zoomDirection,
       xAxisConfig.peek().widthOfOneCS,
       pixelMovement,
-      dateConfig.value.dateToIndex
+      dateConfig.value.dateToIndex,
     );
   }
   if (!lockUpdatePriceRange.peek()) updatePriceRange();
@@ -349,7 +349,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
     10 - 14,
     dateText.length * 8,
     20,
-    mode === "Light" ? "white" : "black"
+    mode === "Light" ? "white" : "black",
   );
   xAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
   xAxisCtx.fillText(dateText, xCoord, 12);
@@ -367,7 +367,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
     yCoord1 - 14,
     priceText.length * 12,
     20,
-    mode === "Light" ? "white" : "black"
+    mode === "Light" ? "white" : "black",
   );
   yAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
   yAxisCtx.fillText(priceText, 15, yCoord1);
@@ -410,13 +410,13 @@ export function drawSMAIndicator(indicator, ctx, smaData, mode) {
       xAxisConfig.peek().widthOfOneCS,
       timeRange.peek().scrollDirection,
       timeRange.peek().scrollOffset,
-      i
+      i,
     );
     const yCoord = getYCoordinate(
       data.y,
       priceRange.peek().minPrice,
       priceRange.peek().maxPrice,
-      chartCanvasSize.peek().height
+      chartCanvasSize.peek().height,
     );
     if (i === 0) ctx.moveTo(xCoord, yCoord);
     else ctx.lineTo(xCoord, yCoord);
@@ -435,13 +435,13 @@ export function drawEMAIndicator(indicator, ctx, emaData, mode) {
       xAxisConfig.peek().widthOfOneCS,
       timeRange.peek().scrollDirection,
       timeRange.peek().scrollOffset,
-      i
+      i,
     );
     const yCoord = getYCoordinate(
       emaData[i].y,
       priceRange.peek().minPrice,
       priceRange.peek().maxPrice,
-      chartCanvasSize.peek().height
+      chartCanvasSize.peek().height,
     );
     if (i === 0) ctx.moveTo(xCoord, yCoord);
     else ctx.lineTo(xCoord, yCoord);
@@ -493,7 +493,7 @@ export const chartMouseMove = (e) => {
         timeRange.peek().zoomDirection,
         xAxisConfig.peek().widthOfOneCS,
         pixelXMovement,
-        dateConfig.value.dateToIndex
+        dateConfig.value.dateToIndex,
       );
       if (!lockUpdatePriceRange.peek()) {
         updatePriceRange();
@@ -516,7 +516,7 @@ export function drawZigZagIndicator(
   zigZagData,
   mode,
   startIndex,
-  endIndex
+  endIndex,
 ) {
   console.log(zigZagData, "zigzag");
   const zigzagColor = mode === "Light" ? "#0b69ac" : "#f0a70b";
@@ -539,14 +539,14 @@ export function drawZigZagIndicator(
             xAxisConfig.peek().widthOfOneCS,
             timeRange.peek().scrollDirection,
             timeRange.peek().scrollOffset,
-            endIndex - index1
+            endIndex - index1,
           ),
           getYCoordinate(
             zigZagValues[zigZagData[stockData.peek()[i].Date].index - 1]?.value,
             priceRange.peek().minPrice,
             priceRange.peek().maxPrice,
-            chartCanvasSize.peek().height
-          )
+            chartCanvasSize.peek().height,
+          ),
         );
         flag = true;
       }
@@ -556,13 +556,13 @@ export function drawZigZagIndicator(
         xAxisConfig.peek().widthOfOneCS,
         timeRange.peek().scrollDirection,
         timeRange.peek().scrollOffset,
-        index
+        index,
       );
       const yCoord = getYCoordinate(
         price,
         priceRange.peek().minPrice,
         priceRange.peek().maxPrice,
-        chartCanvasSize.peek().height
+        chartCanvasSize.peek().height,
       );
       ctx.lineTo(xCoord, yCoord);
     }
@@ -573,14 +573,14 @@ export function drawZigZagIndicator(
       xAxisConfig.peek().widthOfOneCS,
       timeRange.peek().scrollDirection,
       timeRange.peek().scrollOffset,
-      0
+      0,
     ),
     getYCoordinate(
       stockData.peek()[endIndex].Low,
       priceRange.peek().minPrice,
       priceRange.peek().maxPrice,
-      chartCanvasSize.peek().height
-    )
+      chartCanvasSize.peek().height,
+    ),
   );
   ctx.stroke();
 }

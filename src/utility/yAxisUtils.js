@@ -1,4 +1,14 @@
-import { chartCanvasSize, dateConfig, lockUpdatePriceRange, priceRange, stockData, timeRange, yAxisCanvasSize, yAxisConfig, yAxisMovement } from "../signals/stockSignals";
+import {
+  chartCanvasSize,
+  dateConfig,
+  lockUpdatePriceRange,
+  priceRange,
+  stockData,
+  timeRange,
+  yAxisCanvasSize,
+  yAxisConfig,
+  yAxisMovement,
+} from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 
 export const priceToColMap = {
@@ -15,8 +25,8 @@ export const priceToColMap = {
   840: 50,
   1140: 100,
   2085: 200,
-  4174: 250
-}
+  4174: 250,
+};
 
 function getLeftDate(date) {
   return date.slice(0, 10);
@@ -36,11 +46,11 @@ export function buildSegmentTree(data) {
   for (let i = 0; i < n; i++) {
     const ele = array[i];
     const d = {};
-    const date = `${ele.Date}:${ele.Date}`
+    const date = `${ele.Date}:${ele.Date}`;
     d[`${date}`] = {
-      'Low': ele.Low,
-      'High': ele.High
-    }
+      Low: ele.Low,
+      High: ele.High,
+    };
     datesToIndex[`${ele.Date}`] = i;
     indexToDates[`${i}`] = ele.Date;
     segmentTree[n + i] = d;
@@ -51,11 +61,11 @@ export function buildSegmentTree(data) {
     const rightEleKey = Object.keys(segmentTree[2 * i + 1])[0];
     const rightEleVal = Object.values(segmentTree[2 * i + 1])[0];
     const d = {};
-    const date = `${getLeftDate(leftEleKey)}:${getRightDate(rightEleKey)}`
+    const date = `${getLeftDate(leftEleKey)}:${getRightDate(rightEleKey)}`;
     d[`${date}`] = {
-      'Low': Math.min(leftEleVal.Low, rightEleVal.Low),
-      'High': Math.max(leftEleVal.High, rightEleVal.High)
-    }
+      Low: Math.min(leftEleVal.Low, rightEleVal.Low),
+      High: Math.max(leftEleVal.High, rightEleVal.High),
+    };
     segmentTree[i] = d;
   }
   return { segmentTree, datesToIndex, indexToDates };
@@ -84,7 +94,10 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
       maxPrice = Math.max(maxPrice, ele[0].High);
     }
   }
-  if (maxPrice != Number.MIN_SAFE_INTEGER && minPrice != Number.MAX_SAFE_INTEGER) {
+  if (
+    maxPrice != Number.MIN_SAFE_INTEGER &&
+    minPrice != Number.MAX_SAFE_INTEGER
+  ) {
     const priceDiff = (maxPrice - minPrice) / 12;
     minPrice = minPrice - priceDiff;
     maxPrice = maxPrice + priceDiff;
@@ -93,10 +106,18 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
 }
 
 export const getYCoordinate = (price, minPrice, maxPrice, height) => {
-  return height - ((height) / (maxPrice - minPrice)) * (price - minPrice);
-}
+  return height - (height / (maxPrice - minPrice)) * (price - minPrice);
+};
 
-export const drawCandleStick = (data, minPrice, maxPrice, height, x, context, width) => {
+export const drawCandleStick = (
+  data,
+  minPrice,
+  maxPrice,
+  height,
+  x,
+  context,
+  width,
+) => {
   let fillColor, borderColor;
   if (data["Close"] > data["Open"]) {
     fillColor = "green";
@@ -133,14 +154,9 @@ export const drawLineChart = (
   height,
   x,
   context,
-  prev
+  prev,
 ) => {
-  const y = getYCoordinate(
-    data["AdjClose"],
-    minPrice,
-    maxPrice,
-    height
-  );
+  const y = getYCoordinate(data["AdjClose"], minPrice, maxPrice, height);
   if (prev === null) {
     context.beginPath();
     context.moveTo(x, y);
@@ -161,9 +177,13 @@ export function updatePriceRange() {
     dateConfig.peek().dateToIndex,
     getObjtoStringTime(timeRange.value.endTime),
     getObjtoStringTime(timeRange.value.startTime),
-    stockData.peek().length
+    stockData.peek().length,
   );
-  if(priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice)return;
+  if (
+    priceRange.peek().maxPrice > result.maxPrice &&
+    priceRange.peek().minPrice < result.minPrice
+  )
+    return;
   if (
     result &&
     (result.maxPrice !== priceRange.peek().maxPrice ||
@@ -179,23 +199,30 @@ export const updateYConfig = () => {
   const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
   let colDiff = yAxisConfig.peek().colDiff;
   const priceMap = Object.keys(priceToColMap);
-  priceMap.forEach((price,i) => {
-    if(parseInt(price) >  pDiff && pDiff > parseInt(priceMap[i-1])){
-      colDiff = parseFloat(priceToColMap[priceMap[i-1]]);
+  priceMap.forEach((price, i) => {
+    if (parseInt(price) > pDiff && pDiff > parseInt(priceMap[i - 1])) {
+      colDiff = parseFloat(priceToColMap[priceMap[i - 1]]);
     }
   });
   yAxisConfig.value.colDiff = colDiff;
   yAxisConfig.value.priceDiff = pDiff;
-}
+};
 
 export const drawYAxis = (ctx, yAxisCtx, mode) => {
   const colDiff = yAxisConfig.peek().colDiff;
   const minPrice = priceRange.peek().minPrice;
   const maxPrice = priceRange.peek().maxPrice;
-  const noOfCols = Math.floor((maxPrice - minPrice)/colDiff);
-  for (let i = noOfCols+3; i >= 0; i--) {
-    const text = (Math.floor(priceRange.peek().minPrice/colDiff)) * colDiff + (i-1)*colDiff;
-    const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
+  const noOfCols = Math.floor((maxPrice - minPrice) / colDiff);
+  for (let i = noOfCols + 3; i >= 0; i--) {
+    const text =
+      Math.floor(priceRange.peek().minPrice / colDiff) * colDiff +
+      (i - 1) * colDiff;
+    const yCoord = getYCoordinate(
+      text,
+      minPrice,
+      maxPrice,
+      yAxisCanvasSize.peek().height,
+    );
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
     const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
@@ -205,7 +232,7 @@ export const drawYAxis = (ctx, yAxisCtx, mode) => {
     ctx.lineTo(chartCanvasSize.peek().width, yCoord);
     ctx.stroke();
   }
-}
+};
 
 export const yAxisMouseDown = (e) => {
   yAxisMovement.value.mouseDown = true;
@@ -216,19 +243,22 @@ export const yAxisMouseDown = (e) => {
 };
 
 export const yAxisMouseMove = (e) => {
-  if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
+  if (
+    yAxisMovement.peek().mouseDown &&
+    e.pageY - yAxisMovement.peek().prevXCoord !== 0
+  ) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
       lockUpdatePriceRange.value = true;
     }
     const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
     const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-    if(pDiff > 4000 && pixelMovement < 0) return;
-    if(pDiff < 5 && pixelMovement > 0) return;
+    if (pDiff > 4000 && pixelMovement < 0) return;
+    if (pDiff < 5 && pixelMovement > 0) return;
     priceRange.value = {
       minPrice: priceRange.peek().minPrice + pixelMovement,
-      maxPrice: priceRange.peek().maxPrice - pixelMovement
-    }
+      maxPrice: priceRange.peek().maxPrice - pixelMovement,
+    };
     updateYConfig();
     yAxisMovement.value.prevXCoord = e.pageY;
   }
@@ -236,6 +266,6 @@ export const yAxisMouseMove = (e) => {
 
 export const yAxisMouseUp = (e) => {
   if (yAxisMovement.peek().mouseMove) {
-    yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+    yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
   }
 };

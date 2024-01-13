@@ -123,7 +123,7 @@ function Indicators({ mode }) {
                             onChange={(e) =>
                               handlePropertyInputChange(
                                 property,
-                                e.target.value
+                                e.target.value,
                               )
                             }
                             className="p-2 rounded-sm"

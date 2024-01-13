@@ -14,11 +14,13 @@ function IndicatorsList({ mode }) {
     }
   });
   const removeIndicator = (index) => {
-    indicatorSignal.value = indicatorSignal.peek().filter((val, i) => i !== index)
+    indicatorSignal.value = indicatorSignal
+      .peek()
+      .filter((val, i) => i !== index);
   };
   const updateIndicator = (index) => {
     console.log(index);
-  }
+  };
   return (
     <div className="absolute flex flex-col z-6 select-none top-7 left-2 w-250">
       {indicators.length !== 0 &&
@@ -37,23 +39,25 @@ function IndicatorsList({ mode }) {
               </div>{" "}
               <button
                 className={`p-1 cursor-pointer rounded-md hidden group-hover:block  ${
-                    mode === "Light"
-                      ? "hover:bg-gray-200"
-                      : "hover:bg-gray-700"
-                  }`}
+                  mode === "Light" ? "hover:bg-gray-200" : "hover:bg-gray-700"
+                }`}
                 onClick={() => updateIndicator(index)}
               >
-                <MdSettings color={`${mode === 'Light' ? 'black' : 'white'}`} size={15} />
+                <MdSettings
+                  color={`${mode === "Light" ? "black" : "white"}`}
+                  size={15}
+                />
               </button>
               <button
                 className={`p-1 cursor-pointer hidden rounded-md group-hover:block  ${
-                    mode === "Light"
-                      ? "hover:bg-gray-200"
-                      : "hover:bg-gray-700"
-                  }`}
+                  mode === "Light" ? "hover:bg-gray-200" : "hover:bg-gray-700"
+                }`}
                 onClick={() => removeIndicator(index)}
               >
-                <MdClose color={`${mode === 'Light' ? 'black' : 'white'}`} size={15} />
+                <MdClose
+                  color={`${mode === "Light" ? "black" : "white"}`}
+                  size={15}
+                />
               </button>
             </div>
           );
