@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef } from "react";
+import React, { useState, useCallback, useLayoutEffect, useRef, useEffect } from "react";
 import { effect } from "@preact/signals-react";
 import {
   chartCanvasSize,
@@ -28,28 +28,37 @@ import {
 } from "../../utility/xAxisUtils";
 import { indicatorSignal } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
-import { yAxisMouseDown, yAxisMouseMove, yAxisMouseUp } from "../../utility/yAxisUtils";
+import {
+  yAxisMouseDown,
+  yAxisMouseMove,
+  yAxisMouseUp,
+} from "../../utility/yAxisUtils";
+import DrawChart from "./drawChart";
+import DrawIndicator from "./drawIndicator";
 
-function Charting({
-  ChartRef,
-  selectedStock,
-  interval,
-  stockData,
-  chartType,
-  mode,
-}) {
-  const ChartRef1 = useRef(null);
-  const xAxisRef = useRef(null);
-  const xAxisRef1 = useRef(null);
-  const yAxisRef = useRef(null);
-  const yAxisRef1 = useRef(null);
+function Charting({ selectedStock, interval, stockData, chartType, mode }) {
+  const ChartRef = useRef([]);
+  ChartRef.current = ChartRef.current.slice(0,2);
+  const xAxisRef = useRef([]);
+  xAxisRef.current = xAxisRef.current.slice(0,2); 
+  const yAxisRef = useRef([]);
+  yAxisRef.current = yAxisRef.current.slice(0,2);
+  const [indicators, setIndicators] = useState([]);
+  effect(() => {
+    if (
+      indicatorSignal.value &&
+      indicatorSignal.value.length !== indicators.length
+    ) {
+      setIndicators([...indicatorSignal.peek()]);
+    }
+  });
   const handleResize = useCallback(() => {
-    chartCanvasSize.value = setCanvasSize(ChartRef.current);
-    setCanvasSize(ChartRef1.current);
-    xAxisCanvasSize.value = setCanvasSize(xAxisRef.current);
-    setCanvasSize(xAxisRef1.current);
-    yAxisCanvasSize.value = setCanvasSize(yAxisRef.current);
-    setCanvasSize(yAxisRef1.current);
+    chartCanvasSize.value = setCanvasSize(ChartRef.current[0]);
+    setCanvasSize(ChartRef.current[1]);
+    xAxisCanvasSize.value = setCanvasSize(xAxisRef.current[0]);
+    setCanvasSize(xAxisRef.current[1]);
+    yAxisCanvasSize.value = setCanvasSize(yAxisRef.current[0]);
+    setCanvasSize(yAxisRef.current[1]);
     updateConfig();
   }, []);
   effect(() => {
@@ -57,58 +66,57 @@ function Charting({
       dateCursor.value &&
       dateCursor.value.x !== null &&
       dateCursor.value.y !== null &&
-      ChartRef1.current !== null &&
-      xAxisRef1.current !== null &&
-      yAxisRef1.current !== null
-    ) {
-      updateCursorValue(ChartRef1, xAxisRef1, yAxisRef1, mode);
-    }
+      ChartRef.current[1] !== null &&
+      xAxisRef.current[1] !== null &&
+      yAxisRef.current[1] !== null
+    ) 
+      updateCursorValue(ChartRef.current[1], xAxisRef.current[1], yAxisRef.current[1], mode);
   });
   effect(() => {
     if (selectedStock.value && interval.value)
       setStockData(selectedStock, interval, stockData);
   });
-  useLayoutEffect(() => {
+  useEffect(() => {
     handleResize();
-    ChartRef1.current.addEventListener("mousedown", chartMouseDown);
+    ChartRef.current[1].addEventListener("mousedown", chartMouseDown);
     window.addEventListener("mousemove", chartMouseMove);
     window.addEventListener("mouseup", chartMouseUp);
-    xAxisRef1.current.addEventListener("mousedown", xAxisMouseDown);
+    xAxisRef.current[1].addEventListener("mousedown", xAxisMouseDown);
     window.addEventListener("mousemove", xAxisMouseMove);
     window.addEventListener("mouseup", xAxisMouseUp);
-    yAxisRef1.current.addEventListener("mousedown", yAxisMouseDown);
+    yAxisRef.current[1].addEventListener("mousedown", yAxisMouseDown);
     window.addEventListener("mousemove", yAxisMouseMove);
     window.addEventListener("mouseup", yAxisMouseUp);
-    ChartRef.current.addEventListener(
+    ChartRef.current[0].addEventListener(
       "wheel",
-      (e) => handleScroll(e, ChartRef),
+      (e) => handleScroll(e, ChartRef.current[0]),
       false
     );
-    ChartRef1.current.addEventListener(
+    ChartRef.current[1].addEventListener(
       "wheel",
-      (e) => handleScroll(e, ChartRef1),
+      (e) => handleScroll(e, ChartRef.current[1]),
       false
     );
     window.addEventListener("resize", handleResize);
     return () => {
-      ChartRef.current.removeEventListener(
+      ChartRef.current[0].removeEventListener(
         "wheel",
-        (e) => handleScroll(e, ChartRef),
+        (e) => handleScroll(e, ChartRef.current[0]),
         false
       );
-      ChartRef1.current.removeEventListener(
+      ChartRef.current[1].removeEventListener(
         "wheel",
-        (e) => handleScroll(e, ChartRef1),
+        (e) => handleScroll(e, ChartRef.current[1]),
         false
       );
-      ChartRef1.current.removeEventListener("mousedown", chartMouseDown);
+      ChartRef.current[1].removeEventListener("mousedown", chartMouseDown);
       window.removeEventListener("mousemove", chartMouseMove);
       window.removeEventListener("mouseup", chartMouseUp);
       window.removeEventListener("resize", handleResize);
-      xAxisRef1.current.removeEventListener("mousedown", xAxisMouseDown);
+      xAxisRef.current[1].removeEventListener("mousedown", xAxisMouseDown);
       window.removeEventListener("mousemove", xAxisMouseMove);
       window.removeEventListener("mouseup", xAxisMouseUp);
-      yAxisRef1.current.removeEventListener("mousedown", yAxisMouseDown);
+      yAxisRef.current[1].removeEventListener("mousedown", yAxisMouseDown);
       window.removeEventListener("mousemove", yAxisMouseMove);
       window.removeEventListener("mouseup", yAxisMouseUp);
     };
@@ -121,12 +129,12 @@ function Charting({
       indicatorSignal.value
     ) {
       if (
-        ChartRef.current !== null &&
-        xAxisRef.current !== null &&
-        yAxisRef.current !== null &&
+        ChartRef.current[0] !== null &&
+        xAxisRef.current[0] !== null &&
+        yAxisRef.current[0] !== null &&
         priceRange.value.minPrice > 0
       ) {
-        drawChart(ChartRef, xAxisRef, yAxisRef, mode);
+        drawChart(ChartRef.current[0], xAxisRef.current[0], yAxisRef.current[0], mode);
       }
     }
   });
@@ -143,40 +151,40 @@ function Charting({
           mode === "Light" ? "border-gray-300" : "border-gray-800"
         }`}
       >
-        <div className="w-[95%] h-[97%] relative">
-          <canvas
-            ref={ChartRef}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
-          ></canvas>
-          <canvas
-            ref={ChartRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
-            onMouseMove={(e) => {
-              handleOnMouseMove(e, ChartRef1);
-            }}
-            onMouseLeave={(e) => {
-              removeCursor(e, ChartRef1, xAxisRef1, yAxisRef1);
-            }}
-          ></canvas>
-          <IndicatorsList mode={mode}/>
-        </div>
-        <div className="w-[5%] h-[97%] relative">
-          <canvas
-            ref={yAxisRef}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
-          ></canvas>
-          <canvas
-            ref={yAxisRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
-          ></canvas>
+        <div className="flex direction-row flex-wrap w-[100%] h-[97%] relative">
+          <DrawChart
+            handleOnMouseMove={handleOnMouseMove}
+            removeCursor={removeCursor}
+            ChartRef={ChartRef}
+            xAxisRef={xAxisRef}
+            yAxisRef={yAxisRef}
+          />
+          {indicators.length &&
+            indicators.map((indicator) => {
+              return (
+                <DrawIndicator
+                  mode={mode}
+                  indicator={indicator}
+                  handleOnMouseMove={handleOnMouseMove}
+                  removeCursor={removeCursor}
+                  ChartRef={ChartRef}
+                  xAxisRef={xAxisRef}
+                  yAxisRef={yAxisRef}
+                />
+              );
+            })}
+          <IndicatorsList
+            mode={mode}
+            indicators={indicators}
+          />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas
-            ref={xAxisRef}
+            ref={el => xAxisRef.current[0] = el}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
           ></canvas>
           <canvas
-            ref={xAxisRef1}
+            ref={el => xAxisRef.current[1] = el}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ew-resize`}
           ></canvas>
         </div>

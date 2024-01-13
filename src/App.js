@@ -12,7 +12,6 @@ import {
 } from "./signals/stockSignals";
 
 function App() {
-  const ChartRef = useRef(null);
   const [mode, setMode] = useState("Light");
   function toggleMode() {
     setMode((prev) => (prev === "Light" ? "Dark" : "Light"));
@@ -30,7 +29,6 @@ function App() {
         />
         <ToolBar mode={mode} />
         <Charting
-          ChartRef={ChartRef}
           selectedStock={selectedStock}
           interval={interval}
           stockData={stockData}
