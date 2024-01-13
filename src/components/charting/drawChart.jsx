@@ -1,6 +1,6 @@
 import { computed } from "@preact/signals-react";
 import React from "react";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
+import { offChartIndicatorSignal } from "../../signals/indicatorsSignal";
 
 function DrawChart({
   handleOnMouseMove,
@@ -9,7 +9,7 @@ function DrawChart({
   xAxisRef,
   yAxisRef,
 }) {
-  const indicatorsLength = computed(() => indicatorSignal.value.length);
+  const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div
       className={`flex direction-row flex-wrap w-[100%] ${

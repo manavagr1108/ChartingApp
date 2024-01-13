@@ -1,5 +1,5 @@
 import { monthMap } from "../data/TIME_MAP";
-import { indicatorConfig, indicatorSignal } from "../signals/indicatorsSignal";
+import { indicatorConfig, onChartIndicatorSignal } from "../signals/indicatorsSignal";
 import {
   chartCanvasSize,
   chartMovement,
@@ -167,7 +167,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
 }
 
 export function drawIndicators(startIndex, endIndex, ctx, mode) {
-  indicatorSignal.peek().forEach((indicator) => {
+  onChartIndicatorSignal.peek().forEach((indicator) => {
     if (indicator.label === indicatorConfig["SMA"].label) {
       const smaData = calculateSMA(stockData.peek(), indicator.period);
       const SMA = smaData
@@ -204,6 +204,8 @@ export async function setStockData(symbol, interval, stockData) {
 }
 
 export function setCanvasSize(element) {
+  if(element === undefined)return;
+  console.log(element);
   const canvas = element;
   let width = element.parentElement.offsetWidth;
   let height = element.parentElement.offsetHeight;
@@ -399,6 +401,7 @@ export const removeCursor = (e, ChartRef, xAxisRef, yAxisRef) => {
     ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     xAxisCtx.clearRect(0, 0, xAxisCanvas.width, xAxisCanvas.height);
     yAxisCtx.clearRect(0, 0, yAxisCanvas.width, yAxisCanvas.height);
+    chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0, prevYCoord: 0 };
     dateCursor.value = null;
   }
 };

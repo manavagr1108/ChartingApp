@@ -112,3 +112,38 @@ export function calculateZigZag(data, deviation, pivotLegs) {
 
   return zigZagPoints;
 }
+
+export function calculateRSI(data, period) {
+  let gains = 0;
+  let losses = 0;
+  const rsiValues = [];
+
+  for (let i = 1; i <= period; i++) {
+    const change = data[i]?.Close - data[i - 1]?.Close;
+    if (change > 0) {
+      gains += change;
+    } else {
+      losses -= change;
+    }
+  }
+
+  let avgGain = gains / period;
+  let avgLoss = losses / period;
+
+  for (let i = period + 1; i < data.length; i++) {
+    const change = data[i].Close - data[i - 1].Close;
+    let gain = change > 0 ? change : 0;
+    let loss = change < 0 ? -change : 0;
+
+    avgGain = (avgGain * (period - 1) + gain) / period;
+    avgLoss = (avgLoss * (period - 1) + loss) / period;
+
+    let rs = avgLoss === 0 ? 0 : avgGain / avgLoss;
+    let rsi = 100 - 100 / (1 + rs);
+
+    rsiValues.push({ x: data[i].Date, y: rsi });
+  }
+
+  console.log(rsiValues);
+  return rsiValues;
+}

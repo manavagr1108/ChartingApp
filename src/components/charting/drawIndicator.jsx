@@ -1,49 +1,58 @@
 import React from "react";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
+import { indicatorChartCanvasSize, indicatorYAxisCanvasSize, offChartIndicatorSignal, onChartIndicatorSignal } from "../../signals/indicatorsSignal";
 import { computed } from "@preact/signals-react";
+import { setCanvasSize } from "../../utility/chartUtils";
+import IndicatorsList from "../indicators/indicatorsList";
 
 function DrawIndicator({
   mode,
-  indicator,
+  index,
+  offChartIndicators,
   handleOnMouseMove,
   removeCursor,
-  ChartRef,
+  indicatorsChartRef,
   xAxisRef,
-  yAxisRef,
+  indicatorsYAxisRef,
 }) {
-  const indicatorsLength = computed(() => indicatorSignal.value.length);
+    console.log(indicatorsChartRef.current);
+    indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*index]));
+    setCanvasSize(indicatorsChartRef.current[2*index + 1]);
+    indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*index]));
+    setCanvasSize(indicatorsYAxisRef.current[2*index + 1]);
+  const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div
-      className={`flex direction-row flex-wrap w-[100%] ${
+      className={`flex direction-row relative flex-wrap w-[100%] ${
         indicatorsLength.value ? "h-[50%]" : "h-[100%]"
       }`}
     >
       <div className="w-[95%] h-[100%] relative">
         <canvas
-          ref={el => ChartRef.current[0] = el}
+          ref={el => indicatorsChartRef.current[2*index] = el}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
         ></canvas>
         <canvas
-          ref={el => ChartRef.current[1] = el}
+          ref={el => indicatorsChartRef.current[2*index+1] = el}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
           onMouseMove={(e) => {
-            handleOnMouseMove(e, ChartRef.current[1]);
+            handleOnMouseMove(e, indicatorsChartRef.current[2*index+1]);
           }}
           onMouseLeave={(e) => {
-            removeCursor(e, ChartRef.current[1], xAxisRef.current[1], yAxisRef.current[1]);
+            removeCursor(e, indicatorsChartRef.current[2*index+1], xAxisRef.current[1], indicatorsYAxisRef.current[2*index + 1]);
           }}
         ></canvas>
       </div>
       <div className="w-[5%] h-[100%] relative">
         <canvas
-          ref={yAxisRef.current[0]}
+          ref={el => indicatorsYAxisRef.current[2*index] = el}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
         ></canvas>
         <canvas
-          ref={yAxisRef.current[1]}
+          ref={el => indicatorsYAxisRef.current[2*index+1] = el}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
         ></canvas>
       </div>
+      <IndicatorsList mode={mode} indicators={[offChartIndicators[index]]} />
     </div>
   );
 }
