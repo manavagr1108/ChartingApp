@@ -64,12 +64,13 @@ export const updateConfig = () => {
 export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
   if (
     !stockData.peek().length ||
-    priceRange.peek().maxPrice === priceRange.peek().minPrice
+    priceRange.peek().maxPrice === priceRange.peek().minPrice ||
+    ChartRef === undefined
   )
     return;
-  const canvas = ChartRef.current;
-  const canvasXAxis = xAxisRef.current;
-  const canvasYAxis = yAxisRef.current;
+  const canvas = ChartRef;
+  const canvasXAxis = xAxisRef;
+  const canvasYAxis = yAxisRef;
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
@@ -197,8 +198,8 @@ export async function setStockData(symbol, interval, stockData) {
     const fetchedData = await getStockData(symbol.value, interval.value);
     stockData.value = [...fetchedData];
     updateConfig();
-  } catch {
-    console.log("Error in fetching data!!");
+  } catch(e) {
+    console.log(e, "Error in fetching data!!");
   }
 }
 
@@ -222,7 +223,7 @@ export function setCanvasSize(element) {
 }
 
 export function handleOnMouseMove(e, ChartRef) {
-  const canvas = ChartRef.current;
+  const canvas = ChartRef;
   const rect = canvas.getBoundingClientRect();
   const x = e.pageX - rect.left;
   const y = e.pageY - rect.top;
@@ -321,9 +322,10 @@ export function handleScroll(e, ChartRef) {
 }
 
 export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
-  const canvas = ChartRef.current;
-  const canvasXAxis = xAxisRef.current;
-  const canvasYAxis = yAxisRef.current;
+  if(ChartRef === undefined)return;
+  const canvas = ChartRef;
+  const canvasXAxis = xAxisRef;
+  const canvasYAxis = yAxisRef;
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
@@ -386,11 +388,11 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
   ctx.setLineDash([]);
 }
 
-export const removeCursor = (e, ChartRef, xAxisRef1, yAxisRef1) => {
-  if (dateCursor.peek() !== null && ChartRef.current !== null) {
-    const chartCanvas = ChartRef.current;
-    const xAxisCanvas = xAxisRef1.current;
-    const yAxisCanvas = yAxisRef1.current;
+export const removeCursor = (e, ChartRef, xAxisRef, yAxisRef) => {
+  if (dateCursor.peek() !== null && ChartRef !== null) {
+    const chartCanvas = ChartRef;
+    const xAxisCanvas = xAxisRef;
+    const yAxisCanvas = yAxisRef;
     const ctx = chartCanvas.getContext("2d");
     const xAxisCtx = xAxisCanvas.getContext("2d");
     const yAxisCtx = yAxisCanvas.getContext("2d");

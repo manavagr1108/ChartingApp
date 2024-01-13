@@ -1,18 +1,8 @@
-import { effect } from "@preact/signals-react";
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import { indicatorSignal } from "../../signals/indicatorsSignal";
 import { MdClose, MdSettings } from "react-icons/md";
 
-function IndicatorsList({ mode }) {
-  const [indicators, setIndicators] = useState([]);
-  effect(() => {
-    if (
-      indicatorSignal.value &&
-      indicatorSignal.value.length !== indicators.length
-    ) {
-      setIndicators([...indicatorSignal.peek()]);
-    }
-  });
+function IndicatorsList({ mode, indicators }) {
   const removeIndicator = (index) => {
     indicatorSignal.value = indicatorSignal.peek().filter((val, i) => i !== index)
   };
