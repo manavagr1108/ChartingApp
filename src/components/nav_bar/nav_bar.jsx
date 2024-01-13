@@ -6,6 +6,7 @@ import { intervalMap } from "../../utility/xAxisUtils.js";
 import { effect } from "@preact/signals-react";
 import DropdownMenu from "../dropdown/dropdownMenu.jsx";
 import SearchBar from "../search_bar/search_bar.jsx";
+import Indicators from "../indicators/indicators.jsx";
 
 const chartTypes = {
   Candles: <MdOutlineCandlestickChart size={22} />,
@@ -65,6 +66,8 @@ function NavBar({ selectedStock, interval, chartType, mode, toggleMode }) {
           stateToBeUpdated={chartType}
           mode={mode}
         />
+        <div className="border-l-2 h-2/3"></div>
+        <Indicators mode={mode} />
       </div>
       <div className="flex items-center ml-2">
         <label
