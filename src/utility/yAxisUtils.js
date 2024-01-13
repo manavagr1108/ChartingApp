@@ -163,7 +163,7 @@ export function updatePriceRange() {
     getObjtoStringTime(timeRange.value.startTime),
     stockData.peek().length
   );
-  if(priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice)return;
+  if(!lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice)return;
   if (
     result &&
     (result.maxPrice !== priceRange.peek().maxPrice ||
@@ -237,5 +237,7 @@ export const yAxisMouseMove = (e) => {
 export const yAxisMouseUp = (e) => {
   if (yAxisMovement.peek().mouseMove) {
     yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+  } else if (yAxisMovement.peek().mouseDown){
+    yAxisMovement.value.mouseDown = false;
   }
 };
