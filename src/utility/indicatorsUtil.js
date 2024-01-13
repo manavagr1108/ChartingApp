@@ -47,7 +47,11 @@ export function calculateZigZag(data, deviation, pivotLegs) {
 
   data.forEach((d, i) => {
     if (trend === "up") {
-      if (
+      if(lastPivotPrice <= d.High){
+        lastPivotPrice = d.High;
+        lastPivotDate = d.Date;
+        lastPivotIndex = i;
+      } else if (
         d.Low < lastPivotPrice * (1 - deviation / 100) &&
         i - lastPivotIndex >= pivotLegs
       ) {
@@ -62,10 +66,12 @@ export function calculateZigZag(data, deviation, pivotLegs) {
         lastPivotDate = d.Date;
         count++;
       }
-      lastPivotPrice = Math.max(lastPivotPrice, d.High);
-      if (lastPivotPrice <= d.High) lastPivotDate = d.Date;
     } else if (trend === "down") {
-      if (
+      if(lastPivotPrice >= d.Low){
+        lastPivotPrice = d.Low;
+        lastPivotDate = d.Date;
+        lastPivotIndex = i;
+      } else if (
         d.High > lastPivotPrice * (1 + deviation / 100) &&
         i - lastPivotIndex >= pivotLegs
       ) {
@@ -80,19 +86,17 @@ export function calculateZigZag(data, deviation, pivotLegs) {
         lastPivotDate = d.Date;
         count++;
       }
-      if (lastPivotPrice > d.Low) lastPivotDate = d.Date;
-      lastPivotPrice = Math.min(lastPivotPrice, d.Low);
     } else {
       if (d.High > lastPivotPrice * (1 + deviation / 100)) {
         trend = "up";
         lastPivotPrice = d.High;
-        lastPivotIndex = count;
+        lastPivotIndex = i;
         lastPivotDate = d.Date;
         count++;
       } else if (d.Low < lastPivotPrice * (1 - deviation / 100)) {
         trend = "down";
         lastPivotPrice = d.Low;
-        lastPivotIndex = count;
+        lastPivotIndex = i;
         lastPivotDate = d.Date;
         count++;
       }
