@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useLayoutEffect, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useEffect,
+} from "react";
 import { effect } from "@preact/signals-react";
 import {
   chartCanvasSize,
@@ -26,7 +32,12 @@ import {
   xAxisMouseMove,
   xAxisMouseUp,
 } from "../../utility/xAxisUtils";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
+import {
+  onChartIndicatorSignal,
+  offChartIndicatorSignal,
+  indicatorChartCanvasSize,
+  indicatorYAxisCanvasSize,
+} from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
 import {
   yAxisMouseDown,
@@ -38,18 +49,38 @@ import DrawIndicator from "./drawIndicator";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   const ChartRef = useRef([]);
-  ChartRef.current = ChartRef.current.slice(0,2);
+  ChartRef.current = ChartRef.current.slice(0, 2);
   const xAxisRef = useRef([]);
-  xAxisRef.current = xAxisRef.current.slice(0,2); 
+  xAxisRef.current = xAxisRef.current.slice(0, 2);
   const yAxisRef = useRef([]);
-  yAxisRef.current = yAxisRef.current.slice(0,2);
-  const [indicators, setIndicators] = useState([]);
+  yAxisRef.current = yAxisRef.current.slice(0, 2);
+  const indicatorsChartRef = useRef([]);
+  const indicatorsYAxisRef = useRef([]);
+  const [onChartIndicators, setOnChartIndicators] = useState([]);
+  const [offChartIndicators, setOffChartIndicators] = useState([]);
   effect(() => {
     if (
-      indicatorSignal.value &&
-      indicatorSignal.value.length !== indicators.length
+      onChartIndicatorSignal.value &&
+      onChartIndicatorSignal.value.length !== onChartIndicators.length
     ) {
-      setIndicators([...indicatorSignal.peek()]);
+      setOnChartIndicators([...onChartIndicatorSignal.peek()]);
+    } else if (
+      offChartIndicatorSignal.value &&
+      offChartIndicatorSignal.value.length !== offChartIndicators.length
+    ) {
+      console.log(
+        offChartIndicators,
+        offChartIndicatorSignal.peek()
+      );
+      indicatorsChartRef.current = indicatorsChartRef.current.slice(
+        0,
+        2 * offChartIndicatorSignal.peek().length
+      );
+      indicatorsYAxisRef.current = indicatorsYAxisRef.current.slice(
+        0,
+        2 * offChartIndicatorSignal.peek().length
+      );
+      setOffChartIndicators([...offChartIndicatorSignal.peek()]);
     }
   });
   const handleResize = useCallback(() => {
@@ -60,6 +91,14 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     yAxisCanvasSize.value = setCanvasSize(yAxisRef.current[0]);
     setCanvasSize(yAxisRef.current[1]);
     updateConfig();
+    if(indicatorsChartRef.current.length !== 0){
+      offChartIndicatorSignal.peek().forEach((_, i) => {
+        indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*i]));
+        setCanvasSize(indicatorsChartRef.current[2*i+1])
+        indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*i]));
+        setCanvasSize(indicatorsYAxisRef.current[2*i])
+      })
+    }
   }, []);
   effect(() => {
     if (
@@ -69,8 +108,13 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       ChartRef.current[1] !== null &&
       xAxisRef.current[1] !== null &&
       yAxisRef.current[1] !== null
-    ) 
-      updateCursorValue(ChartRef.current[1], xAxisRef.current[1], yAxisRef.current[1], mode);
+    )
+      updateCursorValue(
+        ChartRef.current[1],
+        xAxisRef.current[1],
+        yAxisRef.current[1],
+        mode
+      );
   });
   effect(() => {
     if (selectedStock.value && interval.value)
@@ -126,7 +170,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       timeRange.value.endTime.Date !== 0 &&
       timeRange.value.startTime.Date !== 0 &&
       chartType.value &&
-      indicatorSignal.value
+      onChartIndicatorSignal.value
     ) {
       if (
         ChartRef.current[0] !== null &&
@@ -134,7 +178,12 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
         yAxisRef.current[0] !== null &&
         priceRange.value.minPrice > 0
       ) {
-        drawChart(ChartRef.current[0], xAxisRef.current[0], yAxisRef.current[0], mode);
+        drawChart(
+          ChartRef.current[0],
+          xAxisRef.current[0],
+          yAxisRef.current[0],
+          mode
+        );
       }
     }
   });
@@ -159,32 +208,30 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             xAxisRef={xAxisRef}
             yAxisRef={yAxisRef}
           />
-          {indicators.length &&
-            indicators.map((indicator) => {
+          {offChartIndicators.length !== 0 &&
+            offChartIndicators.map((_, index) => {
               return (
                 <DrawIndicator
                   mode={mode}
-                  indicator={indicator}
+                  index={index}
+                  offChartIndicators={offChartIndicators}
                   handleOnMouseMove={handleOnMouseMove}
                   removeCursor={removeCursor}
-                  ChartRef={ChartRef}
+                  indicatorsChartRef={indicatorsChartRef}
                   xAxisRef={xAxisRef}
-                  yAxisRef={yAxisRef}
+                  indicatorsYAxisRef={indicatorsYAxisRef}
                 />
               );
             })}
-          <IndicatorsList
-            mode={mode}
-            indicators={indicators}
-          />
+          <IndicatorsList mode={mode} indicators={onChartIndicators} />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas
-            ref={el => xAxisRef.current[0] = el}
+            ref={(el) => (xAxisRef.current[0] = el)}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
           ></canvas>
           <canvas
-            ref={el => xAxisRef.current[1] = el}
+            ref={(el) => (xAxisRef.current[1] = el)}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ew-resize`}
           ></canvas>
         </div>

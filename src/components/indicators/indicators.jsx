@@ -3,7 +3,8 @@ import { FcComboChart } from "react-icons/fc";
 import { RxCross1 } from "react-icons/rx";
 import {
   indicatorConfig,
-  indicatorSignal,
+  onChartIndicatorSignal,
+  offChartIndicatorSignal
 } from "../../signals/indicatorsSignal";
 
 function Indicators({ mode }) {
@@ -22,31 +23,45 @@ function Indicators({ mode }) {
   };
 
   const handlePropertyInputChange = (property, value) => {
-    setInputValues((prevValues) => ({
-      ...prevValues,
-      [selectedKey]: {
-        ...prevValues[selectedKey],
-        [property]: value,
-        label: indicatorConfig[selectedKey].label,
-      },
-    }));
+    const selectedIndicatorConfig = indicatorConfig[selectedKey];
+    if(!inputValues[selectedKey]){
+      setInputValues((prevValues) => ({
+        ...prevValues,
+        [selectedKey]: {
+          ...selectedIndicatorConfig,
+          [property]: value,
+        },
+      }));
+    } else {
+      setInputValues((prevValues) => ({
+        ...prevValues,
+        [selectedKey]: {
+          ...prevValues[selectedKey],
+          [property]: value,
+        },
+      }));
+    }
   };
 
   const updateIndicatorSignal = () => {
     const selectedIndicatorConfig = indicatorConfig[selectedKey];
-    Object.keys(selectedIndicatorConfig).forEach((key) => {
-      if (inputValues[key] === undefined) {
-        // setInputValues((prevValues) => ({
-        //   ...prevValues,
-        //   [selectedKey]: selectedIndicatorConfig,
-        // }));
-        return;
-      }
-    });
-    indicatorSignal.value = [
-      ...indicatorSignal.peek(),
-      inputValues[selectedKey],
-    ];
+    if(selectedIndicatorConfig.chartRequired){
+      Object.keys(selectedIndicatorConfig).forEach((key) => {
+        if (inputValues[key] === undefined) return;
+      });
+      offChartIndicatorSignal.value = [
+        ...offChartIndicatorSignal.peek(),
+        inputValues[selectedKey],
+      ];
+    } else {
+      Object.keys(selectedIndicatorConfig).forEach((key) => {
+        if (inputValues[key] === undefined) return;
+      });
+      onChartIndicatorSignal.value = [
+        ...onChartIndicatorSignal.peek(),
+        inputValues[selectedKey],
+      ];
+    }
     setIsModalOpen(false);
   };
 
@@ -107,7 +122,7 @@ function Indicators({ mode }) {
               {selectedKey && (
                 <div className="flex flex-col justify-start items-start w-[600px] h-full px-2 py-3">
                   {Object.keys(indicatorConfig[selectedKey]).map((property) => {
-                    if (property === "label") return null;
+                    if (property === "label" || property === 'chartRequired') return null;
                     return (
                       <div
                         key={property}

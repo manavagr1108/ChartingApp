@@ -1,10 +1,15 @@
 import React from "react";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
+import { offChartIndicatorSignal, onChartIndicatorSignal } from "../../signals/indicatorsSignal";
 import { MdClose, MdSettings } from "react-icons/md";
 
 function IndicatorsList({ mode, indicators }) {
   const removeIndicator = (index) => {
-    indicatorSignal.value = indicatorSignal.peek().filter((val, i) => i !== index)
+    console.log(indicators);
+    if(onChartIndicatorSignal.peek().includes(indicators[index])){
+      onChartIndicatorSignal.value = onChartIndicatorSignal.peek().filter((val, i) => i !== index)
+    } else {
+      offChartIndicatorSignal.value = offChartIndicatorSignal.peek().filter((val, i) => i !== index)
+    }
   };
   const updateIndicator = (index) => {
     console.log(index);
@@ -13,6 +18,7 @@ function IndicatorsList({ mode, indicators }) {
     <div className="absolute flex flex-col z-6 select-none top-7 left-2 w-250">
       {indicators.length !== 0 &&
         indicators.map((indicator, index) => {
+          console.log(indicators);
           return (
             <div
               key={index}
