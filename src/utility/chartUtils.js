@@ -35,7 +35,7 @@ import {
   getYCoordinate,
 } from "./yAxisUtils";
 
-export const updateConfig = () => {
+export const updateConfig = (state) => {
   if (stockData.peek().length) {
     const segmentTreeData = buildSegmentTree(stockData.peek());
     const startTime = getTime(
@@ -44,47 +44,47 @@ export const updateConfig = () => {
     const endTime = getTime(
       stockData.peek()[stockData.peek().length - 150].Date
     );
-    updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex);
-    timeRange.value = {
-      startTime,
-      endTime,
-      scrollOffset: 0,
-      scrollDirection: 0,
-      zoomOffset: 0,
-      zoomDirection: 0,
-    };
-    yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
-    dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
-    dateConfig.value.indexToDate = segmentTreeData.indexToDates;
-    updatePriceRange();
-    updateYConfig();
+    updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex, state.xAxisConfig, state.chartCanvasSize);
+    state.timeRange.value.startTime = startTime
+    state.timeRange.value.endTime = endTime
+    state.yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
+    state.dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
+    state.dateConfig.value.indexToDate = segmentTreeData.indexToDates;
+    updatePriceRange({...state});
+    updateYConfig({...state});
   }
 };
 
-export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
+export function drawChart(xAxisRef, mode, {priceRange, ChartRef, yAxisRef, dateConfig, timeRange, chartCanvasSize, xAxisConfig, yAxisCanvasSize}) {
   if (
-    !stockData.peek().length ||
+    stockData.peek().length === 0 ||
     priceRange.peek().maxPrice === priceRange.peek().minPrice ||
-    ChartRef === undefined
-  )
+    ChartRef.current[1] === undefined
+  ){
     return;
-  const canvas = ChartRef;
-  const canvasXAxis = xAxisRef;
-  const canvasYAxis = yAxisRef;
+  }
+  const canvas = ChartRef.current[0];
+  const canvasXAxis = xAxisRef.current[0];
+  const canvasYAxis = yAxisRef.current[0];
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
   yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
+  // ctx.rect(0, 0, canvas.width, canvas.height);
+  // ctx.fill();
   ctx.font = "12px Arial";
-  ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  ctx.fillStyle = `${mode !== "Light" ? "black" : "white"}`;
   xAxisCtx.font = "12px Arial";
   xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  console.log(ctx.font, ctx.fillStyle, ctx, xAxisCtx);
+  // while(ctx.font !== "12px Arial"){
+  // }
   ctx.fillText(selectedStock.peek(), 10, 20);
-  drawYAxis(ctx, yAxisCtx, mode);
+  drawYAxis(ctx, yAxisCtx, mode, {yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize});
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
@@ -110,7 +110,6 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
     if (xCoord < 0) {
       return;
     }
-
     if (
       i < resultData.length - 1 &&
       d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
@@ -163,7 +162,7 @@ export function drawChart(ChartRef, xAxisRef, yAxisRef, mode) {
       );
     }
   });
-  drawIndicators(startIndex, endIndex, ctx, mode);
+  // drawIndicators(startIndex, endIndex, ctx, mode);
 }
 
 export function drawIndicators(startIndex, endIndex, ctx, mode) {
@@ -193,11 +192,13 @@ export function drawIndicators(startIndex, endIndex, ctx, mode) {
   });
 }
 
-export async function setStockData(symbol, interval, stockData) {
+export async function getStockDataCallback(symbol, interval, stockData) {
   try {
     const fetchedData = await getStockData(symbol.value, interval.value);
-    stockData.value = [...fetchedData];
-    updateConfig();
+    if(fetchedData.length){
+      stockData.value = [...fetchedData];
+      return;
+    }
   } catch(e) {
     console.log(e, "Error in fetching data!!");
   }
@@ -205,7 +206,6 @@ export async function setStockData(symbol, interval, stockData) {
 
 export function setCanvasSize(element) {
   if(element === undefined)return;
-  console.log(element);
   const canvas = element;
   let width = element.parentElement.offsetWidth;
   let height = element.parentElement.offsetHeight;
@@ -224,8 +224,8 @@ export function setCanvasSize(element) {
   };
 }
 
-export function handleOnMouseMove(e, ChartRef) {
-  const canvas = ChartRef;
+export function handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, dateConfig, timeRange}) {
+  const canvas = e.target;
   const rect = canvas.getBoundingClientRect();
   const x = e.pageX - rect.left;
   const y = e.pageY - rect.top;
@@ -264,7 +264,7 @@ export function handleOnMouseMove(e, ChartRef) {
   }
 }
 
-export function handleScroll(e, ChartRef) {
+export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange, yAxisConfig, priceRange, chartCanvasSize}) {
   e.preventDefault();
   if (e.deltaY) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
@@ -290,7 +290,9 @@ export function handleScroll(e, ChartRef) {
     updateXAxisConfig(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
-      dateConfig.peek().dateToIndex
+      dateConfig.peek().dateToIndex,
+      xAxisConfig,
+      chartCanvasSize
     );
   } 
   if(e.deltaX) {
@@ -318,9 +320,9 @@ export function handleScroll(e, ChartRef) {
       dateConfig.value.dateToIndex
     );
   }
-  if (!lockUpdatePriceRange.peek()) updatePriceRange();
-  updateYConfig();
-  handleOnMouseMove(e, ChartRef);
+  if (!lockUpdatePriceRange.peek()) updatePriceRange({timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange});
+  updateYConfig({priceRange, yAxisConfig});
+  handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, dateConfig, timeRange});
 }
 
 export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
@@ -331,6 +333,7 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
+  ctx.reset();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
   yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
@@ -454,7 +457,7 @@ export function drawEMAIndicator(indicator, ctx, emaData, mode) {
   ctx.stroke();
 }
 
-export const chartMouseDown = (e) => {
+export const chartMouseDown = ({e, chartMovement}) => {
   chartMovement.value.mouseDown = true;
   chartMovement.value.prevXCoord = e.pageX;
   chartMovement.value.prevYCoord = e.pageY;
@@ -463,7 +466,7 @@ export const chartMouseDown = (e) => {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
-export const chartMouseMove = (e) => {
+export const chartMouseMove = ({e, chartMovement, yAxisConfig, yAxisCanvasSize, priceRange, lockUpdatePriceRange, timeRange, dateConfig, xAxisConfig}) => {
   if (
     chartMovement.peek().mouseDown &&
     (e.pageX - chartMovement.peek().prevXCoord !== 0 ||
@@ -501,15 +504,15 @@ export const chartMouseMove = (e) => {
         dateConfig.value.dateToIndex
       );
       if (!lockUpdatePriceRange.peek()) {
-        updatePriceRange();
-        updateYConfig();
+        updatePriceRange({timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange});
+        updateYConfig({ priceRange, yAxisConfig });
       }
     }
     chartMovement.value.prevXCoord = e.pageX;
     chartMovement.value.prevYCoord = e.pageY;
   }
 };
-export const chartMouseUp = (e) => {
+export const chartMouseUp = ({e, chartMovement}) => {
   if (chartMovement.peek().mouseMove) {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };

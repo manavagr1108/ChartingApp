@@ -155,7 +155,7 @@ export const drawLineChart = (
   return { x, y };
 };
 
-export function updatePriceRange() {
+export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange }) {
   const result = getMinMaxPrices(
     yAxisConfig.peek().segmentTree,
     dateConfig.peek().dateToIndex,
@@ -163,7 +163,7 @@ export function updatePriceRange() {
     getObjtoStringTime(timeRange.value.startTime),
     stockData.peek().length
   );
-  if(!lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice)return;
+  if (!lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice) return;
   if (
     result &&
     (result.maxPrice !== priceRange.peek().maxPrice ||
@@ -175,26 +175,25 @@ export function updatePriceRange() {
   }
 }
 
-export const updateYConfig = () => {
-  const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
+export const updateYConfig = ({ priceRange, yAxisConfig }) => {
+  const priceDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
   let colDiff = yAxisConfig.peek().colDiff;
   const priceMap = Object.keys(priceToColMap);
-  priceMap.forEach((price,i) => {
-    if(parseInt(price) >  pDiff && pDiff > parseInt(priceMap[i-1])){
-      colDiff = parseFloat(priceToColMap[priceMap[i-1]]);
+  priceMap.forEach((price, i) => {
+    if (parseInt(price) > priceDiff && priceDiff > parseInt(priceMap[i - 1])) {
+      colDiff = parseFloat(priceToColMap[priceMap[i - 1]]);
     }
   });
-  yAxisConfig.value.colDiff = colDiff;
-  yAxisConfig.value.priceDiff = pDiff;
+  yAxisConfig.value = { ...yAxisConfig.value, colDiff, priceDiff };
 }
 
-export const drawYAxis = (ctx, yAxisCtx, mode) => {
+export const drawYAxis = (ctx, yAxisCtx, mode, { yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize }) => {
   const colDiff = yAxisConfig.peek().colDiff;
   const minPrice = priceRange.peek().minPrice;
   const maxPrice = priceRange.peek().maxPrice;
-  const noOfCols = Math.floor((maxPrice - minPrice)/colDiff);
-  for (let i = noOfCols+3; i >= 0; i--) {
-    const text = (Math.floor(priceRange.peek().minPrice/colDiff)) * colDiff + (i-1)*colDiff;
+  const noOfCols = Math.floor((maxPrice - minPrice) / colDiff);
+  for (let i = noOfCols + 3; i >= 0; i--) {
+    const text = (Math.floor(priceRange.peek().minPrice / colDiff)) * colDiff + (i - 1) * colDiff;
     const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
@@ -207,7 +206,7 @@ export const drawYAxis = (ctx, yAxisCtx, mode) => {
   }
 }
 
-export const yAxisMouseDown = (e) => {
+export const yAxisMouseDown = ({ e, yAxisMovement }) => {
   yAxisMovement.value.mouseDown = true;
   yAxisMovement.value.prevXCoord = e.pageY;
   const canvas = e.target;
@@ -215,7 +214,7 @@ export const yAxisMouseDown = (e) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-export const yAxisMouseMove = (e) => {
+export const yAxisMouseMove = ({ e, yAxisMovement, priceRange, lockUpdatePriceRange, yAxisConfig }) => {
   if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
@@ -223,21 +222,21 @@ export const yAxisMouseMove = (e) => {
     }
     const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
     const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-    if(pDiff > 4000 && pixelMovement < 0) return;
-    if(pDiff < 5 && pixelMovement > 0) return;
+    if (pDiff > 4000 && pixelMovement < 0) return;
+    if (pDiff < 5 && pixelMovement > 0) return;
     priceRange.value = {
       minPrice: priceRange.peek().minPrice + pixelMovement,
       maxPrice: priceRange.peek().maxPrice - pixelMovement
     }
-    updateYConfig();
+    updateYConfig({ priceRange, yAxisConfig });
     yAxisMovement.value.prevXCoord = e.pageY;
   }
 };
 
-export const yAxisMouseUp = (e) => {
+export const yAxisMouseUp = ({ e, yAxisMovement }) => {
   if (yAxisMovement.peek().mouseMove) {
     yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
-  } else if (yAxisMovement.peek().mouseDown){
+  } else if (yAxisMovement.peek().mouseDown) {
     yAxisMovement.value.mouseDown = false;
   }
 };
