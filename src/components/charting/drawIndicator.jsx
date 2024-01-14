@@ -14,7 +14,6 @@ function DrawIndicator({
   xAxisRef,
   indicatorsYAxisRef,
 }) {
-    console.log(indicatorsChartRef.current);
     indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*index]));
     setCanvasSize(indicatorsChartRef.current[2*index + 1]);
     indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*index]));

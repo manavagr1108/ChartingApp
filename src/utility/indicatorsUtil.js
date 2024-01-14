@@ -144,6 +144,5 @@ export function calculateRSI(data, period) {
     rsiValues.push({ x: data[i].Date, y: rsi });
   }
 
-  console.log(rsiValues);
   return rsiValues;
 }

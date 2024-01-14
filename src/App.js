@@ -10,12 +10,19 @@ import {
   stockData,
   chartType,
 } from "./signals/stockSignals";
+import { getStockDataCallback } from "./utility/chartUtils";
+import { effect } from "@preact/signals-react";
 
 function App() {
   const [mode, setMode] = useState("Light");
   function toggleMode() {
     setMode((prev) => (prev === "Light" ? "Dark" : "Light"));
   }
+  effect(() => {
+    if (selectedStock.value && interval.value){
+      getStockDataCallback(selectedStock, interval, stockData);
+    }
+  });
   return (
     <div className="app">
       <div className="grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen">
