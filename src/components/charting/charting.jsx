@@ -21,15 +21,15 @@ import DrawIndicator from "./drawIndicator";
 import useDrawChart from "../../hooks/useDrawChart";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  const ChartRef = useRef([]);
+  // const ChartRef = useRef([]);
   const [stockDataState, setStockDataState] = useState([]);
-  ChartRef.current = ChartRef.current.slice(0, 2);
+  // ChartRef.current = ChartRef.current.slice(0, 2);
   const xAxisRef = useRef([]);
   xAxisRef.current = xAxisRef.current.slice(0, 2);
-  const yAxisRef = useRef([]);
-  yAxisRef.current = yAxisRef.current.slice(0, 2);
-  const indicatorsChartRef = useRef([]);
-  const indicatorsYAxisRef = useRef([]);
+  // const yAxisRef = useRef([]);
+  // yAxisRef.current = yAxisRef.current.slice(0, 2);
+  // const indicatorsChartRef = useRef([]);
+  // const indicatorsYAxisRef = useRef([]);
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
   const drawChart = useDrawChart(xAxisRef, mode, stockDataState);
@@ -43,14 +43,6 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       offChartIndicatorSignal.value &&
       offChartIndicatorSignal.value.length !== offChartIndicators.length
     ) {
-      indicatorsChartRef.current = indicatorsChartRef.current.slice(
-        0,
-        2 * offChartIndicatorSignal.peek().length
-      );
-      indicatorsYAxisRef.current = indicatorsYAxisRef.current.slice(
-        0,
-        2 * offChartIndicatorSignal.peek().length
-      );
       setOffChartIndicators([...offChartIndicatorSignal.peek()]);
     }
   });
@@ -106,8 +98,9 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             removeCursor={removeCursor}
             xAxisRef={xAxisRef}
             drawChart={drawChart}
+            stockDataState={stockDataState}
           />
-          {offChartIndicators.length !== 0 &&
+          {/* {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {
               return (
                 <DrawIndicator
@@ -122,8 +115,8 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
                   stockDataState={stockDataState}
                 />
               );
-            })}
-          <IndicatorsList mode={mode} indicators={onChartIndicators} />
+            })} */}
+          {/* <IndicatorsList mode={mode} indicators={onChartIndicators} /> */}
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas

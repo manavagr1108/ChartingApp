@@ -9,19 +9,19 @@ export const indicatorConfig = {
     color: "#FFA500",
     stroke: 1,
     period: 20,
-    label: "Moving Average Simple",
+    label: "SMA",
     chartRequired: false,
   },
   EMA: {
     color: "#FF0000",
     stroke: 1,
     period: 20,
-    label: "Moving Average Exponential",
+    label: "EMA",
     chartRequired: false,
   },
   ZigZag: {
     color: "#00FF00",
-    label: "Zig Zag",
+    label: "ZigZag",
     deviation: 10,
     pivotLegs: 5,
     chartRequired: false,
@@ -30,7 +30,7 @@ export const indicatorConfig = {
     color: "#FFA500",
     stroke: 1,
     period: 14,
-    label: "Relative Strength Index",
+    label: "RSI",
     chartRequired: true,
-  }
+  },
 };
