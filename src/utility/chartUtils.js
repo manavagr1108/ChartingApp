@@ -1,3 +1,4 @@
+import { batch, computed } from "@preact/signals-react";
 import { monthMap } from "../data/TIME_MAP";
 import { indicatorConfig, onChartIndicatorSignal } from "../signals/indicatorsSignal";
 import {
@@ -5,7 +6,6 @@ import {
   chartMovement,
   chartType,
   dateConfig,
-  dateCursor,
   lockUpdatePriceRange,
   priceRange,
   selectedStock,
@@ -55,7 +55,7 @@ export const updateConfig = (state) => {
   }
 };
 
-export function drawChart(xAxisRef, mode, {priceRange, ChartRef, yAxisRef, dateConfig, timeRange, chartCanvasSize, xAxisConfig, yAxisCanvasSize}) {
+export function drawChart(xAxisRef, mode, {priceRange, yAxisConfig, ChartRef, yAxisRef, dateConfig, timeRange, chartCanvasSize, xAxisConfig, yAxisCanvasSize}) {
   if (
     stockData.peek().length === 0 ||
     priceRange.peek().maxPrice === priceRange.peek().minPrice ||
@@ -72,17 +72,12 @@ export function drawChart(xAxisRef, mode, {priceRange, ChartRef, yAxisRef, dateC
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
   yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
-  // ctx.rect(0, 0, canvas.width, canvas.height);
-  // ctx.fill();
   ctx.font = "12px Arial";
-  ctx.fillStyle = `${mode !== "Light" ? "black" : "white"}`;
+  ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   xAxisCtx.font = "12px Arial";
   xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  console.log(ctx.font, ctx.fillStyle, ctx, xAxisCtx);
-  // while(ctx.font !== "12px Arial"){
-  // }
   ctx.fillText(selectedStock.peek(), 10, 20);
   drawYAxis(ctx, yAxisCtx, mode, {yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize});
   const startIndex =
@@ -264,8 +259,9 @@ export function handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, 
   }
 }
 
-export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange, yAxisConfig, priceRange, chartCanvasSize}) {
+export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange, dateCursor, yAxisConfig, priceRange, chartCanvasSize}) {
   e.preventDefault();
+  let newTime = null;
   if (e.deltaY) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
     if (
@@ -276,7 +272,7 @@ export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdateP
     }
     if (noOfCSMovedLeft === 0) return;
 
-    timeRange.value = getNewZoomTime(
+    newTime = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       timeRange.peek().scrollOffset,
@@ -308,7 +304,7 @@ export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdateP
     ) {
       return;
     }
-    timeRange.value = getNewScrollTime(
+    newTime = getNewScrollTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
       timeRange.peek().scrollOffset,
@@ -320,20 +316,19 @@ export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdateP
       dateConfig.value.dateToIndex
     );
   }
+  timeRange.value = {...newTime};
   if (!lockUpdatePriceRange.peek()) updatePriceRange({timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange});
   updateYConfig({priceRange, yAxisConfig});
   handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, dateConfig, timeRange});
 }
 
-export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
-  if(ChartRef === undefined)return;
-  const canvas = ChartRef;
-  const canvasXAxis = xAxisRef;
-  const canvasYAxis = yAxisRef;
+export function updateCursorValue(xAxisRef, mode, {ChartRef, yAxisRef, dateCursor, chartCanvasSize, priceRange}) {
+  const canvas = ChartRef.current[1];
+  const canvasXAxis = xAxisRef.current[1];
+  const canvasYAxis = yAxisRef.current[1];
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const yAxisCtx = canvasYAxis.getContext("2d");
-  ctx.reset();
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
   yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
@@ -343,9 +338,8 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
   xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-
-  const dateText = dateCursor.value.date;
-  let xCoord = dateCursor.value.x - 30;
+  const dateText = dateCursor.peek().date;
+  let xCoord = dateCursor.peek().x - 30;
   if (xCoord - 10 + dateText.length * 8 > chartCanvasSize.peek().width) {
     xCoord = chartCanvasSize.peek().width - dateText.length * 8 + 10;
   } else if (xCoord - 10 < 0) {
@@ -360,15 +354,15 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
   );
   xAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
   xAxisCtx.fillText(dateText, xCoord, 12);
-  ctx.fillText(dateCursor.value.text, 50, 20);
+  ctx.fillText(dateCursor.peek().text, 50, 20);
 
   const price =
     priceRange.peek().minPrice +
-    ((chartCanvasSize.peek().height - dateCursor.value.y) *
+    ((chartCanvasSize.peek().height - dateCursor.peek().y) *
       (priceRange.peek().maxPrice - priceRange.peek().minPrice)) /
       chartCanvasSize.peek().height;
   const priceText = price.toFixed(2);
-  const yCoord1 = dateCursor.value.y;
+  const yCoord1 = dateCursor.peek().y;
   yAxisCtx.fillRect(
     0,
     yCoord1 - 14,
@@ -383,21 +377,21 @@ export function updateCursorValue(ChartRef, xAxisRef, yAxisRef, mode) {
   ctx.setLineDash([5, 5]);
   ctx.beginPath();
 
-  ctx.moveTo(dateCursor.value.x, 0);
-  ctx.lineTo(dateCursor.value.x, chartCanvasSize.peek().height);
+  ctx.moveTo(dateCursor.peek().x, 0);
+  ctx.lineTo(dateCursor.peek().x, chartCanvasSize.peek().height);
 
   ctx.moveTo(0, dateCursor.value.y);
-  ctx.lineTo(chartCanvasSize.peek().width, dateCursor.value.y);
+  ctx.lineTo(chartCanvasSize.peek().width, dateCursor.peek().y);
 
   ctx.stroke();
   ctx.setLineDash([]);
 }
 
-export const removeCursor = (e, ChartRef, xAxisRef, yAxisRef) => {
+export const removeCursor = (e, xAxisRef, { ChartRef, yAxisRef, dateCursor, chartMovement}) => {
   if (dateCursor.peek() !== null && ChartRef !== null) {
-    const chartCanvas = ChartRef;
-    const xAxisCanvas = xAxisRef;
-    const yAxisCanvas = yAxisRef;
+    const chartCanvas = ChartRef.current[1];
+    const xAxisCanvas = xAxisRef.current[1];
+    const yAxisCanvas = yAxisRef.current[1];
     const ctx = chartCanvas.getContext("2d");
     const xAxisCtx = xAxisCanvas.getContext("2d");
     const yAxisCtx = yAxisCanvas.getContext("2d");
@@ -517,6 +511,7 @@ export const chartMouseUp = ({e, chartMovement}) => {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
   } else if(chartMovement.peek().mouseDown){
+    e.target.classList.remove("cursor-grabbing");
     chartMovement.value.mouseDown = false;
   }
 };

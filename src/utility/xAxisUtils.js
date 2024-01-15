@@ -160,10 +160,21 @@ export function getNewZoomTime(
   noOfPMoved,
   dates
 ) {
-  zoomDirection = noOfPMoved / Math.abs(noOfPMoved);
+  if(noOfPMoved === 0){
+    return {
+      startTime,
+      endTime,
+      scrollOffset,
+      scrollDirection,
+      zoomOffset,
+      zoomDirection,
+    };
+  }
+  const zoomDirectionNew = noOfPMoved / Math.abs(noOfPMoved);
+  zoomDirection = zoomDirectionNew;
   if (zoomOffset + zoomDirection * noOfPMoved < widthOfOneCS) {
     zoomOffset += (zoomDirection * noOfPMoved) / 2;
-    console.log("1");
+    // console.log("1");
     return {
       startTime,
       endTime,
@@ -183,9 +194,8 @@ export function getNewZoomTime(
     let prevEndTime = getObjtoStringTime(endTime);
     const prevStartIndex = dates[prevStartTime];
     const prevEndIndex = dates[prevEndTime];
-    console.log(noOfPMoved, widthOfOneCS, noOfPMoved, zoomOffset, zoomDirection);
     if (prevEndIndex === -1 || prevEndIndex + noOfCSMovedLeft < 0) {
-      console.log("2");
+      // console.log("2");
       return {
         startTime,
         endTime,
@@ -199,7 +209,7 @@ export function getNewZoomTime(
       let newEndTime = endTime;
       const noOfCS = prevStartIndex - (prevEndIndex + noOfCSMovedLeft);
       if (noOfCS < 10 || noOfCS > 1500) {
-        console.log("3");
+        // console.log("3");
         return {
           startTime,
           endTime,
@@ -215,7 +225,7 @@ export function getNewZoomTime(
           newEndTime = endTime;
         }
       }
-      console.log("4", prevEndIndex + noOfCSMovedLeft);
+      // console.log("4");
       return {
         startTime,
         endTime: newEndTime,
@@ -244,7 +254,7 @@ export const xAxisMouseDown = ({e}) => {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
-export const xAxisMouseMove = ({e, timeRange, dateConfig, chartCanvasSize, yAxisConfig, priceRange, lockUpdatePriceRange}) => {
+export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanvasSize, yAxisConfig, priceRange, lockUpdatePriceRange}) => {
   if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
@@ -261,8 +271,6 @@ export const xAxisMouseMove = ({e, timeRange, dateConfig, chartCanvasSize, yAxis
       pixelMovement * xAxisConfig.peek().widthOfOneCS,
       dateConfig.peek().dateToIndex
     )
-    console.log(getObjtoStringTime(timeRange.peek().startTime));
-    // console.log(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex, xAxisConfig, chartCanvasSize);
     updateXAxisConfig(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex, xAxisConfig, chartCanvasSize);
     updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange });
     updateYConfig({yAxisConfig, priceRange});

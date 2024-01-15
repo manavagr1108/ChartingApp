@@ -163,7 +163,7 @@ export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRang
     getObjtoStringTime(timeRange.value.startTime),
     stockData.peek().length
   );
-  if (!lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice) return;
+  if (lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice) return;
   if (
     result &&
     (result.maxPrice !== priceRange.peek().maxPrice ||
@@ -184,7 +184,7 @@ export const updateYConfig = ({ priceRange, yAxisConfig }) => {
       colDiff = parseFloat(priceToColMap[priceMap[i - 1]]);
     }
   });
-  yAxisConfig.value = { ...yAxisConfig.value, colDiff, priceDiff };
+  yAxisConfig.value = { ...yAxisConfig.peek(), colDiff, priceDiff };
 }
 
 export const drawYAxis = (ctx, yAxisCtx, mode, { yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize }) => {
