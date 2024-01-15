@@ -8,6 +8,7 @@ import {
   handleScroll,
   setCanvasSize,
   updateConfig,
+  updateCursorValue,
 } from "../utility/chartUtils";
 import {
   yAxisMouseDown,
@@ -114,7 +115,7 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
   yAxisRef.current = yAxisRef.current.slice(0, 2);
   // adding event listeners to the ref and window
   useEffect(() => {
-    handleResize({...state});
+    handleResize({ ...state });
     window.addEventListener("resize", () => handleResize({ ...state }));
     ChartRef.current[1].addEventListener("mousedown", (e) =>
       chartMouseDown({ e, ...state })
@@ -174,11 +175,12 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
   });
   // updating config
   useEffect(() => {
-    if(stockDataState.length){
-        updateConfig(state);
+    if (stockDataState.length) {
+      updateConfig(state);
     }
-  },[stockDataState])
+  }, [stockDataState]);
   // draw chart
+  let val = 0;
   effect(() => {
     if (
       state.timeRange.value.endTime.Date !== 0 &&
@@ -192,13 +194,27 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
         xAxisRef.current[0] !== null &&
         state.priceRange.value.minPrice > 0
       ) {
-        console.log("called");
-        drawChart(
-          xAxisRef,
-          mode,
-          {...state}
-        );
+        if (val === 0) {
+          val++;
+          setTimeout(() => {
+            drawChart(xAxisRef, mode, { ...state });
+          }, 0.1);
+        } else {
+          drawChart(xAxisRef, mode, { ...state });
+        }
       }
+    }
+  });
+  effect(() => {
+    if (
+      state.dateCursor.value !== null &&
+      state.dateCursor.peek().x !== null &&
+      state.dateCursor.peek().y !== null &&
+      state.ChartRef.current[1] !== undefined &&
+      xAxisRef.current[1] !== undefined &&
+      state.yAxisRef.current[1] !== undefined 
+    ) {
+      updateCursorValue(xAxisRef, mode, { ...state });
     }
   });
   return state;
