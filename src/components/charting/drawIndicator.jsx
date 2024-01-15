@@ -13,11 +13,8 @@ function DrawIndicator({
   indicatorsChartRef,
   xAxisRef,
   indicatorsYAxisRef,
+  stockDataState
 }) {
-    indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*index]));
-    setCanvasSize(indicatorsChartRef.current[2*index + 1]);
-    indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*index]));
-    setCanvasSize(indicatorsYAxisRef.current[2*index + 1]);
   const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div

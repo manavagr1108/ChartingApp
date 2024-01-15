@@ -1,13 +1,20 @@
 import { computed } from "@preact/signals-react";
-import React from "react";
+import React, { useEffect } from "react";
 import { offChartIndicatorSignal } from "../../signals/indicatorsSignal";
+import { updateConfig } from "../../utility/chartUtils";
 
 function DrawChart({
   handleOnMouseMove,
   removeCursor,
   xAxisRef,
-  drawChart
+  drawChart,
+  stockDataState,
 }) {
+  useEffect(() => {
+    if (stockDataState.length) {
+      updateConfig(drawChart);
+    }
+  }, [stockDataState]);
   const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div
@@ -23,8 +30,8 @@ function DrawChart({
         <canvas
           ref={(el) => (drawChart.ChartRef.current[1] = el)}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
-          onMouseMove={e => handleOnMouseMove({e, ...drawChart})}
-          onMouseLeave={e => removeCursor(e, xAxisRef, {...drawChart})}
+          onMouseMove={(e) => handleOnMouseMove({ e, ...drawChart })}
+          onMouseLeave={(e) => removeCursor(e, xAxisRef, { ...drawChart })}
         ></canvas>
       </div>
       <div className="w-[5%] h-[100%] relative">

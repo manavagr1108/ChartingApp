@@ -1,6 +1,9 @@
 import { batch, computed } from "@preact/signals-react";
 import { monthMap } from "../data/TIME_MAP";
-import { indicatorConfig, onChartIndicatorSignal } from "../signals/indicatorsSignal";
+import {
+  indicatorConfig,
+  onChartIndicatorSignal,
+} from "../signals/indicatorsSignal";
 import {
   chartCanvasSize,
   chartMovement,
@@ -44,23 +47,43 @@ export const updateConfig = (state) => {
     const endTime = getTime(
       stockData.peek()[stockData.peek().length - 150].Date
     );
-    updateXAxisConfig(startTime, endTime, segmentTreeData.datesToIndex, state.xAxisConfig, state.chartCanvasSize);
-    state.timeRange.value.startTime = startTime
-    state.timeRange.value.endTime = endTime
+    updateXAxisConfig(
+      startTime,
+      endTime,
+      segmentTreeData.datesToIndex,
+      state.xAxisConfig,
+      state.chartCanvasSize
+    );
+    state.timeRange.value.startTime = startTime;
+    state.timeRange.value.endTime = endTime;
     state.yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
     state.dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
     state.dateConfig.value.indexToDate = segmentTreeData.indexToDates;
-    updatePriceRange({...state});
-    updateYConfig({...state});
+    updatePriceRange({ ...state });
+    updateYConfig({ ...state });
   }
 };
 
-export function drawChart(xAxisRef, mode, {priceRange, yAxisConfig, ChartRef, yAxisRef, dateConfig, timeRange, chartCanvasSize, xAxisConfig, yAxisCanvasSize}) {
+export function drawChart(
+  xAxisRef,
+  mode,
+  {
+    priceRange,
+    yAxisConfig,
+    ChartRef,
+    yAxisRef,
+    dateConfig,
+    timeRange,
+    chartCanvasSize,
+    xAxisConfig,
+    yAxisCanvasSize,
+  }
+) {
   if (
     stockData.peek().length === 0 ||
     priceRange.peek().maxPrice === priceRange.peek().minPrice ||
     ChartRef.current[1] === undefined
-  ){
+  ) {
     return;
   }
   const canvas = ChartRef.current[0];
@@ -79,7 +102,12 @@ export function drawChart(xAxisRef, mode, {priceRange, yAxisConfig, ChartRef, yA
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   ctx.fillText(selectedStock.peek(), 10, 20);
-  drawYAxis(ctx, yAxisCtx, mode, {yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize});
+  drawYAxis(ctx, yAxisCtx, mode, {
+    yAxisConfig,
+    priceRange,
+    chartCanvasSize,
+    yAxisCanvasSize,
+  });
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
@@ -157,24 +185,46 @@ export function drawChart(xAxisRef, mode, {priceRange, yAxisConfig, ChartRef, yA
       );
     }
   });
-  // drawIndicators(startIndex, endIndex, ctx, mode);
+  drawIndicators(startIndex, endIndex, ctx, mode, {
+    dateConfig,
+    chartCanvasSize,
+    timeRange,
+    priceRange,
+    xAxisConfig,
+  });
 }
 
-export function drawIndicators(startIndex, endIndex, ctx, mode) {
+export function drawIndicators(
+  startIndex,
+  endIndex,
+  ctx,
+  mode,
+  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig }
+) {
   onChartIndicatorSignal.peek().forEach((indicator) => {
     if (indicator.label === indicatorConfig["SMA"].label) {
       const smaData = calculateSMA(stockData.peek(), indicator.period);
       const SMA = smaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
-      drawSMAIndicator(indicator, ctx, SMA, mode);
+      drawSMAIndicator(indicator, ctx, SMA, mode, {
+        chartCanvasSize,
+        timeRange,
+        priceRange,
+        xAxisConfig,
+      });
     }
     if (indicator.label === indicatorConfig["EMA"].label) {
       const emaData = calculateEMA(stockData.peek(), indicator.period);
       const EMA = emaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
-      drawEMAIndicator(indicator, ctx, EMA, mode);
+      drawEMAIndicator(indicator, ctx, EMA, mode, {
+        chartCanvasSize,
+        timeRange,
+        priceRange,
+        xAxisConfig,
+      });
     }
     if (indicator.label === indicatorConfig["ZigZag"].label) {
       const zigZagData = calculateZigZag(
@@ -182,7 +232,13 @@ export function drawIndicators(startIndex, endIndex, ctx, mode) {
         indicator.deviation,
         indicator.pivotLegs
       );
-      drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex);
+      drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex, {
+        dateConfig,
+        chartCanvasSize,
+        timeRange,
+        priceRange,
+        xAxisConfig,
+      });
     }
   });
 }
@@ -190,17 +246,17 @@ export function drawIndicators(startIndex, endIndex, ctx, mode) {
 export async function getStockDataCallback(symbol, interval, stockData) {
   try {
     const fetchedData = await getStockData(symbol.value, interval.value);
-    if(fetchedData.length){
+    if (fetchedData.length) {
       stockData.value = [...fetchedData];
       return;
     }
-  } catch(e) {
+  } catch (e) {
     console.log(e, "Error in fetching data!!");
   }
 }
 
 export function setCanvasSize(element) {
-  if(element === undefined)return;
+  if (element === undefined) return;
   const canvas = element;
   let width = element.parentElement.offsetWidth;
   let height = element.parentElement.offsetHeight;
@@ -219,7 +275,14 @@ export function setCanvasSize(element) {
   };
 }
 
-export function handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, dateConfig, timeRange}) {
+export function handleOnMouseMove({
+  e,
+  chartCanvasSize,
+  dateCursor,
+  xAxisConfig,
+  dateConfig,
+  timeRange,
+}) {
   const canvas = e.target;
   const rect = canvas.getBoundingClientRect();
   const x = e.pageX - rect.left;
@@ -259,7 +322,17 @@ export function handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, 
   }
 }
 
-export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange, dateCursor, yAxisConfig, priceRange, chartCanvasSize}) {
+export function handleScroll({
+  e,
+  timeRange,
+  dateConfig,
+  xAxisConfig,
+  lockUpdatePriceRange,
+  dateCursor,
+  yAxisConfig,
+  priceRange,
+  chartCanvasSize,
+}) {
   e.preventDefault();
   let newTime = null;
   if (e.deltaY) {
@@ -290,8 +363,8 @@ export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdateP
       xAxisConfig,
       chartCanvasSize
     );
-  } 
-  if(e.deltaX) {
+  }
+  if (e.deltaX) {
     let pixelMovement = e.deltaX;
     if (
       Math.abs(pixelMovement) === 0 ||
@@ -316,13 +389,31 @@ export function handleScroll({e, timeRange, dateConfig, xAxisConfig, lockUpdateP
       dateConfig.value.dateToIndex
     );
   }
-  timeRange.value = {...newTime};
-  if (!lockUpdatePriceRange.peek()) updatePriceRange({timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange});
-  updateYConfig({priceRange, yAxisConfig});
-  handleOnMouseMove({e, chartCanvasSize, dateCursor, xAxisConfig, dateConfig, timeRange});
+  timeRange.value = { ...newTime };
+  if (!lockUpdatePriceRange.peek())
+    updatePriceRange({
+      timeRange,
+      yAxisConfig,
+      dateConfig,
+      priceRange,
+      lockUpdatePriceRange,
+    });
+  updateYConfig({ priceRange, yAxisConfig });
+  handleOnMouseMove({
+    e,
+    chartCanvasSize,
+    dateCursor,
+    xAxisConfig,
+    dateConfig,
+    timeRange,
+  });
 }
 
-export function updateCursorValue(xAxisRef, mode, {ChartRef, yAxisRef, dateCursor, chartCanvasSize, priceRange}) {
+export function updateCursorValue(
+  xAxisRef,
+  mode,
+  { ChartRef, yAxisRef, dateCursor, chartCanvasSize, priceRange }
+) {
   const canvas = ChartRef.current[1];
   const canvasXAxis = xAxisRef.current[1];
   const canvasYAxis = yAxisRef.current[1];
@@ -387,7 +478,11 @@ export function updateCursorValue(xAxisRef, mode, {ChartRef, yAxisRef, dateCurso
   ctx.setLineDash([]);
 }
 
-export const removeCursor = (e, xAxisRef, { ChartRef, yAxisRef, dateCursor, chartMovement}) => {
+export const removeCursor = (
+  e,
+  xAxisRef,
+  { ChartRef, yAxisRef, dateCursor, chartMovement }
+) => {
   if (dateCursor.peek() !== null && ChartRef !== null) {
     const chartCanvas = ChartRef.current[1];
     const xAxisCanvas = xAxisRef.current[1];
@@ -398,11 +493,22 @@ export const removeCursor = (e, xAxisRef, { ChartRef, yAxisRef, dateCursor, char
     ctx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
     xAxisCtx.clearRect(0, 0, xAxisCanvas.width, xAxisCanvas.height);
     yAxisCtx.clearRect(0, 0, yAxisCanvas.width, yAxisCanvas.height);
-    chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0, prevYCoord: 0 };
+    chartMovement.value = {
+      mouseDown: false,
+      mouseMove: false,
+      prevXCoord: 0,
+      prevYCoord: 0,
+    };
     dateCursor.value = null;
   }
 };
-export function drawSMAIndicator(indicator, ctx, smaData, mode) {
+export function drawSMAIndicator(
+  indicator,
+  ctx,
+  smaData,
+  mode,
+  { chartCanvasSize, xAxisConfig, timeRange, priceRange }
+) {
   ctx.strokeStyle = indicator.color;
   ctx.lineWidth = indicator.stroke;
   ctx.beginPath();
@@ -427,7 +533,13 @@ export function drawSMAIndicator(indicator, ctx, smaData, mode) {
   ctx.lineWidth = 1;
 }
 
-export function drawEMAIndicator(indicator, ctx, emaData, mode) {
+export function drawEMAIndicator(
+  indicator,
+  ctx,
+  emaData,
+  mode,
+  { chartCanvasSize, xAxisConfig, timeRange, priceRange }
+) {
   ctx.strokeStyle = indicator.color;
   ctx.lineWidth = indicator.stroke;
   ctx.beginPath();
@@ -451,7 +563,7 @@ export function drawEMAIndicator(indicator, ctx, emaData, mode) {
   ctx.stroke();
 }
 
-export const chartMouseDown = ({e, chartMovement}) => {
+export const chartMouseDown = ({ e, chartMovement }) => {
   chartMovement.value.mouseDown = true;
   chartMovement.value.prevXCoord = e.pageX;
   chartMovement.value.prevYCoord = e.pageY;
@@ -460,7 +572,17 @@ export const chartMouseDown = ({e, chartMovement}) => {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
-export const chartMouseMove = ({e, chartMovement, yAxisConfig, yAxisCanvasSize, priceRange, lockUpdatePriceRange, timeRange, dateConfig, xAxisConfig}) => {
+export const chartMouseMove = ({
+  e,
+  chartMovement,
+  yAxisConfig,
+  yAxisCanvasSize,
+  priceRange,
+  lockUpdatePriceRange,
+  timeRange,
+  dateConfig,
+  xAxisConfig,
+}) => {
   if (
     chartMovement.peek().mouseDown &&
     (e.pageX - chartMovement.peek().prevXCoord !== 0 ||
@@ -498,7 +620,13 @@ export const chartMouseMove = ({e, chartMovement, yAxisConfig, yAxisCanvasSize, 
         dateConfig.value.dateToIndex
       );
       if (!lockUpdatePriceRange.peek()) {
-        updatePriceRange({timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange});
+        updatePriceRange({
+          timeRange,
+          yAxisConfig,
+          dateConfig,
+          priceRange,
+          lockUpdatePriceRange,
+        });
         updateYConfig({ priceRange, yAxisConfig });
       }
     }
@@ -506,11 +634,11 @@ export const chartMouseMove = ({e, chartMovement, yAxisConfig, yAxisCanvasSize, 
     chartMovement.value.prevYCoord = e.pageY;
   }
 };
-export const chartMouseUp = ({e, chartMovement}) => {
+export const chartMouseUp = ({ e, chartMovement }) => {
   if (chartMovement.peek().mouseMove) {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
-  } else if(chartMovement.peek().mouseDown){
+  } else if (chartMovement.peek().mouseDown) {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value.mouseDown = false;
   }
@@ -521,7 +649,8 @@ export function drawZigZagIndicator(
   zigZagData,
   mode,
   startIndex,
-  endIndex
+  endIndex,
+  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig }
 ) {
   const zigzagColor = mode === "Light" ? "#0b69ac" : "#f0a70b";
   ctx.lineWidth = 1;

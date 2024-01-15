@@ -173,12 +173,6 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
       );
     };
   });
-  // updating config
-  useEffect(() => {
-    if (stockDataState.length) {
-      updateConfig(state);
-    }
-  }, [stockDataState]);
   // draw chart
   let val = 0;
   effect(() => {
