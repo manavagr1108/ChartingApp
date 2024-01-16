@@ -39,13 +39,13 @@ import {
 } from "./yAxisUtils";
 
 export const updateConfig = (state) => {
-  if (stockData.peek().length) {
-    const segmentTreeData = buildSegmentTree(stockData.peek());
+  if (state.stockData.peek().length) {
+    const segmentTreeData = buildSegmentTree(state.stockData.peek());
     const startTime = getTime(
-      stockData.peek()[stockData.peek().length - 1].Date
+      state.stockData.peek()[state.stockData.peek().length - 1].Date
     );
     const endTime = getTime(
-      stockData.peek()[stockData.peek().length - 150].Date
+      state.stockData.peek()[state.stockData.peek().length - 150].Date
     );
     updateXAxisConfig(
       startTime,
@@ -77,6 +77,7 @@ export function drawChart(
     chartCanvasSize,
     xAxisConfig,
     yAxisCanvasSize,
+    stockData
   }
 ) {
   if (
@@ -199,7 +200,7 @@ export function drawIndicators(
   endIndex,
   ctx,
   mode,
-  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig }
+  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig, stockData }
 ) {
   onChartIndicatorSignal.peek().forEach((indicator) => {
     if (indicator.label === indicatorConfig["SMA"].label) {
@@ -650,7 +651,7 @@ export function drawZigZagIndicator(
   mode,
   startIndex,
   endIndex,
-  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig }
+  { dateConfig, chartCanvasSize, timeRange, priceRange, xAxisConfig, stockData }
 ) {
   const zigzagColor = mode === "Light" ? "#0b69ac" : "#f0a70b";
   ctx.lineWidth = 1;

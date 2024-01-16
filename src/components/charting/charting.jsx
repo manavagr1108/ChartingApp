@@ -100,7 +100,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             drawChart={drawChart}
             stockDataState={stockDataState}
           />
-          {/* {offChartIndicators.length !== 0 &&
+          {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {
               return (
                 <DrawIndicator
@@ -109,14 +109,14 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
                   offChartIndicators={offChartIndicators}
                   handleOnMouseMove={handleOnMouseMove}
                   removeCursor={removeCursor}
-                  indicatorsChartRef={indicatorsChartRef}
+                  // indicatorsChartRef={indicatorsChartRef}
                   xAxisRef={xAxisRef}
-                  indicatorsYAxisRef={indicatorsYAxisRef}
+                  // indicatorsYAxisRef={indicatorsYAxisRef}
                   stockDataState={stockDataState}
                 />
               );
-            })} */}
-          {/* <IndicatorsList mode={mode} indicators={onChartIndicators} /> */}
+            })}
+          <IndicatorsList mode={mode} indicators={onChartIndicators} />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas

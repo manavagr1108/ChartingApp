@@ -93,6 +93,8 @@ const initialState = {
   }),
 
   lockUpdatePriceRange: signal(false),
+
+  stockData: signal([]),
 };
 
 const handleResize = ({
@@ -173,6 +175,13 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
       );
     };
   });
+  // update config
+  useEffect(() => {
+    if (stockDataState.length) {
+      state.stockData.value = stockDataState;
+      updateConfig({ ...state });
+    }
+  }, [stockDataState]);
   // draw chart
   let val = 0;
   effect(() => {
@@ -206,7 +215,7 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
       state.dateCursor.peek().y !== null &&
       state.ChartRef.current[1] !== undefined &&
       xAxisRef.current[1] !== undefined &&
-      state.yAxisRef.current[1] !== undefined 
+      state.yAxisRef.current[1] !== undefined
     ) {
       updateCursorValue(xAxisRef, mode, { ...state });
     }
