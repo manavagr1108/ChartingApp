@@ -50,13 +50,10 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
   effect(() => {
     if (selectedStock.value && interval.value){
       getStockDataCallback(selectedStock, interval, drawChart.stockData).then(() =>{
-        try {
-          updateConfig({ ...drawChart });
-        } catch (e) {
-          console.log(e);
-        } finally {
-          drawChartOnCanvas(xAxisRef, mode, { ...drawChart })
-        }
+        updateConfig(drawChart);
+        drawChartOnCanvas(xAxisRef, mode, { ...drawChart }) 
+      }).catch(e => {
+        console.log(e);
       })
       // getStockDataCallback(selectedStock, interval, setStockDataState);
     }
