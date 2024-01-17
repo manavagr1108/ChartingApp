@@ -40,6 +40,7 @@ class DrawChart{
     this.ChartWindow = ChartWindow;
     this.drawChartFunction = drawChart;
     this.isIndicator = signal(false);
+    this.Indicator = signal(null);
   }
   #setData(data) {
     this.data.value = data;
@@ -131,6 +132,13 @@ class DrawChart{
     this.#setSegmentTree();
     this.setYRange();
     this.setYAxisConfig();
+  }
+  getChartData(data){
+    if(!this.isIndicator){
+      return data;
+    } else {
+      return this.data;
+    }
   }
 }
 

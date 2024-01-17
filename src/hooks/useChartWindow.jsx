@@ -3,6 +3,7 @@ import ChartWindow from "../classes/ChartWindow"
 import DrawChart from "../classes/DrawChart";
 import useDrawChart from "./useDrawChart";
 import { xAxisMouseDown, xAxisMouseMove, xAxisMouseUp } from "../utility/xAxisUtils";
+import { effect } from "@preact/signals-react";
 
 export const useCanavsSplitRef = () => {
   const ref = useRef([]);
@@ -18,7 +19,6 @@ const useChartWindow = (mode) => {
   useEffect(() => {
     state.setXAxisCanvas();
     window.addEventListener("resize", state.setXAxisCanvas());
-    console.log(state.xAxisRef);
     state.xAxisRef.current[1].addEventListener("mousedown", (e) =>
       xAxisMouseDown(e, state)
     );

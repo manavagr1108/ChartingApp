@@ -1,4 +1,5 @@
 import { signal } from "@preact/signals-react";
+import { calculateRSI, drawRSIIndicatorChart } from "../utility/indicatorsUtil";
 
 export const onChartIndicatorSignal = signal([]);
 export const offChartIndicatorSignal = signal([]);
@@ -32,5 +33,7 @@ export const indicatorConfig = {
     period: 14,
     label: "RSI",
     chartRequired: true,
+    drawChartFunction: drawRSIIndicatorChart,
+    getChartData: calculateRSI,
   },
 };

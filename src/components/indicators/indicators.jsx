@@ -4,6 +4,7 @@ import { RxCross1 } from "react-icons/rx";
 import {
   indicatorConfig
 } from "../../signals/indicatorsSignal";
+import useDrawChart from "../../hooks/useDrawChart";
 
 function Indicators({ mode, ChartWindow }) {
   const {onChartIndicatorSignal, offChartIndicatorSignal} = ChartWindow;
@@ -121,7 +122,7 @@ function Indicators({ mode, ChartWindow }) {
               {selectedKey && (
                 <div className="flex flex-col justify-start items-start w-[600px] h-full px-2 py-3">
                   {Object.keys(indicatorConfig[selectedKey]).map((property) => {
-                    if (property === "label" || property === 'chartRequired') return null;
+                    if (property === "label" || property === 'chartRequired' || property === 'drawChartFunction' || property === 'getChartData') return null;
                     return (
                       <div
                         key={property}

@@ -5,7 +5,6 @@ import {
   handleOnMouseMove,
   removeCursor,
   getStockDataCallback,
-  updateConfig,
   drawChart as drawChartOnCanvas
 } from "../../utility/chartUtils";
 import {
@@ -42,11 +41,29 @@ function Charting({ mode, ChartWindow }) {
         ChartWindow.setChartWindowSignal();
         drawChart.setDrawChartSignal(stockData.peek());
         drawChart.drawChartFunction(drawChart, mode)
+        // ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
+        //   console.log(drawChart);
+          
+        // })
       }).catch(e => {
         console.log(e);
       })
     }
   });
+  // effect(() => {
+  //   if (offChartIndicatorSignal.value.value && chartType.value){
+  //     getStockDataCallback(selectedStock, interval, stockData).then(() =>{
+  //       ChartWindow.setChartWindowSignal();
+  //       ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
+  //         if(drawChart.isIndicator) drawChart.setIndicator();
+  //         drawChart.setDrawChartSignal(drawChart.getChartData(stockData.peek()));
+  //         drawChart.drawChartFunction(drawChart, mode)
+  //       })
+  //     }).catch(e => {
+  //       console.log(e);
+  //     })
+  //   }
+  // });
   return (
     <div
       className={`flex w-[100%] flex-col border-l-2 ${
@@ -77,8 +94,7 @@ function Charting({ mode, ChartWindow }) {
                   offChartIndicators={offChartIndicators}
                   handleOnMouseMove={handleOnMouseMove}
                   removeCursor={removeCursor}
-                  xAxisRef={xAxisRef}
-                  drawChart={drawChart}
+                  ChartWindow={ChartWindow}
                 />
               );
             })}

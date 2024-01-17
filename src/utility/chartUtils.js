@@ -37,32 +37,6 @@ import {
   getYCoordinate,
 } from "./yAxisUtils";
 
-export const updateConfig = (state, xAxisConfig) => {
-  if (state.data.peek().length) {
-    const segmentTreeData = buildSegmentTree(state.data.peek());
-    // const startTime = getTime(
-    //   state.data.peek()[state.data.peek().length - 1].Date
-    // );
-    // const endTime = getTime(
-    //   state.data.peek()[state.data.peek().length - 150].Date
-    // );
-    // updateXAxisConfig(
-    //   startTime,
-    //   endTime,
-    //   segmentTreeData.datesToIndex,
-    //   xAxisConfig,
-    //   state.chartCanvasSize
-    // );
-    // state.timeRange.value.startTime = startTime;
-    // state.timeRange.value.endTime = endTime;
-    state.yAxisConfig.value.segmentTree = segmentTreeData.segmentTree;
-    // state.dateConfig.value.dateToIndex = segmentTreeData.datesToIndex;
-    // state.dateConfig.value.indexToDate = segmentTreeData.indexToDates;
-    updatePriceRange({ ...state });
-    updateYConfig({ ...state });
-  }
-};
-
 export function drawChart(state, mode) {
   const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
   const { xAxisRef, dateConfig, timeRange, xAxisConfig, chartType } = state.ChartWindow;
@@ -170,8 +144,8 @@ export function drawChart(state, mode) {
 }
 
 export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
-  const { chartCanvasSize, yAxisRange, data } = state;
-  const { dateConfig, timeRange, xAxisConfig, onChartIndicatorSignal } = state.ChartWindow;
+  const { data } = state;
+  const { onChartIndicatorSignal } = state.ChartWindow;
   onChartIndicatorSignal.peek().forEach((indicator) => {
     if (indicator.label === indicatorConfig["SMA"].label) {
       const smaData = calculateSMA(data.peek(), indicator.period);
@@ -232,6 +206,7 @@ export function setCanvasSize(element) {
 }
 
 export function handleOnMouseMove(e, state) {
+  console.log(e);
   const { chartCanvasSize, data } = state;
   const { dateCursor, xAxisConfig, dateConfig, timeRange } = state.ChartWindow;
   const canvas = e.target;

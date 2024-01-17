@@ -258,13 +258,11 @@ export const xAxisMouseDown = (e, state) => {
 };
 export const xAxisMouseMove = (e, state) => {
   const { xAxisMovement, timeRange, dateConfig, xAxisConfig} = state;
-  console.log()
   if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
     }
     const pixelMovement = xAxisMovement.peek().prevXCoord - e.pageX;
-    console.log(pixelMovement);
     timeRange.value = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
@@ -276,7 +274,6 @@ export const xAxisMouseMove = (e, state) => {
       pixelMovement * xAxisConfig.peek().widthOfOneCS,
       dateConfig.peek().dateToIndex
     )
-    console.log(getObjtoStringTime(timeRange.peek().endTime));
     state.setXAxisConfig();
     state.drawChartObjects.peek()[0].setYRange();
     state.drawChartObjects.peek()[0].setYAxisConfig();

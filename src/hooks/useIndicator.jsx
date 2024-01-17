@@ -3,31 +3,14 @@ import { calculateRSI } from "../utility/indicatorsUtil";
 import useDrawChart from "./useDrawChart";
 import { indicatorConfig } from "../signals/indicatorsSignal";
 import { useEffect, useState } from "react";
+import Indicator from "../classes/Indicator";
 
-class Indicator {
-  constructor(){
-    this.indicatorOptions = signal({
-      color: "",
-      stroke: 0,
-      period: 0,
-      label: "",
-      isChartRequired: true,
-    });
-  
-    this.drawChart= [];
-  }
-}
-const useIndicator = (xAxisRef, mode, indicator) => {
-  const state = { ...new Indicator() };
-  state.indicatorOptions.value = {
-    color: indicator.color,
-    stroke: indicator.stroke,
-    period: indicator.period,
-    label: indicator.label,
-    isChartRequired: indicator.chartRequired,
-  };
-  state.drawChart = useDrawChart(xAxisRef, mode, true);
-  return state;
+const useIndicator = (indicator, drawChart, mode) => {
+  const state = new Indicator(drawChart.ChartWindow);
+  let data;
+  state.indicatorOptions.value = indicator;
+  data = indicator.getChartData(drawChart.ChartWindow.stockData.peek(), indicator.period);
+  return [state, data];
 };
 
 export default useIndicator;

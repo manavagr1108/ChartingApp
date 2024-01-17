@@ -118,7 +118,7 @@ export function calculateZigZag(data, deviation, pivotLegs) {
   return zigZagPoints;
 }
 
-export function calculateRSI(data, period) {
+export const calculateRSI = (data, period) => {
   let gains = 0;
   let losses = 0;
   const rsiValues = [];
@@ -129,6 +129,7 @@ export function calculateRSI(data, period) {
     } else {
       losses -= change;
     }
+    rsiValues.push({ Date: data[i-1].Date, Close: 0 });
   }
 
   let avgGain = gains / period;
@@ -146,36 +147,25 @@ export function calculateRSI(data, period) {
 
     let rs = avgLoss === 0 ? 0 : avgGain / avgLoss;
     let rsi = 100 - 100 / (1 + rs);
-    rsiValues.push({ Date: data[i].Date, Close: rsi });
+    rsiValues.push({ Date: data[i-1].Date, Close: rsi });
   }
   return rsiValues;
 }
 
 
-export function drawIndicatorChart(
-  xAxisRef,
-  mode,
-  {
-    priceRange,
-    yAxisConfig,
-    ChartRef,
-    yAxisRef,
-    dateConfig,
-    timeRange,
-    chartCanvasSize,
-    xAxisConfig,
-    yAxisCanvasSize,
-    data
-  }
-) {
-  if (
-    data.peek().length === 0 ||
-    priceRange.peek().maxPrice === priceRange.peek().minPrice ||
-    ChartRef.current[1] === undefined
-  ) {
-    return;
-  }
-  console.log("called");
+export function drawRSIIndicatorChart( state, mode ){
+  console.log('state', state);
+  const { yAxisRange, yAxisConfig, ChartRef, yAxisRef, chartCanvasSize, yAxisCanvasSize, data } = state;
+  const { dateConfig, timeRange, xAxisConfig, xAxisRef } = state.ChartWindow;
+  // if (
+  //   data.peek().length === 0 || 1
+  //   // yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
+  //   // ChartRef.current[1] === undefined
+  // ) {
+  //   console.log("called1");
+  //   return;
+  // }
+  console.log("called", ChartRef);
   const canvas = ChartRef.current[0];
   const canvasXAxis = xAxisRef.current[0];
   const canvasYAxis = yAxisRef.current[0];
@@ -192,12 +182,12 @@ export function drawIndicatorChart(
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   // console.log(yAxisConfig.peek(),
-  //   priceRange.peek(),
+  //   yAxisRange.peek(),
   //   chartCanvasSize.peek(),
   //   yAxisCanvasSize.peek());
   drawYAxis(ctx, yAxisCtx, mode, {
     yAxisConfig,
-    priceRange,
+    yAxisRange,
     chartCanvasSize,
     yAxisCanvasSize,
   });
@@ -259,8 +249,8 @@ export function drawIndicatorChart(
     if (chartType.peek() === "Candles") {
       // drawCandleStick(
       //   d,
-      //   priceRange.peek().minPrice,
-      //   priceRange.peek().maxPrice,
+      //   yAxisRange.peek().minPrice,
+      //   yAxisRange.peek().maxPrice,
       //   chartCanvasSize.peek().height,
       //   xCoord,
       //   ctx,
@@ -269,8 +259,8 @@ export function drawIndicatorChart(
       ctx.strokeStyle = "rgba(0,0,255,0.9)";
       prev = drawLineChart(
         d,
-        priceRange.peek().minPrice,
-        priceRange.peek().maxPrice,
+        yAxisRange.peek().minPrice,
+        yAxisRange.peek().maxPrice,
         chartCanvasSize.peek().height,
         xCoord,
         ctx,
@@ -280,8 +270,8 @@ export function drawIndicatorChart(
       ctx.strokeStyle = "rgba(0,0,255,0.9)";
       prev = drawLineChart(
         d,
-        priceRange.peek().minPrice,
-        priceRange.peek().maxPrice,
+        yAxisRange.peek().minPrice,
+        yAxisRange.peek().maxPrice,
         chartCanvasSize.peek().height,
         xCoord,
         ctx,

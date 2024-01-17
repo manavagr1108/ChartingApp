@@ -80,6 +80,7 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
 
     if (r & 1) {
       r = r - 1;
+      if(r >= 2*n)r=2*n-1;
       let ele = segmentTree[r];
       ele = Object.values(ele);
       minPrice = Math.min(minPrice, ele[0].Low);
@@ -224,7 +225,7 @@ export const yAxisMouseMove = (e, state) => {
   if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
-      lockUpdatePriceRange.value = true;
+      // lockUpdatePriceRange.value = true;
     }
     const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
     const pDiff = yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice;

@@ -20,6 +20,7 @@ import { onChartIndicatorSignal } from "../signals/indicatorsSignal";
 import { drawIndicatorChart } from "../utility/indicatorsUtil";
 import DrawChart from "../classes/DrawChart";
 import { useCanavsSplitRef } from "./useChartWindow";
+import useIndicator from "./useIndicator";
 
 // const handleResize = ({
 //   chartCanvasSize,
@@ -33,12 +34,16 @@ import { useCanavsSplitRef } from "./useChartWindow";
 //   setCanvasSize(yAxisRef.current[1]);
 // };
 
-const useDrawChart = (ChartWindow,isIndicator, mode) => {
+const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   const state = new DrawChart(ChartWindow);
   state.ChartRef = useCanavsSplitRef();
   state.yAxisRef = useCanavsSplitRef();
   if(isIndicator){
     state.isIndicator.value = true;
+    const [indicatorObj, data] = useIndicator(indicator, state, mode);
+    state.data.value = data;
+    state.Indicator.value = indicatorObj;
+    state.drawChartFunction = indicator.drawChartFunction;
   }
   // adding event listeners to the ref and window
   useEffect(() => {
@@ -113,8 +118,8 @@ const useDrawChart = (ChartWindow,isIndicator, mode) => {
         state.ChartWindow.xAxisRef.current[0] !== null &&
         state.yAxisRange.value.minPrice > 0
       ) {
-          drawChart(state, mode);
-          // state.isIndicator.peek() === true ? drawIndicatorChart(state.ChartWindow.xAxisRef, mode, { ...state }) : drawChart(state);
+          // drawChart(state, mode);
+          state.drawChartFunction(state, mode);
       }
     }
   });
