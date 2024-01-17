@@ -13,17 +13,13 @@ import {
   xAxisMouseMove,
   xAxisMouseUp,
 } from "../../utility/xAxisUtils";
-import {
-  onChartIndicatorSignal,
-  offChartIndicatorSignal,
-} from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
 import useDrawChart from "../../hooks/useDrawChart";
 
 function Charting({ mode, ChartWindow }) {
-  const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, timeRange, xAxisCanvasSize, dateConfig } = ChartWindow;
+  const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
   const drawChart = drawChartObjects.peek()[0];
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
@@ -86,7 +82,7 @@ function Charting({ mode, ChartWindow }) {
                 />
               );
             })}
-          <IndicatorsList mode={mode} indicators={onChartIndicators} />
+          <IndicatorsList mode={mode} indicators={onChartIndicators} ChartWindow={ChartWindow} />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas

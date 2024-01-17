@@ -29,21 +29,8 @@ export const useOutsideClick = (callBackFunc) => {
   return dropRef;
 };
 
-function NavBar({ selectedStock, interval, chartType, mode, toggleMode }) {
-  const [searchVal, setSearchVal] = useState("");
-  const [filteredProduct, setFilteredProduct] = useState([]);
-  const dropRefSelectStock = useOutsideClick(() => setSearchVal(""));
-  const updateBestMatches = async () => {
-    const data = await searchSymbol(searchVal);
-    if (data && data.result) setFilteredProduct(data.result);
-  };
-  const selectStock = (stock) => {
-    setSearchVal(() => {
-      return stock;
-    });
-    selectedStock.value = stock;
-    setFilteredProduct([]);
-  };
+function NavBar({ ChartWindow, mode, toggleMode }){
+  const { selectedStock, interval, chartType } = ChartWindow;
   return (
     <div
       className={`flex justify-between items-center pl-2 pr-5 border-l-2 border-b-2 ${
@@ -67,7 +54,7 @@ function NavBar({ selectedStock, interval, chartType, mode, toggleMode }) {
           mode={mode}
         />
         <div className="border-l-2 h-2/3"></div>
-        <Indicators mode={mode} />
+        <Indicators ChartWindow={ChartWindow} mode={mode} />
       </div>
       <div className="flex items-center ml-2">
         <label

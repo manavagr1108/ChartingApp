@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { FcComboChart } from "react-icons/fc";
 import { RxCross1 } from "react-icons/rx";
 import {
-  indicatorConfig,
-  onChartIndicatorSignal,
-  offChartIndicatorSignal
+  indicatorConfig
 } from "../../signals/indicatorsSignal";
 
-function Indicators({ mode }) {
+function Indicators({ mode, ChartWindow }) {
+  const {onChartIndicatorSignal, offChartIndicatorSignal} = ChartWindow;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedKey, setSelectedKey] = useState(null);
   const [inputValues, setInputValues] = useState({});

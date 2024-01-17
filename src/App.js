@@ -25,11 +25,9 @@ function App() {
       <div className="grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen">
         <StockSelect mode={mode} />
         <NavBar
-          selectedStock={selectedStock}
-          interval={interval}
           mode={mode}
+          ChartWindow={ChartWindow}
           toggleMode={toggleMode}
-          chartType={chartType}
         />
         <ToolBar mode={mode} />
         <Charting

@@ -1,8 +1,8 @@
 import React from "react";
-import { offChartIndicatorSignal, onChartIndicatorSignal } from "../../signals/indicatorsSignal";
 import { MdClose, MdSettings } from "react-icons/md";
 
-function IndicatorsList({ mode, indicators }) {
+function IndicatorsList({ mode, indicators, ChartWindow }) {
+  const {onChartIndicatorSignal, offChartIndicatorSignal} = ChartWindow;
   const removeIndicator = (index) => {
     if(onChartIndicatorSignal.peek().includes(indicators[index])){
       onChartIndicatorSignal.value = onChartIndicatorSignal.peek().filter((val, i) => i !== index)
