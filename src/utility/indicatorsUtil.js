@@ -1,3 +1,4 @@
+import { monthMap } from "../data/TIME_MAP";
 import { chartType, selectedStock } from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 import { drawLineChart, drawYAxis } from "./yAxisUtils";
@@ -174,6 +175,7 @@ export function drawIndicatorChart(
   ) {
     return;
   }
+  console.log("called");
   const canvas = ChartRef.current[0];
   const canvasXAxis = xAxisRef.current[0];
   const canvasYAxis = yAxisRef.current[0];
@@ -241,7 +243,7 @@ export function drawIndicatorChart(
         ctx.moveTo(xCoord, 0);
         ctx.lineTo(xCoord, chartCanvasSize.peek().height);
         ctx.stroke();
-        // xAxisCtx.fillText(currentYear, xCoord - 10, 12);
+        xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
         const lineColor = `${
           mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
@@ -251,7 +253,7 @@ export function drawIndicatorChart(
         ctx.moveTo(xCoord, 0);
         ctx.lineTo(xCoord, chartCanvasSize.peek().height);
         ctx.stroke();
-        // xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+        xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
       }
     }
     if (chartType.peek() === "Candles") {
