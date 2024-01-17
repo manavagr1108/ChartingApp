@@ -31,8 +31,8 @@ export function buildSegmentTree(data) {
   const segmentTree = [];
   const datesToIndex = {};
   const indexToDates = {};
-  const Low = data.Low !== undefined ? 'Low' : 'Close';
-  const High = data.High !== undefined ? 'High' : 'Close';
+  const Low = data[0].Low !== undefined ? 'Low' : 'Close';
+  const High = data[0].High !== undefined ? 'High' : 'Close';
   const array = Object.values(data);
   let n = array.length;
   for (let i = 0; i < n; i++) {
@@ -157,13 +157,13 @@ export const drawLineChart = (
   return { x, y };
 };
 
-export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, stockData }) {
+export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, data }) {
   const result = getMinMaxPrices(
     yAxisConfig.peek().segmentTree,
     dateConfig.peek().dateToIndex,
     getObjtoStringTime(timeRange.value.endTime),
     getObjtoStringTime(timeRange.value.startTime),
-    stockData.peek().length
+    data.peek().length
   );
   if (lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice) return;
   if (
@@ -189,13 +189,14 @@ export const updateYConfig = ({ priceRange, yAxisConfig }) => {
   yAxisConfig.value = { ...yAxisConfig.peek(), colDiff, priceDiff };
 }
 
-export const drawYAxis = (ctx, yAxisCtx, mode, { yAxisConfig, priceRange, chartCanvasSize, yAxisCanvasSize }) => {
+export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
+  const { yAxisConfig, yAxisRange, chartCanvasSize, yAxisCanvasSize } = state;
   const colDiff = yAxisConfig.peek().colDiff;
-  const minPrice = priceRange.peek().minPrice;
-  const maxPrice = priceRange.peek().maxPrice;
+  const minPrice = yAxisRange.peek().minPrice;
+  const maxPrice = yAxisRange.peek().maxPrice;
   const noOfCols = Math.floor((maxPrice - minPrice) / colDiff);
   for (let i = noOfCols + 3; i >= 0; i--) {
-    const text = (Math.floor(priceRange.peek().minPrice / colDiff)) * colDiff + (i - 1) * colDiff;
+    const text = (Math.floor(yAxisRange.peek().minPrice / colDiff)) * colDiff + (i - 1) * colDiff;
     const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
@@ -208,7 +209,8 @@ export const drawYAxis = (ctx, yAxisCtx, mode, { yAxisConfig, priceRange, chartC
   }
 }
 
-export const yAxisMouseDown = ({ e, yAxisMovement }) => {
+export const yAxisMouseDown = (e, state) => {
+  const {yAxisMovement} = state;
   yAxisMovement.value.mouseDown = true;
   yAxisMovement.value.prevXCoord = e.pageY;
   const canvas = e.target;
@@ -216,26 +218,29 @@ export const yAxisMouseDown = ({ e, yAxisMovement }) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 
-export const yAxisMouseMove = ({ e, yAxisMovement, priceRange, lockUpdatePriceRange, yAxisConfig }) => {
+export const yAxisMouseMove = (e, state) => {
+  const { yAxisMovement, yAxisRange } = state;
+  const {lockUpdatePriceRange } = state.ChartWindow;
   if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
       lockUpdatePriceRange.value = true;
     }
     const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
-    const pDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
+    const pDiff = yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice;
     if (pDiff > 4000 && pixelMovement < 0) return;
     if (pDiff < 5 && pixelMovement > 0) return;
-    priceRange.value = {
-      minPrice: priceRange.peek().minPrice + pixelMovement,
-      maxPrice: priceRange.peek().maxPrice - pixelMovement
+    yAxisRange.value = {
+      minPrice: yAxisRange.peek().minPrice + pixelMovement,
+      maxPrice: yAxisRange.peek().maxPrice - pixelMovement
     }
-    updateYConfig({ priceRange, yAxisConfig });
+    state.setYAxisConfig();
     yAxisMovement.value.prevXCoord = e.pageY;
   }
 };
 
-export const yAxisMouseUp = ({ e, yAxisMovement }) => {
+export const yAxisMouseUp = (e, state) => {
+  const {yAxisMovement} = state;
   if (yAxisMovement.peek().mouseMove) {
     yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   } else if (yAxisMovement.peek().mouseDown) {

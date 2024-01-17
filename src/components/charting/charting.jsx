@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { effect } from "@preact/signals-react";
-import { xAxisCanvasSize } from "../../signals/stockSignals";
 import {
   setCanvasSize,
   handleOnMouseMove,
@@ -23,13 +22,11 @@ import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
 import useDrawChart from "../../hooks/useDrawChart";
 
-function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  const [stockDataState, setStockDataState] = useState([]);
-  const xAxisRef = useRef([]);
-  xAxisRef.current = xAxisRef.current.slice(0, 2);
+function Charting({ mode, ChartWindow }) {
+  const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, timeRange, xAxisCanvasSize, dateConfig } = ChartWindow;
+  const drawChart = drawChartObjects.peek()[0];
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
-  const drawChart = useDrawChart(xAxisRef, mode, false);
   effect(() => {
     if (
       onChartIndicatorSignal.value &&
@@ -43,44 +40,16 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       setOffChartIndicators([...offChartIndicatorSignal.peek()]);
     }
   });
-  const handleResize = useCallback(() => {
-    xAxisCanvasSize.value = setCanvasSize(xAxisRef.current[0]);
-    setCanvasSize(xAxisRef.current[1]);
-  }, []);
   effect(() => {
-    if (selectedStock.value && interval.value){
-      getStockDataCallback(selectedStock, interval, drawChart.stockData).then(() =>{
-        updateConfig(drawChart);
-        drawChartOnCanvas(xAxisRef, mode, { ...drawChart }) 
+    if (selectedStock.value && interval.value && chartType.value){
+      getStockDataCallback(selectedStock, interval, stockData).then(() =>{
+        ChartWindow.setChartWindowSignal();
+        drawChart.setDrawChartSignal(stockData.peek());
+        drawChart.drawChartFunction(drawChart, mode)
       }).catch(e => {
         console.log(e);
       })
-      // getStockDataCallback(selectedStock, interval, setStockDataState);
     }
-  });
-  useEffect(() => {
-    handleResize();
-    xAxisRef.current[1].addEventListener("mousedown", (e) =>
-      xAxisMouseDown({ e, ...drawChart })
-    );
-    window.addEventListener("mousemove", (e) =>
-      xAxisMouseMove({ e, ...drawChart })
-    );
-    window.addEventListener("mouseup", (e) =>
-      xAxisMouseUp({ e, ...drawChart })
-    );
-    window.addEventListener("resize", handleResize);
-    return () => {
-      xAxisRef.current[1].removeEventListener("mousedown", (e) =>
-        xAxisMouseDown({ e, ...drawChart })
-      );
-      window.removeEventListener("mousemove", (e) =>
-        xAxisMouseMove({ e, ...drawChart })
-      );
-      window.removeEventListener("mouseup", (e) =>
-        xAxisMouseUp({ e, ...drawChart })
-      );
-    };
   });
   return (
     <div
@@ -101,6 +70,7 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             removeCursor={removeCursor}
             xAxisRef={xAxisRef}
             drawChart={drawChart}
+            ChartWindow={ChartWindow}
           />
           {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {

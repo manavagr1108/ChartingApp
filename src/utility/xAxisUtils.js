@@ -239,6 +239,7 @@ export function getNewZoomTime(
 }
 
 export const updateXAxisConfig = (startTime, endTime, datesToIndex, xAxisConfig, chartCanvasSize) => {
+  // console.log(startTime, endTime, datesToIndex, xAxisConfig.peek(), chartCanvasSize)
   const noOfDataPoints =
     datesToIndex[getObjtoStringTime(startTime)] -
     datesToIndex[getObjtoStringTime(endTime)];
@@ -247,19 +248,23 @@ export const updateXAxisConfig = (startTime, endTime, datesToIndex, xAxisConfig,
   xAxisConfig.value.widthOfOneCS = widthOfOneCS;
 };
 
-export const xAxisMouseDown = ({e}) => {
+export const xAxisMouseDown = (e, state) => {
+  const {xAxisMovement} = state;
   xAxisMovement.value.mouseDown = true;
   xAxisMovement.value.prevXCoord = e.pageX;
   const canvas = e.target;
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
-export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanvasSize, yAxisConfig, priceRange, lockUpdatePriceRange, stockData}) => {
+export const xAxisMouseMove = (e, state) => {
+  const { xAxisMovement, timeRange, dateConfig, xAxisConfig} = state;
+  console.log()
   if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
     }
     const pixelMovement = xAxisMovement.peek().prevXCoord - e.pageX;
+    console.log(pixelMovement);
     timeRange.value = getNewZoomTime(
       timeRange.peek().startTime,
       timeRange.peek().endTime,
@@ -271,13 +276,15 @@ export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanv
       pixelMovement * xAxisConfig.peek().widthOfOneCS,
       dateConfig.peek().dateToIndex
     )
-    updateXAxisConfig(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex, xAxisConfig, chartCanvasSize);
-    updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, stockData });
-    updateYConfig({yAxisConfig, priceRange});
+    console.log(getObjtoStringTime(timeRange.peek().endTime));
+    state.setXAxisConfig();
+    state.drawChartObjects.peek()[0].setYRange();
+    state.drawChartObjects.peek()[0].setYAxisConfig();
     xAxisMovement.value.prevXCoord = e.pageX;
   }
 };
-export const xAxisMouseUp = ({e}) => {
+export const xAxisMouseUp = (e, state) => {
+  const {xAxisMovement} = state;
   if (xAxisMovement.peek().mouseMove) {
     xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   } else if (xAxisMovement.peek().mouseDown) {

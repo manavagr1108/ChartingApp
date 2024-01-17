@@ -12,12 +12,14 @@ import {
 } from "./signals/stockSignals";
 import { getStockDataCallback } from "./utility/chartUtils";
 import { effect } from "@preact/signals-react";
+import useChartWindow from "./hooks/useChartWindow";
 
 function App() {
   const [mode, setMode] = useState("Light");
   function toggleMode() {
     setMode((prev) => (prev === "Light" ? "Dark" : "Light"));
   }
+  const ChartWindow = useChartWindow(mode);
   return (
     <div className="app">
       <div className="grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen">
@@ -31,11 +33,8 @@ function App() {
         />
         <ToolBar mode={mode} />
         <Charting
-          selectedStock={selectedStock}
-          interval={interval}
-          stockData={stockData}
           mode={mode}
-          chartType={chartType}
+          ChartWindow={ChartWindow}
         />
       </div>
     </div>

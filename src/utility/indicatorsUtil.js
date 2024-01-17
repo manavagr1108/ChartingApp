@@ -165,11 +165,11 @@ export function drawIndicatorChart(
     chartCanvasSize,
     xAxisConfig,
     yAxisCanvasSize,
-    stockData
+    data
   }
 ) {
   if (
-    stockData.peek().length === 0 ||
+    data.peek().length === 0 ||
     priceRange.peek().maxPrice === priceRange.peek().minPrice ||
     ChartRef.current[1] === undefined
   ) {
@@ -213,7 +213,7 @@ export function drawIndicatorChart(
   }
   console.log(startIndex, endIndex);
   let prev = null;
-  const resultData = stockData
+  const resultData = data
     .peek()
     .slice(startIndex, endIndex + 1)
     .reverse();

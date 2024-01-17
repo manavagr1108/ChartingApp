@@ -27,10 +27,10 @@ function DrawIndicator({
     offChartIndicators[index]
   );
   effect(() => {
-    if(drawChart.stockData.value){
-      const data = calculateRSI(drawChart.stockData.peek(), offChartIndicators[index].period);
-      if(data.length == drawIndicator.drawChart.stockData.peek().length) return;
-      drawIndicator.drawChart.stockData.value = data;
+    if(drawChart.data.value){
+      const data = calculateRSI(drawChart.data.peek(), offChartIndicators[index].period);
+      if(data.length == drawIndicator.drawChart.data.peek().length) return;
+      drawIndicator.drawChart.data.value = data;
       updateConfig(drawIndicator.drawChart);
       drawIndicatorChart(xAxisRef, mode, {...drawIndicator.drawChart});
     }

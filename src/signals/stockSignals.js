@@ -3,7 +3,7 @@ import { signal } from "@preact/signals-react";
 export const selectedStock = signal("AAPL");
 export const interval = signal("1d");
 export const chartType = signal("Candles");
-export const stockData = signal([]);
+export const data = signal([]);
 
 export const timeRange = signal({
   startTime: {
