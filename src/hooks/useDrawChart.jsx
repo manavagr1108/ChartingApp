@@ -15,8 +15,9 @@ import {
   yAxisMouseMove,
   yAxisMouseUp,
 } from "../utility/yAxisUtils";
-import { chartType, stockData } from "../signals/stockSignals";
+import { chartType } from "../signals/stockSignals";
 import { onChartIndicatorSignal } from "../signals/indicatorsSignal";
+import { drawIndicatorChart } from "../utility/indicatorsUtil";
 
 const initialState = {
   timeRange: signal({
@@ -95,6 +96,8 @@ const initialState = {
   lockUpdatePriceRange: signal(false),
 
   stockData: signal([]),
+
+  isIndicator: signal(false),
 };
 
 const handleResize = ({
@@ -109,12 +112,16 @@ const handleResize = ({
   setCanvasSize(yAxisRef.current[1]);
 };
 
-const useDrawChart = (xAxisRef, mode, stockDataState) => {
+const useDrawChart = (xAxisRef, mode, isIndicator) => {
   const state = { ChartRef: useRef([]), yAxisRef: useRef([]), ...initialState };
   const { ChartRef, yAxisRef } = state;
   // setting up use ref
   ChartRef.current = ChartRef.current.slice(0, 2);
   yAxisRef.current = yAxisRef.current.slice(0, 2);
+  if(isIndicator){
+    // console.log("isIndicator", isIndicator);
+    state.isIndicator.value = true;
+  }
   // adding event listeners to the ref and window
   useEffect(() => {
     handleResize({ ...state });
@@ -175,17 +182,10 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
       );
     };
   });
-  // update config
-  useEffect(() => {
-    if (stockDataState.length) {
-      state.stockData.value = stockDataState;
-      updateConfig({ ...state });
-    }
-  }, [stockDataState]);
   // draw chart
-  let val = 0;
   effect(() => {
     if (
+      state.timeRange.value &&
       state.timeRange.value.endTime.Date !== 0 &&
       state.timeRange.value.startTime.Date !== 0 &&
       chartType.value &&
@@ -197,14 +197,7 @@ const useDrawChart = (xAxisRef, mode, stockDataState) => {
         xAxisRef.current[0] !== null &&
         state.priceRange.value.minPrice > 0
       ) {
-        if (val === 0) {
-          val++;
-          setTimeout(() => {
-            drawChart(xAxisRef, mode, { ...state });
-          }, 0.1);
-        } else {
-          drawChart(xAxisRef, mode, { ...state });
-        }
+          state.isIndicator === true ? drawIndicatorChart(xAxisRef, mode, { ...state }) : drawChart(xAxisRef, mode, { ...state });
       }
     }
   });

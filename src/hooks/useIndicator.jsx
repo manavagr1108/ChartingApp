@@ -1,11 +1,10 @@
-import { signal } from "@preact/signals-react";
+import { effect, signal } from "@preact/signals-react";
 import { calculateRSI } from "../utility/indicatorsUtil";
 import useDrawChart from "./useDrawChart";
 import { indicatorConfig } from "../signals/indicatorsSignal";
+import { useEffect, useState } from "react";
 
 const initialState = {
-  indicatorDataState: signal(null),
-
   indicatorOptions: signal({
     color: "",
     stroke: 0,
@@ -17,9 +16,8 @@ const initialState = {
   drawChart: null,
 };
 
-const useIndicator = (xAxisRef, mode, stockDataState, indicator) => {
+const useIndicator = (xAxisRef, mode, indicatorDataState, indicator) => {
   const state = { ...initialState };
-
   state.indicatorOptions.value = {
     color: indicator.color,
     stroke: indicator.stroke,
@@ -27,13 +25,13 @@ const useIndicator = (xAxisRef, mode, stockDataState, indicator) => {
     label: indicator.label,
     isChartRequired: indicator.chartRequired,
   };
-
-  if (indicator.label === indicatorConfig["RSI"].label) {
-    state.indicatorDataState = calculateRSI(stockDataState, indicator.period);
-  }
-
-  state.drawChart = useDrawChart(xAxisRef, mode, state.indicatorDataState);
-
+  // effect(() => {
+  //   if(data.length !== indicatorDataState.length){
+  //     setData(state.indicatorDataState);
+  //   }
+  // })
+  state.drawChart = useDrawChart(xAxisRef, mode, true);
+  // console.log(state.drawChart)
   return state;
 };
 

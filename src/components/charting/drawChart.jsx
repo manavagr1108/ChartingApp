@@ -1,4 +1,4 @@
-import { computed } from "@preact/signals-react";
+import { computed, effect } from "@preact/signals-react";
 import React, { useEffect } from "react";
 import { offChartIndicatorSignal } from "../../signals/indicatorsSignal";
 import { updateConfig } from "../../utility/chartUtils";
@@ -8,13 +8,10 @@ function DrawChart({
   removeCursor,
   xAxisRef,
   drawChart,
-  stockDataState,
 }) {
-  useEffect(() => {
-    if (stockDataState.length) {
-      updateConfig(drawChart);
-    }
-  }, [stockDataState]);
+  // effect(() => {
+  //   console.log("drawChart", drawChart.stockData.value);
+  // })
   const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div

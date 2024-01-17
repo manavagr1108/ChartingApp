@@ -5,6 +5,9 @@ import {
   setCanvasSize,
   handleOnMouseMove,
   removeCursor,
+  getStockDataCallback,
+  updateConfig,
+  drawChart as drawChartOnCanvas
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
@@ -21,18 +24,12 @@ import DrawIndicator from "./drawIndicator";
 import useDrawChart from "../../hooks/useDrawChart";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  // const ChartRef = useRef([]);
   const [stockDataState, setStockDataState] = useState([]);
-  // ChartRef.current = ChartRef.current.slice(0, 2);
   const xAxisRef = useRef([]);
   xAxisRef.current = xAxisRef.current.slice(0, 2);
-  // const yAxisRef = useRef([]);
-  // yAxisRef.current = yAxisRef.current.slice(0, 2);
-  // const indicatorsChartRef = useRef([]);
-  // const indicatorsYAxisRef = useRef([]);
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
-  const drawChart = useDrawChart(xAxisRef, mode, stockDataState);
+  const drawChart = useDrawChart(xAxisRef, mode, false);
   effect(() => {
     if (
       onChartIndicatorSignal.value &&
@@ -51,8 +48,17 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
     setCanvasSize(xAxisRef.current[1]);
   }, []);
   effect(() => {
-    if (stockData.value.length !== stockDataState.length) {
-      setStockDataState([...stockData.peek()]);
+    if (selectedStock.value && interval.value){
+      getStockDataCallback(selectedStock, interval, drawChart.stockData).then(() =>{
+        try {
+          updateConfig({ ...drawChart });
+        } catch (e) {
+          console.log(e);
+        } finally {
+          drawChartOnCanvas(xAxisRef, mode, { ...drawChart })
+        }
+      })
+      // getStockDataCallback(selectedStock, interval, setStockDataState);
     }
   });
   useEffect(() => {
@@ -98,7 +104,6 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
             removeCursor={removeCursor}
             xAxisRef={xAxisRef}
             drawChart={drawChart}
-            stockDataState={stockDataState}
           />
           {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {
@@ -109,10 +114,8 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
                   offChartIndicators={offChartIndicators}
                   handleOnMouseMove={handleOnMouseMove}
                   removeCursor={removeCursor}
-                  // indicatorsChartRef={indicatorsChartRef}
                   xAxisRef={xAxisRef}
-                  // indicatorsYAxisRef={indicatorsYAxisRef}
-                  stockDataState={stockDataState}
+                  drawChart={drawChart}
                 />
               );
             })}

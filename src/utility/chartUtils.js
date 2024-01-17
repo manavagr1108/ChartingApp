@@ -12,7 +12,6 @@ import {
   lockUpdatePriceRange,
   priceRange,
   selectedStock,
-  stockData,
   timeRange,
   xAxisConfig,
   yAxisCanvasSize,
@@ -115,6 +114,7 @@ export function drawChart(
     dateConfig.peek().dateToIndex[
       getObjtoStringTime(timeRange.peek().startTime)
     ];
+  // console.log(getObjtoStringTime(timeRange.peek().startTime), getObjtoStringTime(timeRange.peek().endTime))
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
     return;
@@ -192,6 +192,7 @@ export function drawChart(
     timeRange,
     priceRange,
     xAxisConfig,
+    stockData
   });
 }
 
@@ -239,16 +240,18 @@ export function drawIndicators(
         timeRange,
         priceRange,
         xAxisConfig,
+        stockData
       });
     }
   });
 }
 
-export async function getStockDataCallback(symbol, interval, stockData) {
+export async function getStockDataCallback(symbol, interval, setStockDataState) {
   try {
     const fetchedData = await getStockData(symbol.value, interval.value);
     if (fetchedData.length) {
-      stockData.value = [...fetchedData];
+      // setStockDataState([...fetchedData]);
+      setStockDataState.value = [...fetchedData];
       return;
     }
   } catch (e) {
@@ -283,6 +286,7 @@ export function handleOnMouseMove({
   xAxisConfig,
   dateConfig,
   timeRange,
+  stockData
 }) {
   const canvas = e.target;
   const rect = canvas.getBoundingClientRect();
@@ -333,6 +337,7 @@ export function handleScroll({
   yAxisConfig,
   priceRange,
   chartCanvasSize,
+  stockData
 }) {
   e.preventDefault();
   let newTime = null;
@@ -398,6 +403,7 @@ export function handleScroll({
       dateConfig,
       priceRange,
       lockUpdatePriceRange,
+      stockData,
     });
   updateYConfig({ priceRange, yAxisConfig });
   handleOnMouseMove({
@@ -407,6 +413,7 @@ export function handleScroll({
     xAxisConfig,
     dateConfig,
     timeRange,
+    stockData
   });
 }
 
@@ -583,6 +590,7 @@ export const chartMouseMove = ({
   timeRange,
   dateConfig,
   xAxisConfig,
+  stockData
 }) => {
   if (
     chartMovement.peek().mouseDown &&
@@ -627,6 +635,7 @@ export const chartMouseMove = ({
           dateConfig,
           priceRange,
           lockUpdatePriceRange,
+          stockData
         });
         updateYConfig({ priceRange, yAxisConfig });
       }
