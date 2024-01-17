@@ -254,7 +254,7 @@ export const xAxisMouseDown = ({e}) => {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
-export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanvasSize, yAxisConfig, priceRange, lockUpdatePriceRange}) => {
+export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanvasSize, yAxisConfig, priceRange, lockUpdatePriceRange, stockData}) => {
   if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
@@ -272,7 +272,7 @@ export const xAxisMouseMove = ({e, timeRange, dateConfig, xAxisConfig, chartCanv
       dateConfig.peek().dateToIndex
     )
     updateXAxisConfig(timeRange.peek().startTime, timeRange.peek().endTime, dateConfig.peek().dateToIndex, xAxisConfig, chartCanvasSize);
-    updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange });
+    updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, stockData });
     updateYConfig({yAxisConfig, priceRange});
     xAxisMovement.value.prevXCoord = e.pageX;
   }

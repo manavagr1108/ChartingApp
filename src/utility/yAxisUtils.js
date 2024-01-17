@@ -1,4 +1,4 @@
-import { chartCanvasSize, dateConfig, lockUpdatePriceRange, priceRange, stockData, timeRange, yAxisCanvasSize, yAxisConfig, yAxisMovement } from "../signals/stockSignals";
+import { chartCanvasSize, dateConfig, lockUpdatePriceRange, priceRange, timeRange, yAxisCanvasSize, yAxisConfig, yAxisMovement } from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 
 export const priceToColMap = {
@@ -155,7 +155,7 @@ export const drawLineChart = (
   return { x, y };
 };
 
-export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange }) {
+export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, stockData }) {
   const result = getMinMaxPrices(
     yAxisConfig.peek().segmentTree,
     dateConfig.peek().dateToIndex,
