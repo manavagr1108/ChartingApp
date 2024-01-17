@@ -21,37 +21,20 @@ function DrawIndicator({
   xAxisRef,
   drawChart,
 }) {
-  // const [indicatorData, setIndicatorData] = useState([]);
-  let indicatorData = [];
   const drawIndicator = useIndicator(
     xAxisRef,
     mode,
-    indicatorData,
     offChartIndicators[index]
   );
-  if (offChartIndicators[index].label === indicatorConfig["RSI"].label) {
-    drawIndicator.drawChart.stockData.value = calculateRSI(drawChart.stockData.peek(), offChartIndicators[index].period);
-  }
   effect(() => {
-    console.log("drawChart", drawChart.stockData.value);
+    if(drawChart.stockData.value){
+      const data = calculateRSI(drawChart.stockData.peek(), offChartIndicators[index].period);
+      if(data.length == drawIndicator.drawChart.stockData.peek().length) return;
+      drawIndicator.drawChart.stockData.value = data;
+      updateConfig(drawIndicator.drawChart);
+      drawIndicatorChart(xAxisRef, mode, {...drawIndicator.drawChart});
+    }
   })
-  effect(() => {
-    console.log("drawIndicator", drawIndicator.drawChart.stockData.value);
-  })
-  // effect(() => {
-  //   if (drawChart.stockData.value){
-  //     const data = calculateRSI(drawChart.stockData.peek(), offChartIndicators[index].period)
-  //     try {
-  //       drawIndicator.drawChart.stockData.value = data;
-  //       console.log(drawIndicator.drawChart.stockData.peek(), drawChart.stockData.peek());
-  //       // updateConfig({ ...drawIndicator.drawChart });
-  //     } catch (e) {
-  //       console.log(e);
-  //     } finally {
-  //       // drawIndicatorChart(xAxisRef, mode, { ...drawIndicator.drawChart })
-  //     }
-  //     }
-  // });
   const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div

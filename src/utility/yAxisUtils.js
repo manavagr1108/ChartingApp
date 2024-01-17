@@ -31,6 +31,8 @@ export function buildSegmentTree(data) {
   const segmentTree = [];
   const datesToIndex = {};
   const indexToDates = {};
+  const Low = data.Low !== undefined ? 'Low' : 'Close';
+  const High = data.High !== undefined ? 'High' : 'Close';
   const array = Object.values(data);
   let n = array.length;
   for (let i = 0; i < n; i++) {
@@ -38,8 +40,8 @@ export function buildSegmentTree(data) {
     const d = {};
     const date = `${ele.Date}:${ele.Date}`
     d[`${date}`] = {
-      'Low': ele.Low,
-      'High': ele.High
+      'Low': ele[`${Low}`],
+      'High': ele[`${High}`]
     }
     datesToIndex[`${ele.Date}`] = i;
     indexToDates[`${i}`] = ele.Date;
@@ -136,7 +138,7 @@ export const drawLineChart = (
   prev
 ) => {
   const y = getYCoordinate(
-    data["AdjClose"],
+    data["Close"],
     minPrice,
     maxPrice,
     height

@@ -38,6 +38,7 @@ import {
 } from "./yAxisUtils";
 
 export const updateConfig = (state) => {
+  // console.log(state);
   if (state.stockData.peek().length) {
     const segmentTreeData = buildSegmentTree(state.stockData.peek());
     const startTime = getTime(
@@ -306,7 +307,7 @@ export function handleOnMouseMove({
         getObjtoStringTime(timeRange.peek().startTime)
       ];
     const data = stockData.peek()[firstIndex - dateIndex];
-    if (data) {
+    if (data.Low && data.High) {
       dateCursor.value = {
         date: data.Date,
         text: `${data.Date} Open: ${data.Open.toFixed(
@@ -314,6 +315,17 @@ export function handleOnMouseMove({
         )} High: ${data.High.toFixed(2)} Low: ${data.Low.toFixed(
           2
         )} Close: ${data.Close.toFixed(2)} Volume: ${data.Volume.toFixed(2)}`,
+        x:
+          chartCanvasSize.peek().width -
+          dateIndex * xAxisConfig.peek().widthOfOneCS -
+          xAxisConfig.peek().widthOfOneCS / 2 -
+          timeRange.peek().scrollDirection * timeRange.peek().scrollOffset,
+        y: y,
+      };
+    } else {
+      dateCursor.value = {
+        date: data.Date,
+        text: `${data.Date} val: ${data.Close.toFixed(2)}`,
         x:
           chartCanvasSize.peek().width -
           dateIndex * xAxisConfig.peek().widthOfOneCS -

@@ -16,8 +16,21 @@ const initialState = {
   drawChart: null,
 };
 
-const useIndicator = (xAxisRef, mode, indicatorDataState, indicator) => {
-  const state = { ...initialState };
+class Indicator {
+  constructor(){
+    this.indicatorOptions = signal({
+      color: "",
+      stroke: 0,
+      period: 0,
+      label: "",
+      isChartRequired: true,
+    });
+  
+    this.drawChart= [];
+  }
+}
+const useIndicator = (xAxisRef, mode, indicator) => {
+  const state = { ...new Indicator() };
   state.indicatorOptions.value = {
     color: indicator.color,
     stroke: indicator.stroke,
@@ -25,13 +38,7 @@ const useIndicator = (xAxisRef, mode, indicatorDataState, indicator) => {
     label: indicator.label,
     isChartRequired: indicator.chartRequired,
   };
-  // effect(() => {
-  //   if(data.length !== indicatorDataState.length){
-  //     setData(state.indicatorDataState);
-  //   }
-  // })
   state.drawChart = useDrawChart(xAxisRef, mode, true);
-  // console.log(state.drawChart)
   return state;
 };
 

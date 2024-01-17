@@ -19,86 +19,88 @@ import { chartType } from "../signals/stockSignals";
 import { onChartIndicatorSignal } from "../signals/indicatorsSignal";
 import { drawIndicatorChart } from "../utility/indicatorsUtil";
 
-const initialState = {
-  timeRange: signal({
-    startTime: {
-      Year: 0,
-      Month: 0,
-      Date: 0,
-      Hrs: 0,
-      Min: 0,
-      Sec: 0,
-    },
-    endTime: {
-      Year: 0,
-      Month: 0,
-      Date: 0,
-      Hrs: 0,
-      Min: 0,
-      Sec: 0,
-    },
-    scrollOffset: 0,
-    scrollDirection: 0,
-    zoomOffset: 0,
-    zoomDirection: 0,
-  }),
-  chartCanvasSize: signal({
-    width: 0,
-    height: 0,
-  }),
-  xAxisCanvasSize: signal({
-    width: 0,
-    height: 0,
-  }),
-  yAxisCanvasSize: signal({
-    width: 0,
-    height: 0,
-  }),
-  priceRange: signal({
-    minPrice: 0,
-    maxPrice: 0,
-  }),
-  xAxisConfig: signal({
-    noOfDataPoints: 0,
-    widthOfOneCS: 0,
-  }),
-  dateConfig: signal({
-    dateToIndex: {},
-    indexToDate: {},
-  }),
-  yAxisConfig: signal({
-    colDiff: 2,
-    priceDiff: 0,
-    segmentTree: [],
-  }),
-
-  dateCursor: signal(null),
-
-  xAxisMovement: signal({
-    mouseDown: false,
-    mouseMove: false,
-    prevXCoord: 0,
-  }),
-
-  yAxisMovement: signal({
-    mouseDown: false,
-    mouseMove: false,
-    prevXCoord: 0,
-  }),
-
-  chartMovement: signal({
-    mouseDown: false,
-    mouseMove: false,
-    prevXCoord: 0,
-    prevYCoord: 0,
-  }),
-
-  lockUpdatePriceRange: signal(false),
-
-  stockData: signal([]),
-
-  isIndicator: signal(false),
-};
+class chart {
+  constructor(){
+    this.timeRange= signal({
+      startTime: {
+        Year: 0,
+        Month: 0,
+        Date: 0,
+        Hrs: 0,
+        Min: 0,
+        Sec: 0,
+      },
+      endTime: {
+        Year: 0,
+        Month: 0,
+        Date: 0,
+        Hrs: 0,
+        Min: 0,
+        Sec: 0,
+      },
+      scrollOffset: 0,
+      scrollDirection: 0,
+      zoomOffset: 0,
+      zoomDirection: 0,
+    });
+    this.chartCanvasSize = signal({
+      width: 0,
+      height: 0,
+    });
+    this.xAxisCanvasSize = signal({
+      width: 0,
+      height: 0,
+    });
+    this.yAxisCanvasSize = signal({
+      width: 0,
+      height: 0,
+    });
+    this.priceRange= signal({
+      minPrice: 0,
+      maxPrice: 0,
+    });
+    this.xAxisConfig= signal({
+      noOfDataPoints: 0,
+      widthOfOneCS: 0,
+    });
+    this.dateConfig= signal({
+      dateToIndex: {},
+      indexToDate: {},
+    });
+    this.yAxisConfig= signal({
+      colDiff: 2,
+      priceDiff: 0,
+      segmentTree: [],
+    });
+  
+    this.dateCursor= signal(null);
+  
+    this.xAxisMovement= signal({
+      mouseDown: false,
+      mouseMove: false,
+      prevXCoord: 0,
+    });
+  
+    this.yAxisMovement= signal({
+      mouseDown: false,
+      mouseMove: false,
+      prevXCoord: 0,
+    });
+  
+    this.chartMovement= signal({
+      mouseDown: false,
+      mouseMove: false,
+      prevXCoord: 0,
+      prevYCoord: 0,
+    });
+  
+    this.lockUpdatePriceRange= signal(false);
+  
+    this.stockData= signal([]);
+  
+    this.isIndicator= signal(false);
+  }
+}
 
 const handleResize = ({
   chartCanvasSize,
@@ -113,7 +115,7 @@ const handleResize = ({
 };
 
 const useDrawChart = (xAxisRef, mode, isIndicator) => {
-  const state = { ChartRef: useRef([]), yAxisRef: useRef([]), ...initialState };
+  const state = { ChartRef: useRef([]), yAxisRef: useRef([]), ...new chart() };
   const { ChartRef, yAxisRef } = state;
   // setting up use ref
   ChartRef.current = ChartRef.current.slice(0, 2);
