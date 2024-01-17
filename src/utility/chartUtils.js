@@ -307,7 +307,7 @@ export function handleOnMouseMove({
         getObjtoStringTime(timeRange.peek().startTime)
       ];
     const data = stockData.peek()[firstIndex - dateIndex];
-    if (data.Low && data.High) {
+    if (data?.Low !== undefined && data?.High !== null) {
       dateCursor.value = {
         date: data.Date,
         text: `${data.Date} Open: ${data.Open.toFixed(
@@ -322,7 +322,7 @@ export function handleOnMouseMove({
           timeRange.peek().scrollDirection * timeRange.peek().scrollOffset,
         y: y,
       };
-    } else {
+    } else if (data?.date !== undefined) {
       dateCursor.value = {
         date: data.Date,
         text: `${data.Date} val: ${data.Close.toFixed(2)}`,

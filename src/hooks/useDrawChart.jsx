@@ -152,37 +152,37 @@ const useDrawChart = (xAxisRef, mode, isIndicator) => {
       (e) => handleScroll({ e, ...state }),
       false
     );
-    return () => {
-      window.removeEventListener("resize", () => handleResize({ ...state }));
-      ChartRef.current[1].removeEventListener("mousedown", (e) =>
-        chartMouseDown({ e, ...state })
-      );
-      window.removeEventListener("mousemove", (e) =>
-        chartMouseMove({ e, ...state })
-      );
-      window.removeEventListener("mouseup", (e) =>
-        chartMouseUp({ e, ...state })
-      );
-      yAxisRef.current[1].removeEventListener("mousedown", (e) =>
-        yAxisMouseDown({ e, ...state })
-      );
-      window.removeEventListener("mousemove", (e) =>
-        yAxisMouseMove({ e, ...state })
-      );
-      window.removeEventListener("mouseup", (e) =>
-        yAxisMouseUp({ e, ...state })
-      );
-      ChartRef.current[0].removeEventListener(
-        "wheel",
-        (e) => handleScroll({ e, ...state }),
-        false
-      );
-      ChartRef.current[1].removeEventListener(
-        "wheel",
-        (e) => handleScroll({ e, ...state }),
-        false
-      );
-    };
+    // return () => {
+    //   window.removeEventListener("resize", () => handleResize({ ...state }));
+    //   ChartRef.current[1].removeEventListener("mousedown", (e) =>
+    //     chartMouseDown({ e, ...state })
+    //   );
+    //   window.removeEventListener("mousemove", (e) =>
+    //     chartMouseMove({ e, ...state })
+    //   );
+    //   window.removeEventListener("mouseup", (e) =>
+    //     chartMouseUp({ e, ...state })
+    //   );
+    //   yAxisRef.current[1].removeEventListener("mousedown", (e) =>
+    //     yAxisMouseDown({ e, ...state })
+    //   );
+    //   window.removeEventListener("mousemove", (e) =>
+    //     yAxisMouseMove({ e, ...state })
+    //   );
+    //   window.removeEventListener("mouseup", (e) =>
+    //     yAxisMouseUp({ e, ...state })
+    //   );
+    //   ChartRef.current[0].removeEventListener(
+    //     "wheel",
+    //     (e) => handleScroll({ e, ...state }),
+    //     false
+    //   );
+    //   ChartRef.current[1].removeEventListener(
+    //     "wheel",
+    //     (e) => handleScroll({ e, ...state }),
+    //     false
+    //   );
+    // };
   });
   // draw chart
   effect(() => {
@@ -199,7 +199,8 @@ const useDrawChart = (xAxisRef, mode, isIndicator) => {
         xAxisRef.current[0] !== null &&
         state.priceRange.value.minPrice > 0
       ) {
-          state.isIndicator === true ? drawIndicatorChart(xAxisRef, mode, { ...state }) : drawChart(xAxisRef, mode, { ...state });
+          console.log("Manav", state.isIndicator);
+          state.isIndicator.peek() === true ? drawIndicatorChart(xAxisRef, mode, { ...state }) : drawChart(xAxisRef, mode, { ...state });
       }
     }
   });
