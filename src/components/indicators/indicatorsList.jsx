@@ -4,7 +4,6 @@ import { MdClose, MdSettings } from "react-icons/md";
 
 function IndicatorsList({ mode, indicators }) {
   const removeIndicator = (index) => {
-    console.log(indicators);
     if(onChartIndicatorSignal.peek().includes(indicators[index])){
       onChartIndicatorSignal.value = onChartIndicatorSignal.peek().filter((val, i) => i !== index)
     } else {
@@ -18,7 +17,6 @@ function IndicatorsList({ mode, indicators }) {
     <div className="absolute flex flex-col z-6 select-none top-7 left-2 w-250">
       {indicators.length !== 0 &&
         indicators.map((indicator, index) => {
-          console.log(indicators);
           return (
             <div
               key={index}

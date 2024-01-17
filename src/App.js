@@ -10,6 +10,8 @@ import {
   stockData,
   chartType,
 } from "./signals/stockSignals";
+import { getStockDataCallback } from "./utility/chartUtils";
+import { effect } from "@preact/signals-react";
 
 function App() {
   const [mode, setMode] = useState("Light");

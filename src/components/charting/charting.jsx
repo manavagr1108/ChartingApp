@@ -1,31 +1,13 @@
-import React, {
-  useState,
-  useCallback,
-  useLayoutEffect,
-  useRef,
-  useEffect,
-} from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { effect } from "@preact/signals-react";
+import { xAxisCanvasSize } from "../../signals/stockSignals";
 import {
-  chartCanvasSize,
-  xAxisCanvasSize,
-  yAxisCanvasSize,
-  timeRange,
-  dateCursor,
-  priceRange,
-} from "../../signals/stockSignals";
-import {
-  updateConfig,
-  drawChart,
-  setStockData,
   setCanvasSize,
   handleOnMouseMove,
-  handleScroll,
-  updateCursorValue,
   removeCursor,
-  chartMouseDown,
-  chartMouseMove,
-  chartMouseUp,
+  getStockDataCallback,
+  updateConfig,
+  drawChart as drawChartOnCanvas
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
@@ -35,29 +17,19 @@ import {
 import {
   onChartIndicatorSignal,
   offChartIndicatorSignal,
-  indicatorChartCanvasSize,
-  indicatorYAxisCanvasSize,
 } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
-import {
-  yAxisMouseDown,
-  yAxisMouseMove,
-  yAxisMouseUp,
-} from "../../utility/yAxisUtils";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
+import useDrawChart from "../../hooks/useDrawChart";
 
 function Charting({ selectedStock, interval, stockData, chartType, mode }) {
-  const ChartRef = useRef([]);
-  ChartRef.current = ChartRef.current.slice(0, 2);
+  const [stockDataState, setStockDataState] = useState([]);
   const xAxisRef = useRef([]);
   xAxisRef.current = xAxisRef.current.slice(0, 2);
-  const yAxisRef = useRef([]);
-  yAxisRef.current = yAxisRef.current.slice(0, 2);
-  const indicatorsChartRef = useRef([]);
-  const indicatorsYAxisRef = useRef([]);
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
+  const drawChart = useDrawChart(xAxisRef, mode, false);
   effect(() => {
     if (
       onChartIndicatorSignal.value &&
@@ -68,124 +40,47 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
       offChartIndicatorSignal.value &&
       offChartIndicatorSignal.value.length !== offChartIndicators.length
     ) {
-      console.log(
-        offChartIndicators,
-        offChartIndicatorSignal.peek()
-      );
-      indicatorsChartRef.current = indicatorsChartRef.current.slice(
-        0,
-        2 * offChartIndicatorSignal.peek().length
-      );
-      indicatorsYAxisRef.current = indicatorsYAxisRef.current.slice(
-        0,
-        2 * offChartIndicatorSignal.peek().length
-      );
       setOffChartIndicators([...offChartIndicatorSignal.peek()]);
     }
   });
   const handleResize = useCallback(() => {
-    chartCanvasSize.value = setCanvasSize(ChartRef.current[0]);
-    setCanvasSize(ChartRef.current[1]);
     xAxisCanvasSize.value = setCanvasSize(xAxisRef.current[0]);
     setCanvasSize(xAxisRef.current[1]);
-    yAxisCanvasSize.value = setCanvasSize(yAxisRef.current[0]);
-    setCanvasSize(yAxisRef.current[1]);
-    updateConfig();
-    if(indicatorsChartRef.current.length !== 0){
-      offChartIndicatorSignal.peek().forEach((_, i) => {
-        indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*i]));
-        setCanvasSize(indicatorsChartRef.current[2*i+1])
-        indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*i]));
-        setCanvasSize(indicatorsYAxisRef.current[2*i])
-      })
-    }
   }, []);
   effect(() => {
-    if (
-      dateCursor.value &&
-      dateCursor.value.x !== null &&
-      dateCursor.value.y !== null &&
-      ChartRef.current[1] !== null &&
-      xAxisRef.current[1] !== null &&
-      yAxisRef.current[1] !== null
-    )
-      updateCursorValue(
-        ChartRef.current[1],
-        xAxisRef.current[1],
-        yAxisRef.current[1],
-        mode
-      );
-  });
-  effect(() => {
-    if (selectedStock.value && interval.value)
-      setStockData(selectedStock, interval, stockData);
+    if (selectedStock.value && interval.value){
+      getStockDataCallback(selectedStock, interval, drawChart.stockData).then(() =>{
+        updateConfig(drawChart);
+        drawChartOnCanvas(xAxisRef, mode, { ...drawChart }) 
+      }).catch(e => {
+        console.log(e);
+      })
+      // getStockDataCallback(selectedStock, interval, setStockDataState);
+    }
   });
   useEffect(() => {
     handleResize();
-    ChartRef.current[1].addEventListener("mousedown", chartMouseDown);
-    window.addEventListener("mousemove", chartMouseMove);
-    window.addEventListener("mouseup", chartMouseUp);
-    xAxisRef.current[1].addEventListener("mousedown", xAxisMouseDown);
-    window.addEventListener("mousemove", xAxisMouseMove);
-    window.addEventListener("mouseup", xAxisMouseUp);
-    yAxisRef.current[1].addEventListener("mousedown", yAxisMouseDown);
-    window.addEventListener("mousemove", yAxisMouseMove);
-    window.addEventListener("mouseup", yAxisMouseUp);
-    ChartRef.current[0].addEventListener(
-      "wheel",
-      (e) => handleScroll(e, ChartRef.current[0]),
-      false
+    xAxisRef.current[1].addEventListener("mousedown", (e) =>
+      xAxisMouseDown({ e, ...drawChart })
     );
-    ChartRef.current[1].addEventListener(
-      "wheel",
-      (e) => handleScroll(e, ChartRef.current[1]),
-      false
+    window.addEventListener("mousemove", (e) =>
+      xAxisMouseMove({ e, ...drawChart })
+    );
+    window.addEventListener("mouseup", (e) =>
+      xAxisMouseUp({ e, ...drawChart })
     );
     window.addEventListener("resize", handleResize);
     return () => {
-      ChartRef.current[0].removeEventListener(
-        "wheel",
-        (e) => handleScroll(e, ChartRef.current[0]),
-        false
+      xAxisRef.current[1].removeEventListener("mousedown", (e) =>
+        xAxisMouseDown({ e, ...drawChart })
       );
-      ChartRef.current[1].removeEventListener(
-        "wheel",
-        (e) => handleScroll(e, ChartRef.current[1]),
-        false
+      window.removeEventListener("mousemove", (e) =>
+        xAxisMouseMove({ e, ...drawChart })
       );
-      ChartRef.current[1].removeEventListener("mousedown", chartMouseDown);
-      window.removeEventListener("mousemove", chartMouseMove);
-      window.removeEventListener("mouseup", chartMouseUp);
-      window.removeEventListener("resize", handleResize);
-      xAxisRef.current[1].removeEventListener("mousedown", xAxisMouseDown);
-      window.removeEventListener("mousemove", xAxisMouseMove);
-      window.removeEventListener("mouseup", xAxisMouseUp);
-      yAxisRef.current[1].removeEventListener("mousedown", yAxisMouseDown);
-      window.removeEventListener("mousemove", yAxisMouseMove);
-      window.removeEventListener("mouseup", yAxisMouseUp);
+      window.removeEventListener("mouseup", (e) =>
+        xAxisMouseUp({ e, ...drawChart })
+      );
     };
-  });
-  effect(() => {
-    if (
-      timeRange.value.endTime.Date !== 0 &&
-      timeRange.value.startTime.Date !== 0 &&
-      chartType.value &&
-      onChartIndicatorSignal.value
-    ) {
-      if (
-        ChartRef.current[0] !== null &&
-        xAxisRef.current[0] !== null &&
-        yAxisRef.current[0] !== null &&
-        priceRange.value.minPrice > 0
-      ) {
-        drawChart(
-          ChartRef.current[0],
-          xAxisRef.current[0],
-          yAxisRef.current[0],
-          mode
-        );
-      }
-    }
   });
   return (
     <div
@@ -204,9 +99,8 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
           <DrawChart
             handleOnMouseMove={handleOnMouseMove}
             removeCursor={removeCursor}
-            ChartRef={ChartRef}
             xAxisRef={xAxisRef}
-            yAxisRef={yAxisRef}
+            drawChart={drawChart}
           />
           {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {
@@ -217,9 +111,8 @@ function Charting({ selectedStock, interval, stockData, chartType, mode }) {
                   offChartIndicators={offChartIndicators}
                   handleOnMouseMove={handleOnMouseMove}
                   removeCursor={removeCursor}
-                  indicatorsChartRef={indicatorsChartRef}
                   xAxisRef={xAxisRef}
-                  indicatorsYAxisRef={indicatorsYAxisRef}
+                  drawChart={drawChart}
                 />
               );
             })}

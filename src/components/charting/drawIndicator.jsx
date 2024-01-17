@@ -1,8 +1,16 @@
-import React from "react";
-import { indicatorChartCanvasSize, indicatorYAxisCanvasSize, offChartIndicatorSignal, onChartIndicatorSignal } from "../../signals/indicatorsSignal";
-import { computed } from "@preact/signals-react";
-import { setCanvasSize } from "../../utility/chartUtils";
+import React, { useEffect, useState } from "react";
+import {
+  indicatorChartCanvasSize,
+  indicatorConfig,
+  indicatorYAxisCanvasSize,
+  offChartIndicatorSignal,
+  onChartIndicatorSignal,
+} from "../../signals/indicatorsSignal";
+import { computed, effect } from "@preact/signals-react";
+import { setCanvasSize, updateConfig } from "../../utility/chartUtils";
 import IndicatorsList from "../indicators/indicatorsList";
+import useIndicator from "../../hooks/useIndicator";
+import { calculateRSI, drawIndicatorChart } from "../../utility/indicatorsUtil";
 
 function DrawIndicator({
   mode,
@@ -10,15 +18,23 @@ function DrawIndicator({
   offChartIndicators,
   handleOnMouseMove,
   removeCursor,
-  indicatorsChartRef,
   xAxisRef,
-  indicatorsYAxisRef,
+  drawChart,
 }) {
-    console.log(indicatorsChartRef.current);
-    indicatorChartCanvasSize.value.push(setCanvasSize(indicatorsChartRef.current[2*index]));
-    setCanvasSize(indicatorsChartRef.current[2*index + 1]);
-    indicatorYAxisCanvasSize.value.push(setCanvasSize(indicatorsYAxisRef.current[2*index]));
-    setCanvasSize(indicatorsYAxisRef.current[2*index + 1]);
+  const drawIndicator = useIndicator(
+    xAxisRef,
+    mode,
+    offChartIndicators[index]
+  );
+  effect(() => {
+    if(drawChart.stockData.value){
+      const data = calculateRSI(drawChart.stockData.peek(), offChartIndicators[index].period);
+      if(data.length == drawIndicator.drawChart.stockData.peek().length) return;
+      drawIndicator.drawChart.stockData.value = data;
+      updateConfig(drawIndicator.drawChart);
+      drawIndicatorChart(xAxisRef, mode, {...drawIndicator.drawChart});
+    }
+  })
   const indicatorsLength = computed(() => offChartIndicatorSignal.value.length);
   return (
     <div
@@ -28,27 +44,23 @@ function DrawIndicator({
     >
       <div className="w-[95%] h-[100%] relative">
         <canvas
-          ref={el => indicatorsChartRef.current[2*index] = el}
+          ref={(el) => (drawIndicator.drawChart.ChartRef.current[0] = el)}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
         ></canvas>
         <canvas
-          ref={el => indicatorsChartRef.current[2*index+1] = el}
+          ref={(el) => (drawIndicator.drawChart.ChartRef.current[1] = el)}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
-          onMouseMove={(e) => {
-            handleOnMouseMove(e, indicatorsChartRef.current[2*index+1]);
-          }}
-          onMouseLeave={(e) => {
-            removeCursor(e, indicatorsChartRef.current[2*index+1], xAxisRef.current[1], indicatorsYAxisRef.current[2*index + 1]);
-          }}
+          onMouseMove={(e) => handleOnMouseMove({ e, ...drawIndicator.drawChart })}
+          onMouseLeave={(e) => removeCursor(e, xAxisRef, { ...drawIndicator.drawChart })}
         ></canvas>
       </div>
       <div className="w-[5%] h-[100%] relative">
         <canvas
-          ref={el => indicatorsYAxisRef.current[2*index] = el}
+          ref={(el) => (drawIndicator.drawChart.yAxisRef.current[0] = el)}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
         ></canvas>
         <canvas
-          ref={el => indicatorsYAxisRef.current[2*index+1] = el}
+          ref={(el) => (drawIndicator.drawChart.yAxisRef.current[1] = el)}
           className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
         ></canvas>
       </div>
