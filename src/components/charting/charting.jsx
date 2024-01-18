@@ -1,135 +1,69 @@
-import React, { useCallback, useLayoutEffect, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { effect } from "@preact/signals-react";
 import {
-  chartCanvasSize,
-  xAxisCanvasSize,
-  yAxisCanvasSize,
-  timeRange,
-  dateCursor,
-  priceRange,
-} from "../../signals/stockSignals";
-import {
-  updateConfig,
-  drawChart,
-  setStockData,
   setCanvasSize,
   handleOnMouseMove,
-  handleScroll,
-  updateCursorValue,
   removeCursor,
-  chartMouseDown,
-  chartMouseMove,
-  chartMouseUp,
+  getStockDataCallback,
+  drawChart as drawChartOnCanvas
 } from "../../utility/chartUtils";
 import {
   xAxisMouseDown,
   xAxisMouseMove,
   xAxisMouseUp,
 } from "../../utility/xAxisUtils";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
 import IndicatorsList from "../indicators/indicatorsList";
-import { yAxisMouseDown, yAxisMouseMove, yAxisMouseUp } from "../../utility/yAxisUtils";
+import DrawChart from "./drawChart";
+import DrawIndicator from "./drawIndicator";
+import useDrawChart from "../../hooks/useDrawChart";
 
-function Charting({
-  ChartRef,
-  selectedStock,
-  interval,
-  stockData,
-  chartType,
-  mode,
-}) {
-  const ChartRef1 = useRef(null);
-  const xAxisRef = useRef(null);
-  const xAxisRef1 = useRef(null);
-  const yAxisRef = useRef(null);
-  const yAxisRef1 = useRef(null);
-  const handleResize = useCallback(() => {
-    chartCanvasSize.value = setCanvasSize(ChartRef.current);
-    setCanvasSize(ChartRef1.current);
-    xAxisCanvasSize.value = setCanvasSize(xAxisRef.current);
-    setCanvasSize(xAxisRef1.current);
-    yAxisCanvasSize.value = setCanvasSize(yAxisRef.current);
-    setCanvasSize(yAxisRef1.current);
-    updateConfig();
-  }, []);
+function Charting({ mode, ChartWindow }) {
+  const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
+  const drawChart = drawChartObjects.peek()[0];
+  const [onChartIndicators, setOnChartIndicators] = useState([]);
+  const [offChartIndicators, setOffChartIndicators] = useState([]);
   effect(() => {
     if (
-      dateCursor.value &&
-      dateCursor.value.x !== null &&
-      dateCursor.value.y !== null &&
-      ChartRef1.current !== null &&
-      xAxisRef1.current !== null &&
-      yAxisRef1.current !== null
+      onChartIndicatorSignal.value &&
+      onChartIndicatorSignal.value.length !== onChartIndicators.length
     ) {
-      updateCursorValue(ChartRef1, xAxisRef1, yAxisRef1, mode);
+      setOnChartIndicators([...onChartIndicatorSignal.peek()]);
+    } else if (
+      offChartIndicatorSignal.value &&
+      offChartIndicatorSignal.value.length !== offChartIndicators.length
+    ) {
+      setOffChartIndicators([...offChartIndicatorSignal.peek()]);
     }
   });
   effect(() => {
-    if (selectedStock.value && interval.value)
-      setStockData(selectedStock, interval, stockData);
-  });
-  useLayoutEffect(() => {
-    handleResize();
-    ChartRef1.current.addEventListener("mousedown", chartMouseDown);
-    window.addEventListener("mousemove", chartMouseMove);
-    window.addEventListener("mouseup", chartMouseUp);
-    xAxisRef1.current.addEventListener("mousedown", xAxisMouseDown);
-    window.addEventListener("mousemove", xAxisMouseMove);
-    window.addEventListener("mouseup", xAxisMouseUp);
-    yAxisRef1.current.addEventListener("mousedown", yAxisMouseDown);
-    window.addEventListener("mousemove", yAxisMouseMove);
-    window.addEventListener("mouseup", yAxisMouseUp);
-    ChartRef.current.addEventListener(
-      "wheel",
-      (e) => handleScroll(e, ChartRef),
-      false
-    );
-    ChartRef1.current.addEventListener(
-      "wheel",
-      (e) => handleScroll(e, ChartRef1),
-      false
-    );
-    window.addEventListener("resize", handleResize);
-    return () => {
-      ChartRef.current.removeEventListener(
-        "wheel",
-        (e) => handleScroll(e, ChartRef),
-        false
-      );
-      ChartRef1.current.removeEventListener(
-        "wheel",
-        (e) => handleScroll(e, ChartRef1),
-        false
-      );
-      ChartRef1.current.removeEventListener("mousedown", chartMouseDown);
-      window.removeEventListener("mousemove", chartMouseMove);
-      window.removeEventListener("mouseup", chartMouseUp);
-      window.removeEventListener("resize", handleResize);
-      xAxisRef1.current.removeEventListener("mousedown", xAxisMouseDown);
-      window.removeEventListener("mousemove", xAxisMouseMove);
-      window.removeEventListener("mouseup", xAxisMouseUp);
-      yAxisRef1.current.removeEventListener("mousedown", yAxisMouseDown);
-      window.removeEventListener("mousemove", yAxisMouseMove);
-      window.removeEventListener("mouseup", yAxisMouseUp);
-    };
-  });
-  effect(() => {
-    if (
-      timeRange.value.endTime.Date !== 0 &&
-      timeRange.value.startTime.Date !== 0 &&
-      chartType.value &&
-      indicatorSignal.value
-    ) {
-      if (
-        ChartRef.current !== null &&
-        xAxisRef.current !== null &&
-        yAxisRef.current !== null &&
-        priceRange.value.minPrice > 0
-      ) {
-        drawChart(ChartRef, xAxisRef, yAxisRef, mode);
-      }
+    if (selectedStock.value && interval.value && chartType.value){
+      getStockDataCallback(selectedStock, interval, stockData).then(() =>{
+        ChartWindow.setChartWindowSignal();
+        drawChart.setDrawChartSignal(stockData.peek());
+        drawChart.drawChartFunction(drawChart, mode)
+        // ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
+        //   console.log(drawChart);
+          
+        // })
+      }).catch(e => {
+        console.log(e);
+      })
     }
   });
+  // effect(() => {
+  //   if (offChartIndicatorSignal.value.value && chartType.value){
+  //     getStockDataCallback(selectedStock, interval, stockData).then(() =>{
+  //       ChartWindow.setChartWindowSignal();
+  //       ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
+  //         if(drawChart.isIndicator) drawChart.setIndicator();
+  //         drawChart.setDrawChartSignal(drawChart.getChartData(stockData.peek()));
+  //         drawChart.drawChartFunction(drawChart, mode)
+  //       })
+  //     }).catch(e => {
+  //       console.log(e);
+  //     })
+  //   }
+  // });
   return (
     <div
       className={`flex w-[100%] flex-col border-l-2 ${
@@ -143,40 +77,36 @@ function Charting({
           mode === "Light" ? "border-gray-300" : "border-gray-800"
         }`}
       >
-        <div className="w-[95%] h-[97%] relative">
-          <canvas
-            ref={ChartRef}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
-          ></canvas>
-          <canvas
-            ref={ChartRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3`}
-            onMouseMove={(e) => {
-              handleOnMouseMove(e, ChartRef1);
-            }}
-            onMouseLeave={(e) => {
-              removeCursor(e, ChartRef1, xAxisRef1, yAxisRef1);
-            }}
-          ></canvas>
-          <IndicatorsList mode={mode}/>
-        </div>
-        <div className="w-[5%] h-[97%] relative">
-          <canvas
-            ref={yAxisRef}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
-          ></canvas>
-          <canvas
-            ref={yAxisRef1}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
-          ></canvas>
+        <div className="flex direction-row flex-wrap w-[100%] h-[97%] relative">
+          <DrawChart
+            handleOnMouseMove={handleOnMouseMove}
+            removeCursor={removeCursor}
+            xAxisRef={xAxisRef}
+            drawChart={drawChart}
+            ChartWindow={ChartWindow}
+          />
+          {offChartIndicators.length !== 0 &&
+            offChartIndicators.map((_, index) => {
+              return (
+                <DrawIndicator
+                  mode={mode}
+                  index={index}
+                  offChartIndicators={offChartIndicators}
+                  handleOnMouseMove={handleOnMouseMove}
+                  removeCursor={removeCursor}
+                  ChartWindow={ChartWindow}
+                />
+              );
+            })}
+          <IndicatorsList mode={mode} indicators={onChartIndicators} ChartWindow={ChartWindow} />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas
-            ref={xAxisRef}
+            ref={(el) => (xAxisRef.current[0] = el)}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-2`}
           ></canvas>
           <canvas
-            ref={xAxisRef1}
+            ref={(el) => (xAxisRef.current[1] = el)}
             className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ew-resize`}
           ></canvas>
         </div>

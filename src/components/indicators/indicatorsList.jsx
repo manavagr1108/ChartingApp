@@ -1,20 +1,14 @@
-import { effect } from "@preact/signals-react";
-import React, { useState, useEffect, useRef } from "react";
-import { indicatorSignal } from "../../signals/indicatorsSignal";
+import React from "react";
 import { MdClose, MdSettings } from "react-icons/md";
 
-function IndicatorsList({ mode }) {
-  const [indicators, setIndicators] = useState([]);
-  effect(() => {
-    if (
-      indicatorSignal.value &&
-      indicatorSignal.value.length !== indicators.length
-    ) {
-      setIndicators([...indicatorSignal.peek()]);
-    }
-  });
+function IndicatorsList({ mode, indicators, ChartWindow }) {
+  const {onChartIndicatorSignal, offChartIndicatorSignal} = ChartWindow;
   const removeIndicator = (index) => {
-    indicatorSignal.value = indicatorSignal.peek().filter((val, i) => i !== index)
+    if(onChartIndicatorSignal.peek().includes(indicators[index])){
+      onChartIndicatorSignal.value = onChartIndicatorSignal.peek().filter((val, i) => i !== index)
+    } else {
+      offChartIndicatorSignal.value = offChartIndicatorSignal.peek().filter((val, i) => i !== index)
+    }
   };
   const updateIndicator = (index) => {
     console.log(index);
