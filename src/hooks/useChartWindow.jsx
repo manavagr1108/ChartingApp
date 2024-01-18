@@ -2,6 +2,8 @@ import { useEffect, useRef } from "react";
 import ChartWindow from "../classes/ChartWindow"
 import useDrawChart from "./useDrawChart";
 import { xAxisMouseDown, xAxisMouseMove, xAxisMouseUp } from "../utility/xAxisUtils";
+import { updateCursorValue } from "../utility/chartUtils";
+import { effect } from "@preact/signals-react";
 
 export const useCanavsSplitRef = () => {
   const ref = useRef([]);
@@ -14,6 +16,16 @@ const useChartWindow = (mode) => {
   const mainChartObject = useDrawChart(state, false, mode);
   state.xAxisRef = useCanavsSplitRef();
   state.drawChartObjects.value.push(mainChartObject);
+  effect(() => {
+    if (
+      state.dateCursor.value !== null &&
+      state.dateCursor.peek().x !== null &&
+      state.dateCursor.peek().y !== null &&
+      state.xAxisRef.current[1] !== undefined
+    ) {
+      updateCursorValue(state, mode);
+    }
+  });
   useEffect(() => {
     state.setXAxisCanvas();
     window.addEventListener("resize", state.setXAxisCanvas());

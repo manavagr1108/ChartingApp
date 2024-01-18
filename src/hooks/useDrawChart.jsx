@@ -77,18 +77,6 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
       }
     }
   });
-  effect(() => {
-    if (
-      state.ChartWindow.dateCursor.value !== null &&
-      state.ChartWindow.dateCursor.peek().x !== null &&
-      state.ChartWindow.dateCursor.peek().y !== null &&
-      state.ChartRef.current[1] !== undefined &&
-      state.ChartWindow.xAxisRef.current[1] !== undefined &&
-      state.ChartRef.current[1] !== null
-    ) {
-      updateCursorValue(state, mode);
-    }
-  });
   return state;
 };
 

@@ -29,7 +29,6 @@ function Charting({ mode, ChartWindow }) {
   });
   effect(() => {
     if (selectedStock.value && interval.value && chartType.value){
-      console.log(stockData.peek());
       getStockDataCallback(selectedStock, interval, stockData).then(() =>{
         ChartWindow.setChartWindowSignal();
         drawChart.setDrawChartSignal(stockData.peek());
