@@ -10,10 +10,46 @@ import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
 
 function Charting({ mode, ChartWindow }) {
-  const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
+  const {
+    xAxisRef,
+    selectedStock,
+    interval,
+    stockData,
+    chartType,
+    drawChartObjects,
+    onChartIndicatorSignal,
+    offChartIndicatorSignal,
+  } = ChartWindow;
   const drawChart = drawChartObjects.peek()[0];
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
+
+  effect(() => {
+    if (
+      selectedStock.value &&
+      interval.value &&
+      chartType.value &&
+      !stockData.peek().length
+    ) {
+      getStockDataCallback(selectedStock, interval, stockData)
+        .then(() => {
+          localStorage.setItem("selectedStock", selectedStock.value);
+          localStorage.setItem("stockData", JSON.stringify(stockData.peek()));
+
+          ChartWindow.setChartWindowSignal();
+          drawChart.setDrawChartSignal(stockData.peek());
+          drawChart.drawChartFunction(drawChart, mode);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    } else {
+      ChartWindow.setChartWindowSignal();
+      drawChart.setDrawChartSignal(stockData.peek());
+      drawChart.drawChartFunction(drawChart, mode);
+    }
+  });
+
   effect(() => {
     if (
       onChartIndicatorSignal.value &&
@@ -24,19 +60,11 @@ function Charting({ mode, ChartWindow }) {
       offChartIndicatorSignal.value &&
       offChartIndicatorSignal.value.length !== offChartIndicators.length
     ) {
+      localStorage.setItem(
+        "offChartIndicators",
+        JSON.stringify(offChartIndicatorSignal.peek())
+      );
       setOffChartIndicators([...offChartIndicatorSignal.peek()]);
-    }
-  });
-  effect(() => {
-    if (selectedStock.value && interval.value && chartType.value){
-      console.log(stockData.peek());
-      getStockDataCallback(selectedStock, interval, stockData).then(() =>{
-        ChartWindow.setChartWindowSignal();
-        drawChart.setDrawChartSignal(stockData.peek());
-        drawChart.drawChartFunction(drawChart, mode)
-      }).catch(e => {
-        console.log(e);
-      })
     }
   });
   return (
@@ -73,7 +101,11 @@ function Charting({ mode, ChartWindow }) {
                 />
               );
             })}
-          <IndicatorsList mode={mode} indicators={onChartIndicators} ChartWindow={ChartWindow} />
+          <IndicatorsList
+            mode={mode}
+            indicators={onChartIndicators}
+            ChartWindow={ChartWindow}
+          />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas
