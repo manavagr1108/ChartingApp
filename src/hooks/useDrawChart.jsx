@@ -1,13 +1,10 @@
-import { effect, signal } from "@preact/signals-react";
-import { useEffect, useRef } from "react";
+import { effect } from "@preact/signals-react";
+import { useEffect } from "react";
 import {
   chartMouseDown,
   chartMouseMove,
   chartMouseUp,
-  drawChart,
   handleScroll,
-  setCanvasSize,
-  updateConfig,
   updateCursorValue,
 } from "../utility/chartUtils";
 import {
@@ -15,24 +12,9 @@ import {
   yAxisMouseMove,
   yAxisMouseUp,
 } from "../utility/yAxisUtils";
-import { chartType } from "../signals/stockSignals";
-import { onChartIndicatorSignal } from "../signals/indicatorsSignal";
-import { drawIndicatorChart } from "../utility/indicatorsUtil";
 import DrawChart from "../classes/DrawChart";
 import { useCanavsSplitRef } from "./useChartWindow";
 import useIndicator from "./useIndicator";
-
-// const handleResize = ({
-//   chartCanvasSize,
-//   yAxisCanvasSize,
-//   ChartRef,
-//   yAxisRef,
-// }) => {
-//   chartCanvasSize.value = setCanvasSize(ChartRef.current[0]);
-//   setCanvasSize(ChartRef.current[1]);
-//   yAxisCanvasSize.value = setCanvasSize(yAxisRef.current[0]);
-//   setCanvasSize(yAxisRef.current[1]);
-// };
 
 const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   const state = new DrawChart(ChartWindow);
@@ -74,34 +56,18 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
     );
     return () => {
       window.removeEventListener("resize", state.setCanvasSize());
-      // state.ChartRef.current[1].removeEventListener("mousedown", (e) =>
-      //   chartMouseDown({ e, ...state })
-      // );
       window.removeEventListener("mousemove", (e) =>
         chartMouseMove(e, state)
       );
       window.removeEventListener("mouseup", (e) =>
         chartMouseUp(e, state)
       );
-      // state.ChartRef.current[1].removeEventListener("mousedown", (e) =>
-      //   yAxisMouseDown({ e, ...state })
-      // );
       window.removeEventListener("mousemove", (e) =>
         yAxisMouseMove(e, state)
       );
       window.removeEventListener("mouseup", (e) =>
         yAxisMouseUp(e, state)
       );
-      // state.ChartRef.current[0].removeEventListener(
-      //   "wheel",
-      //   (e) => handleScroll({ e, ...state }),
-      //   false
-      // );
-      // state.ChartRef.current[1].removeEventListener(
-      //   "wheel",
-      //   (e) => handleScroll({ e, ...state }),
-      //   false
-      // );
     };
   });
   // draw chart

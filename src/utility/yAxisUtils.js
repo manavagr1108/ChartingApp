@@ -1,6 +1,3 @@
-import { chartCanvasSize, dateConfig, lockUpdatePriceRange, priceRange, timeRange, yAxisCanvasSize, yAxisConfig, yAxisMovement } from "../signals/stockSignals";
-import { getObjtoStringTime } from "./xAxisUtils";
-
 export const priceToColMap = {
   5: 0.5,
   10: 1,
@@ -157,39 +154,6 @@ export const drawLineChart = (
   }
   return { x, y };
 };
-
-export function updatePriceRange({ timeRange, yAxisConfig, dateConfig, priceRange, lockUpdatePriceRange, data }) {
-  const result = getMinMaxPrices(
-    yAxisConfig.peek().segmentTree,
-    dateConfig.peek().dateToIndex,
-    getObjtoStringTime(timeRange.value.endTime),
-    getObjtoStringTime(timeRange.value.startTime),
-    data.peek().length
-  );
-  if (lockUpdatePriceRange.peek() && priceRange.peek().maxPrice > result.maxPrice && priceRange.peek().minPrice < result.minPrice) return;
-  if (
-    result &&
-    (result.maxPrice !== priceRange.peek().maxPrice ||
-      result.minPrice !== priceRange.peek().minPrice) &&
-    (result.maxPrice !== Number.MIN_SAFE_INTEGER ||
-      result.minPrice !== Number.MAX_SAFE_INTEGER)
-  ) {
-    priceRange.value = result;
-  }
-}
-
-export const updateYConfig = ({ priceRange, yAxisConfig }) => {
-  const priceDiff = priceRange.peek().maxPrice - priceRange.peek().minPrice;
-  let colDiff = yAxisConfig.peek().colDiff;
-  const priceMap = Object.keys(priceToColMap);
-  priceMap.forEach((price, i) => {
-    if (parseInt(price) > priceDiff && priceDiff > parseInt(priceMap[i - 1])) {
-      colDiff = parseFloat(priceToColMap[priceMap[i - 1]]);
-    }
-  });
-  yAxisConfig.value = { ...yAxisConfig.peek(), colDiff, priceDiff };
-}
-
 export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
   const { yAxisConfig, yAxisRange, chartCanvasSize, yAxisCanvasSize } = state;
   const colDiff = yAxisConfig.peek().colDiff;

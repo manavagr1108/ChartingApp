@@ -1,10 +1,3 @@
-import {
-  chartCanvasSize,
-  dateConfig,
-  timeRange,
-  xAxisConfig,
-  xAxisMovement
-} from "../signals/stockSignals";
 import { updatePriceRange, updateYConfig } from "./yAxisUtils";
 export const intervalMap = {
   "1d": "1d",
@@ -237,16 +230,6 @@ export function getNewZoomTime(
     }
   }
 }
-
-export const updateXAxisConfig = (startTime, endTime, datesToIndex, xAxisConfig, chartCanvasSize) => {
-  // console.log(startTime, endTime, datesToIndex, xAxisConfig.peek(), chartCanvasSize)
-  const noOfDataPoints =
-    datesToIndex[getObjtoStringTime(startTime)] -
-    datesToIndex[getObjtoStringTime(endTime)];
-  const widthOfOneCS = chartCanvasSize.peek().width / noOfDataPoints;
-  xAxisConfig.value.noOfDataPoints = noOfDataPoints;
-  xAxisConfig.value.widthOfOneCS = widthOfOneCS;
-};
 
 export const xAxisMouseDown = (e, state) => {
   const {xAxisMovement} = state;

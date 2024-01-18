@@ -1,6 +1,5 @@
-import { computed, effect } from "@preact/signals-react";
-import React, { useEffect } from "react";
-import { offChartIndicatorSignal } from "../../signals/indicatorsSignal";
+import { computed } from "@preact/signals-react";
+import React from "react";
 
 function DrawChart({
   handleOnMouseMove,

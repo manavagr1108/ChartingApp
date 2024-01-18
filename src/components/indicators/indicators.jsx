@@ -3,8 +3,7 @@ import { FcComboChart } from "react-icons/fc";
 import { RxCross1 } from "react-icons/rx";
 import {
   indicatorConfig
-} from "../../signals/indicatorsSignal";
-import useDrawChart from "../../hooks/useDrawChart";
+} from "../../config/indicatorsConfig";
 
 function Indicators({ mode, ChartWindow }) {
   const {onChartIndicatorSignal, offChartIndicatorSignal} = ChartWindow;

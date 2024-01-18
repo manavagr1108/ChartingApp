@@ -2,28 +2,13 @@ import { batch, computed } from "@preact/signals-react";
 import { monthMap } from "../data/TIME_MAP";
 import {
   indicatorConfig,
-  onChartIndicatorSignal,
-} from "../signals/indicatorsSignal";
-import {
-  chartCanvasSize,
-  chartMovement,
-  chartType,
-  dateConfig,
-  lockUpdatePriceRange,
-  priceRange,
-  selectedStock,
-  timeRange,
-  xAxisConfig,
-  yAxisCanvasSize,
-  yAxisConfig,
-} from "../signals/stockSignals";
+} from "../config/indicatorsConfig";
 import { calculateEMA, calculateSMA, calculateZigZag } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
   getNewScrollTime,
   getNewZoomTime,
   getObjtoStringTime,
-  getTime,
   getXCoordinate,
   updateXAxisConfig,
 } from "./xAxisUtils";
@@ -39,7 +24,7 @@ import {
 
 export function drawChart(state, mode) {
   const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
-  const { xAxisRef, dateConfig, timeRange, xAxisConfig, chartType } = state.ChartWindow;
+  const { xAxisRef, dateConfig, timeRange, xAxisConfig, chartType, selectedStock } = state.ChartWindow;
   if (
     data.peek().length === 0 ||
     yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||

@@ -1,16 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  indicatorChartCanvasSize,
-  indicatorConfig,
-  indicatorYAxisCanvasSize,
-  offChartIndicatorSignal,
-  onChartIndicatorSignal,
-} from "../../signals/indicatorsSignal";
-import { computed, effect } from "@preact/signals-react";
-import { setCanvasSize } from "../../utility/chartUtils";
+import React, { useEffect } from "react";
+import { computed } from "@preact/signals-react";
 import IndicatorsList from "../indicators/indicatorsList";
-import useIndicator from "../../hooks/useIndicator";
-import { calculateRSI, drawIndicatorChart } from "../../utility/indicatorsUtil";
 import useDrawChart from "../../hooks/useDrawChart";
 
 function DrawIndicator({

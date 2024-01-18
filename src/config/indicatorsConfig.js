@@ -1,10 +1,4 @@
-import { signal } from "@preact/signals-react";
 import { calculateRSI, drawRSIIndicatorChart } from "../utility/indicatorsUtil";
-
-export const onChartIndicatorSignal = signal([]);
-export const offChartIndicatorSignal = signal([]);
-export const indicatorChartCanvasSize = signal([]);
-export const indicatorYAxisCanvasSize = signal([]);
 export const indicatorConfig = {
   SMA: {
     color: "#FFA500",

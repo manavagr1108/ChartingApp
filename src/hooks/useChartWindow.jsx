@@ -1,9 +1,7 @@
 import { useEffect, useRef } from "react";
 import ChartWindow from "../classes/ChartWindow"
-import DrawChart from "../classes/DrawChart";
 import useDrawChart from "./useDrawChart";
 import { xAxisMouseDown, xAxisMouseMove, xAxisMouseUp } from "../utility/xAxisUtils";
-import { effect } from "@preact/signals-react";
 
 export const useCanavsSplitRef = () => {
   const ref = useRef([]);

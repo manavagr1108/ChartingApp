@@ -1,21 +1,13 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { effect } from "@preact/signals-react";
 import {
-  setCanvasSize,
   handleOnMouseMove,
   removeCursor,
   getStockDataCallback,
-  drawChart as drawChartOnCanvas
 } from "../../utility/chartUtils";
-import {
-  xAxisMouseDown,
-  xAxisMouseMove,
-  xAxisMouseUp,
-} from "../../utility/xAxisUtils";
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
-import useDrawChart from "../../hooks/useDrawChart";
 
 function Charting({ mode, ChartWindow }) {
   const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
@@ -41,29 +33,11 @@ function Charting({ mode, ChartWindow }) {
         ChartWindow.setChartWindowSignal();
         drawChart.setDrawChartSignal(stockData.peek());
         drawChart.drawChartFunction(drawChart, mode)
-        // ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
-        //   console.log(drawChart);
-          
-        // })
       }).catch(e => {
         console.log(e);
       })
     }
   });
-  // effect(() => {
-  //   if (offChartIndicatorSignal.value.value && chartType.value){
-  //     getStockDataCallback(selectedStock, interval, stockData).then(() =>{
-  //       ChartWindow.setChartWindowSignal();
-  //       ChartWindow.drawChartObjects.peek().forEach((drawChart)=>{
-  //         if(drawChart.isIndicator) drawChart.setIndicator();
-  //         drawChart.setDrawChartSignal(drawChart.getChartData(stockData.peek()));
-  //         drawChart.drawChartFunction(drawChart, mode)
-  //       })
-  //     }).catch(e => {
-  //       console.log(e);
-  //     })
-  //   }
-  // });
   return (
     <div
       className={`flex w-[100%] flex-col border-l-2 ${

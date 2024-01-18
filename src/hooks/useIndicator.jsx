@@ -1,8 +1,3 @@
-import { effect, signal } from "@preact/signals-react";
-import { calculateRSI } from "../utility/indicatorsUtil";
-import useDrawChart from "./useDrawChart";
-import { indicatorConfig } from "../signals/indicatorsSignal";
-import { useEffect, useState } from "react";
 import Indicator from "../classes/Indicator";
 
 const useIndicator = (indicator, drawChart, mode) => {

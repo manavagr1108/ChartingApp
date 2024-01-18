@@ -1,17 +1,9 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import "./App.css";
 import Charting from "./components/charting/charting";
 import NavBar from "./components/nav_bar/nav_bar";
 import StockSelect from "./components/stock_select/stock_select";
 import ToolBar from "./components/tool_bar/tool_bar";
-import {
-  selectedStock,
-  interval,
-  stockData,
-  chartType,
-} from "./signals/stockSignals";
-import { getStockDataCallback } from "./utility/chartUtils";
-import { effect } from "@preact/signals-react";
 import useChartWindow from "./hooks/useChartWindow";
 
 function App() {

@@ -1,7 +1,6 @@
 import { signal } from "@preact/signals-react";
 import { drawChart, setCanvasSize } from "../utility/chartUtils";
 import { getMinMaxPrices, priceToColMap } from "../utility/yAxisUtils";
-import ChartWindow from "./ChartWindow";
 import { getObjtoStringTime } from "../utility/xAxisUtils";
 
 class DrawChart{

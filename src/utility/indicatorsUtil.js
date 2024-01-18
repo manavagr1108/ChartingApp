@@ -1,5 +1,4 @@
 import { monthMap } from "../data/TIME_MAP";
-import { chartType, selectedStock } from "../signals/stockSignals";
 import { getObjtoStringTime } from "./xAxisUtils";
 import { drawLineChart, drawYAxis } from "./yAxisUtils";
 
@@ -143,8 +142,6 @@ export const calculateRSI = (data, period) => {
     avgGain = (avgGain * (period - 1) + gain) / period;
     avgLoss = (avgLoss * (period - 1) + loss) / period;
 
-    // console.log(avgGain, avgLoss);
-
     let rs = avgLoss === 0 ? 0 : avgGain / avgLoss;
     let rsi = 100 - 100 / (1 + rs);
     rsiValues.push({ Date: data[i-1].Date, Close: rsi });
@@ -154,18 +151,15 @@ export const calculateRSI = (data, period) => {
 
 
 export function drawRSIIndicatorChart( state, mode ){
-  console.log('state', state);
   const { yAxisRange, yAxisConfig, ChartRef, yAxisRef, chartCanvasSize, yAxisCanvasSize, data } = state;
-  const { dateConfig, timeRange, xAxisConfig, xAxisRef } = state.ChartWindow;
-  // if (
-  //   data.peek().length === 0 || 1
-  //   // yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
-  //   // ChartRef.current[1] === undefined
-  // ) {
-  //   console.log("called1");
-  //   return;
-  // }
-  console.log("called", ChartRef);
+  const { dateConfig, timeRange, xAxisConfig, xAxisRef, chartType } = state.ChartWindow;
+  if (
+    data.peek().length === 0 ||
+    yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
+    ChartRef.current[1] === undefined
+  ) {
+    return;
+  }
   const canvas = ChartRef.current[0];
   const canvasXAxis = xAxisRef.current[0];
   const canvasYAxis = yAxisRef.current[0];
