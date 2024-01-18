@@ -7,6 +7,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
     if(onChartIndicatorSignal.peek().includes(indicators[index])){
       onChartIndicatorSignal.value = onChartIndicatorSignal.peek().filter((val, i) => i !== index)
     } else {
+      ChartWindow.drawChartObjects.value = ChartWindow.drawChartObjects.peek().filter((val, i) => i+1 !== index);
       offChartIndicatorSignal.value = offChartIndicatorSignal.peek().filter((val, i) => i !== index)
     }
   };

@@ -20,9 +20,9 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   const state = new DrawChart(ChartWindow);
   state.ChartRef = useCanavsSplitRef();
   state.yAxisRef = useCanavsSplitRef();
-  if(isIndicator){
+  const [indicatorObj, data] = useIndicator(indicator, state, mode);
+  if (isIndicator) {
     state.isIndicator.value = true;
-    const [indicatorObj, data] = useIndicator(indicator, state, mode);
     state.data.value = data;
     state.Indicator.value = indicatorObj;
     state.drawChartFunction = indicator.drawChartFunction;
@@ -31,18 +31,14 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   useEffect(() => {
     window.addEventListener("resize", state.setCanvasSize());
     state.ChartRef.current[1].addEventListener("mousedown", (e) =>
-      chartMouseDown( e, state)
+      chartMouseDown(e, state)
     );
-    window.addEventListener("mousemove", (e) =>
-      chartMouseMove(e, state)
-    );
+    window.addEventListener("mousemove", (e) => chartMouseMove(e, state));
     window.addEventListener("mouseup", (e) => chartMouseUp(e, state));
     state.yAxisRef.current[1].addEventListener("mousedown", (e) =>
       yAxisMouseDown(e, state)
     );
-    window.addEventListener("mousemove", (e) =>
-      yAxisMouseMove(e, state)
-    );
+    window.addEventListener("mousemove", (e) => yAxisMouseMove(e, state));
     window.addEventListener("mouseup", (e) => yAxisMouseUp(e, state));
     state.ChartRef.current[0].addEventListener(
       "wheel",
@@ -56,18 +52,10 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
     );
     return () => {
       window.removeEventListener("resize", state.setCanvasSize());
-      window.removeEventListener("mousemove", (e) =>
-        chartMouseMove(e, state)
-      );
-      window.removeEventListener("mouseup", (e) =>
-        chartMouseUp(e, state)
-      );
-      window.removeEventListener("mousemove", (e) =>
-        yAxisMouseMove(e, state)
-      );
-      window.removeEventListener("mouseup", (e) =>
-        yAxisMouseUp(e, state)
-      );
+      window.removeEventListener("mousemove", (e) => chartMouseMove(e, state));
+      window.removeEventListener("mouseup", (e) => chartMouseUp(e, state));
+      window.removeEventListener("mousemove", (e) => yAxisMouseMove(e, state));
+      window.removeEventListener("mouseup", (e) => yAxisMouseUp(e, state));
     };
   });
   // draw chart
@@ -75,7 +63,7 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
     if (
       state.ChartWindow.timeRange.value.endTime.Date !== 0 &&
       state.ChartWindow.timeRange.value.startTime.Date !== 0 &&
-      state.ChartWindow.chartType.value && 
+      state.ChartWindow.chartType.value &&
       state.ChartWindow.onChartIndicatorSignal.value
     ) {
       if (
@@ -84,8 +72,8 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
         state.ChartWindow.xAxisRef.current[0] !== null &&
         state.yAxisRange.value.minPrice > 0
       ) {
-          // drawChart(state, mode);
-          state.drawChartFunction(state, mode);
+        // drawChart(state, mode);
+        state.drawChartFunction(state, mode);
       }
     }
   });
@@ -96,7 +84,7 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
       state.ChartWindow.dateCursor.peek().y !== null &&
       state.ChartRef.current[1] !== undefined &&
       state.ChartWindow.xAxisRef.current[1] !== undefined &&
-      state.ChartRef.current[1] !== undefined
+      state.ChartRef.current[1] !== null
     ) {
       updateCursorValue(state, mode);
     }

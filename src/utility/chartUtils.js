@@ -1,4 +1,3 @@
-import { batch, computed } from "@preact/signals-react";
 import { monthMap } from "../data/TIME_MAP";
 import {
   indicatorConfig,
@@ -10,15 +9,11 @@ import {
   getNewZoomTime,
   getObjtoStringTime,
   getXCoordinate,
-  updateXAxisConfig,
 } from "./xAxisUtils";
 import {
-  buildSegmentTree,
   drawCandleStick,
   drawLineChart,
   drawYAxis,
-  updatePriceRange,
-  updateYConfig,
   getYCoordinate,
 } from "./yAxisUtils";
 
@@ -171,7 +166,7 @@ export async function getStockDataCallback(symbol, interval, setStockDataState) 
 }
 
 export function setCanvasSize(element) {
-  if (element === undefined) return;
+  if (element === undefined || element === null) return;
   const canvas = element;
   let width = element.parentElement.offsetWidth;
   let height = element.parentElement.offsetHeight;
@@ -191,7 +186,6 @@ export function setCanvasSize(element) {
 }
 
 export function handleOnMouseMove(e, state) {
-  console.log(e);
   const { chartCanvasSize, data } = state;
   const { dateCursor, xAxisConfig, dateConfig, timeRange } = state.ChartWindow;
   const canvas = e.target;
@@ -249,7 +243,7 @@ export function handleScroll(e, state) {
   const { data } = state;
   const { timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange } = state.ChartWindow;
   let newTime = null;
-  if (e.deltaY) {
+  if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
     if (
       getObjtoStringTime(timeRange.peek().endTime) ===
@@ -272,7 +266,7 @@ export function handleScroll(e, state) {
     );
     state.ChartWindow.setXAxisConfig();
   }
-  if (e.deltaX) {
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
     let pixelMovement = e.deltaX;
     if (
       Math.abs(pixelMovement) === 0 ||
@@ -297,7 +291,7 @@ export function handleScroll(e, state) {
       dateConfig.value.dateToIndex
     );
   }
-  timeRange.value = { ...newTime };
+  if(newTime !== null)timeRange.value = { ...newTime };
   if (!lockUpdatePriceRange.peek()) state.setYRange();
   state.setYAxisConfig();
   handleOnMouseMove(e, state);

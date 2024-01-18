@@ -28,9 +28,6 @@ const useChartWindow = (mode) => {
     );
     return () => {
       window.removeEventListener("resize", state.setXAxisCanvas());
-      // xAxisRef.current[1].removeEventListener("mousedown", (e) =>
-      //   xAxisMouseDown(e, state)
-      // );
       window.removeEventListener("mousemove", (e) =>
         xAxisMouseMove(e, state)
       );

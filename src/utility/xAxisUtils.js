@@ -1,4 +1,3 @@
-import { updatePriceRange, updateYConfig } from "./yAxisUtils";
 export const intervalMap = {
   "1d": "1d",
   "1wk": "1W",

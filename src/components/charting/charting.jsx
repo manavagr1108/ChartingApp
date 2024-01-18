@@ -29,6 +29,7 @@ function Charting({ mode, ChartWindow }) {
   });
   effect(() => {
     if (selectedStock.value && interval.value && chartType.value){
+      console.log(stockData.peek());
       getStockDataCallback(selectedStock, interval, stockData).then(() =>{
         ChartWindow.setChartWindowSignal();
         drawChart.setDrawChartSignal(stockData.peek());
@@ -81,7 +82,7 @@ function Charting({ mode, ChartWindow }) {
           ></canvas>
           <canvas
             ref={(el) => (xAxisRef.current[1] = el)}
-            className={`w-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ew-resize`}
+            className={`w-[100%] absolute top-0 left-0 z-3 cursor-ew-resize`}
           ></canvas>
         </div>
       </div>

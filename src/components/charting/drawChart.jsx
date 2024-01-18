@@ -32,7 +32,7 @@ function DrawChart({
         ></canvas>
         <canvas
           ref={(el) => (drawChart.yAxisRef.current[1] = el)}
-          className={`w-[100%] h-[100%] cursor-crosshair absolute top-0 left-0 z-3 cursor-ns-resize`}
+          className={`w-[100%] h-[100%] absolute top-0 left-0 z-3 cursor-ns-resize`}
         ></canvas>
       </div>
     </div>
