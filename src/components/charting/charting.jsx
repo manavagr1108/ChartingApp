@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { effect } from "@preact/signals-react";
 import {
   handleOnMouseMove,
@@ -29,13 +29,12 @@ function Charting({ mode, ChartWindow }) {
       selectedStock.value &&
       interval.value &&
       chartType.value &&
-      !stockData.peek().length
+      stockData.peek().length === 0
     ) {
       getStockDataCallback(selectedStock, interval, stockData)
         .then(() => {
-          localStorage.setItem("selectedStock", selectedStock.value);
+          localStorage.setItem("selectedStock", selectedStock.peek());
           localStorage.setItem("stockData", JSON.stringify(stockData.peek()));
-
           ChartWindow.setChartWindowSignal();
           drawChart.setDrawChartSignal(stockData.peek());
           drawChart.drawChartFunction(drawChart, mode);
@@ -44,10 +43,11 @@ function Charting({ mode, ChartWindow }) {
           console.log(e);
         });
     } else {
-      ChartWindow.setChartWindowSignal();
-      drawChart.setDrawChartSignal(stockData.peek());
-      drawChart.drawChartFunction(drawChart, mode);
-    }
+      useEffect(() => {
+        drawChart.ChartWindow.setChartWindowSignal();
+        drawChart.setDrawChartSignal(drawChart.ChartWindow.stockData.peek());
+      });
+    } 
   });
 
   effect(() => {
@@ -84,9 +84,8 @@ function Charting({ mode, ChartWindow }) {
           <DrawChart
             handleOnMouseMove={handleOnMouseMove}
             removeCursor={removeCursor}
-            xAxisRef={xAxisRef}
             drawChart={drawChart}
-            ChartWindow={ChartWindow}
+            mode={mode}
           />
           {offChartIndicators.length !== 0 &&
             offChartIndicators.map((_, index) => {

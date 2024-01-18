@@ -175,10 +175,6 @@ export function drawRSIIndicatorChart( state, mode ){
   xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  // console.log(yAxisConfig.peek(),
-  //   yAxisRange.peek(),
-  //   chartCanvasSize.peek(),
-  //   yAxisCanvasSize.peek());
   drawYAxis(ctx, yAxisCtx, mode, {
     yAxisConfig,
     yAxisRange,

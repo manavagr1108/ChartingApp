@@ -56,7 +56,9 @@ class ChartWindow {
     this.mode = signal("")
   }
   setXAxisCanvas() {
-    this.xAxisCanvasSize.value = setCanvasSize(this.xAxisRef.current[0]);
+    const canvasSize = setCanvasSize(this.xAxisRef.current[0]);
+    if(canvasSize === undefined)return;
+    this.xAxisCanvasSize.value = canvasSize;
     setCanvasSize(this.xAxisRef.current[1]);
   }
   #setDateConfig() {

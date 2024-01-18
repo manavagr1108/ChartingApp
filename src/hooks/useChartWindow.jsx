@@ -6,6 +6,7 @@ import {
   xAxisMouseMove,
   xAxisMouseUp,
 } from "../utility/xAxisUtils";
+import { batch } from "@preact/signals-react";
 
 export const useCanavsSplitRef = () => {
   const ref = useRef([]);
@@ -18,17 +19,12 @@ const useChartWindow = (mode) => {
   const mainChartObject = useDrawChart(state, false, mode);
   state.xAxisRef = useCanavsSplitRef();
   state.drawChartObjects.value.push(mainChartObject);
-  state.selectedStock.value !== localStorage.getItem("selectedStock")
-    ? (state.selectedStock.value = localStorage.getItem("selectedStock"))
-    : (state.selectedStock.value = "AAPL");
-  state.stockData.value !== JSON.parse(localStorage.getItem("stockData"))
-    ? (state.stockData.value = JSON.parse(localStorage.getItem("stockData")))
-    : (state.stockData.value = []);
-  if (localStorage.getItem("offChartIndicators") !== null) {
-    state.offChartIndicatorSignal.value = JSON.parse(
-      localStorage.getItem("offChartIndicators")
-    );
-  }
+  batch(() => {
+    if( JSON.parse(localStorage.getItem("stockData")) !== null && localStorage.getItem("selectedStock") !== null) {
+      state.selectedStock.value = localStorage.getItem("selectedStock")
+      state.stockData.value = JSON.parse(localStorage.getItem("stockData"))
+    }
+  })
   useEffect(() => {
     state.setXAxisCanvas();
     window.addEventListener("resize", state.setXAxisCanvas());

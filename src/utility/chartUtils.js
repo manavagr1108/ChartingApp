@@ -50,7 +50,6 @@ export function drawChart(state, mode) {
     dateConfig.peek().dateToIndex[
     getObjtoStringTime(timeRange.peek().startTime)
     ];
-  // console.log(getObjtoStringTime(timeRange.peek().startTime), getObjtoStringTime(timeRange.peek().endTime))
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
     return;
@@ -154,7 +153,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
 
 export async function getStockDataCallback(symbol, interval, setStockDataState) {
   try {
-    const fetchedData = await getStockData(symbol.value, interval.value);
+    const fetchedData = await getStockData(symbol.peek(), interval.peek());
     if (fetchedData.length) {
       // setStockDataState([...fetchedData]);
       setStockDataState.value = [...fetchedData];

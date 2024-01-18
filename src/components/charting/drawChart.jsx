@@ -1,12 +1,24 @@
 import { computed } from "@preact/signals-react";
 import React from "react";
+import { indicatorConfig } from "../../config/indicatorsConfig";
 
-function DrawChart({
-  handleOnMouseMove,
-  removeCursor,
-  drawChart,
-}) {
-  const indicatorsLength = computed(() => drawChart.ChartWindow.offChartIndicatorSignal.value.length);
+function DrawChart({ handleOnMouseMove, removeCursor, drawChart, mode }) {
+  setTimeout(() => {
+    drawChart.drawChartFunction(drawChart, mode);
+    if (localStorage.getItem("offChartIndicators") !== null ) {
+      const indicators = [];
+      const {offChartIndicatorSignal} = drawChart.ChartWindow;
+      const storedIndicators = JSON.parse(localStorage.getItem("offChartIndicators"));
+      if(offChartIndicatorSignal.peek().length === storedIndicators.length)return;
+      storedIndicators.forEach((indicator)=>{
+        indicators.push(indicatorConfig[indicator.label]);
+      })
+      drawChart.ChartWindow.offChartIndicatorSignal.value = [...indicators];
+    }
+  }, 1);
+  const indicatorsLength = computed(
+    () => drawChart.ChartWindow.offChartIndicatorSignal.value.length
+  );
   return (
     <div
       className={`flex direction-row flex-wrap w-[100%] ${
