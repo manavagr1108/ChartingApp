@@ -30,7 +30,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
               <div className="p-1">
                 {indicator.label} {indicator.period}
               </div>{" "}
-              <button
+              {/* <button
                 className={`p-1 cursor-pointer rounded-md hidden group-hover:block  ${
                     mode === "Light"
                       ? "hover:bg-gray-200"
@@ -39,7 +39,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
                 onClick={() => updateIndicator(index)}
               >
                 <MdSettings color={`${mode === 'Light' ? 'black' : 'white'}`} size={15} />
-              </button>
+              </button> */}
               <button
                 className={`p-1 cursor-pointer hidden rounded-md group-hover:block  ${
                     mode === "Light"
