@@ -189,7 +189,7 @@ export const yAxisMouseMove = (e, state) => {
   if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
-      // lockUpdatePriceRange.value = true;
+      lockUpdatePriceRange.value = true;
     }
     const pixelMovement = yAxisMovement.peek().prevXCoord - e.pageY;
     const pDiff = yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice;

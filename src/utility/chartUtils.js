@@ -50,7 +50,6 @@ export function drawChart(state, mode) {
     dateConfig.peek().dateToIndex[
     getObjtoStringTime(timeRange.peek().startTime)
     ];
-  // console.log(getObjtoStringTime(timeRange.peek().startTime), getObjtoStringTime(timeRange.peek().endTime))
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
     return;
@@ -220,8 +219,9 @@ export function handleOnMouseMove(e, state) {
           xAxisConfig.peek().widthOfOneCS / 2 -
           timeRange.peek().scrollDirection * timeRange.peek().scrollOffset,
         y: y,
+        canvas: state.ChartRef.current[1],
       };
-    } else if (cursordata?.date !== undefined) {
+    } else if (cursordata.Date !== undefined) {
       dateCursor.value = {
         date: cursordata.Date,
         text: `${cursordata.Date} val: ${cursordata.Close.toFixed(2)}`,
@@ -231,6 +231,7 @@ export function handleOnMouseMove(e, state) {
           xAxisConfig.peek().widthOfOneCS / 2 -
           timeRange.peek().scrollDirection * timeRange.peek().scrollOffset,
         y: y,
+        canvas: state.ChartRef.current[1],
       };
     }
   } else {
@@ -241,7 +242,7 @@ export function handleOnMouseMove(e, state) {
 export function handleScroll(e, state) {
   e.preventDefault();
   const { data } = state;
-  const { timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange } = state.ChartWindow;
+  const { timeRange, dateConfig, xAxisConfig, lockUpdatePriceRange, drawChartObjects } = state.ChartWindow;
   let newTime = null;
   if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
     let noOfCSMovedLeft = -Math.floor(e.deltaY);
@@ -291,77 +292,85 @@ export function handleScroll(e, state) {
       dateConfig.value.dateToIndex
     );
   }
-  if(newTime !== null)timeRange.value = { ...newTime };
-  if (!lockUpdatePriceRange.peek()) state.setYRange();
+  if (newTime !== null) timeRange.value = { ...newTime };
+  if (!lockUpdatePriceRange.peek()) { drawChartObjects.peek().forEach((drawChartObject) => { drawChartObject.setYRange() }) }
   state.setYAxisConfig();
   handleOnMouseMove(e, state);
 }
 
 export function updateCursorValue(state, mode) {
-  const { ChartRef, yAxisRef, chartCanvasSize, yAxisRange } = state;
-  const { dateCursor, xAxisRef } = state.ChartWindow;
-  const canvas = ChartRef.current[1];
-  const canvasXAxis = xAxisRef.current[1];
-  const canvasYAxis = yAxisRef.current[1];
-  const ctx = canvas.getContext("2d");
-  const xAxisCtx = canvasXAxis.getContext("2d");
-  const yAxisCtx = canvasYAxis.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
-  yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
-  ctx.font = "12px Arial";
-  ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  xAxisCtx.font = "12px Arial";
-  xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  yAxisCtx.font = "12px Arial";
-  yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  const dateText = dateCursor.peek().date;
-  let xCoord = dateCursor.peek().x - 30;
-  if (xCoord - 10 + dateText.length * 8 > chartCanvasSize.peek().width) {
-    xCoord = chartCanvasSize.peek().width - dateText.length * 8 + 10;
-  } else if (xCoord - 10 < 0) {
-    xCoord = 10;
-  }
-  xAxisCtx.fillRect(
-    xCoord - 10,
-    10 - 14,
-    dateText.length * 8,
-    20,
-    mode === "Light" ? "white" : "black"
-  );
-  xAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
-  xAxisCtx.fillText(dateText, xCoord, 12);
-  ctx.fillText(dateCursor.peek().text, 50, 20);
+  const { dateCursor, xAxisRef, drawChartObjects } = state;
+  drawChartObjects.peek().forEach((drawChartobj) => {
+    const isCanvas = drawChartobj.ChartRef.current[1] === dateCursor.peek().canvas;
+    const { ChartRef, yAxisRef, chartCanvasSize, yAxisRange } = drawChartobj;
+    if (ChartRef.current[1] === null || yAxisRef.current[1] === null) return;
+    const canvas = ChartRef.current[1];
+    const canvasXAxis = xAxisRef.current[1];
+    const canvasYAxis = yAxisRef.current[1];
+    const ctx = canvas.getContext("2d");
+    const xAxisCtx = canvasXAxis.getContext("2d");
+    const yAxisCtx = canvasYAxis.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
+    yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
+    ctx.font = "12px Arial";
+    ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    xAxisCtx.font = "12px Arial";
+    xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    yAxisCtx.font = "12px Arial";
+    yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    const dateText = dateCursor.peek().date;
+    let xCoord = dateCursor.peek().x - 30;
+    if (xCoord - 10 + dateText.length * 8 > chartCanvasSize.peek().width) {
+      xCoord = chartCanvasSize.peek().width - dateText.length * 8 + 10;
+    } else if (xCoord - 10 < 0) {
+      xCoord = 10;
+    }
+    // Draw on XAxis
+    xAxisCtx.fillRect(
+      xCoord - 10,
+      10 - 14,
+      dateText.length * 8,
+      20,
+      mode === "Light" ? "white" : "black"
+    );
+    xAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
+    xAxisCtx.fillText(dateText, xCoord, 12);
+    const price =
+      yAxisRange.peek().minPrice +
+      ((chartCanvasSize.peek().height - dateCursor.peek().y) *
+        (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
+      chartCanvasSize.peek().height;
+    const priceText = price.toFixed(2);
+    const yCoord1 = dateCursor.peek().y;
+    if (isCanvas) {
+      ctx.fillText(dateCursor.peek().text, 50, 20);
+      // Draw on YAxis
+      yAxisCtx.fillRect(
+        0,
+        yCoord1 - 14,
+        priceText.length * 12,
+        20,
+        mode === "Light" ? "white" : "black"
+      );
+      yAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
+      yAxisCtx.fillText(priceText, 15, yCoord1);
+      ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
+    }
 
-  const price =
-    yAxisRange.peek().minPrice +
-    ((chartCanvasSize.peek().height - dateCursor.peek().y) *
-      (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-    chartCanvasSize.peek().height;
-  const priceText = price.toFixed(2);
-  const yCoord1 = dateCursor.peek().y;
-  yAxisCtx.fillRect(
-    0,
-    yCoord1 - 14,
-    priceText.length * 12,
-    20,
-    mode === "Light" ? "white" : "black"
-  );
-  yAxisCtx.fillStyle = `${mode === "Light" ? "white" : "black"}`;
-  yAxisCtx.fillText(priceText, 15, yCoord1);
-  ctx.strokeStyle = `${mode === "Light" ? "black" : "white"}`;
+    ctx.setLineDash([5, 5]);
+    ctx.beginPath();
 
-  ctx.setLineDash([5, 5]);
-  ctx.beginPath();
+    ctx.moveTo(dateCursor.peek().x, 0);
+    ctx.lineTo(dateCursor.peek().x, chartCanvasSize.peek().height);
+    if (isCanvas) {
+      ctx.moveTo(0, dateCursor.value.y);
+      ctx.lineTo(chartCanvasSize.peek().width, dateCursor.peek().y);
+    }
 
-  ctx.moveTo(dateCursor.peek().x, 0);
-  ctx.lineTo(dateCursor.peek().x, chartCanvasSize.peek().height);
-
-  ctx.moveTo(0, dateCursor.value.y);
-  ctx.lineTo(chartCanvasSize.peek().width, dateCursor.peek().y);
-
-  ctx.stroke();
-  ctx.setLineDash([]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  });
 }
 
 export const removeCursor = (e, state) => {

@@ -12,10 +12,12 @@ function DrawIndicator({
   ChartWindow
 }) {
   const drawChart = useDrawChart(ChartWindow, true, mode, offChartIndicators[index]);
-  ChartWindow.drawChartObjects.value.push(drawChart);
   useEffect(() => {
-    drawChart.setDrawChartSignal(drawChart.data.peek());
-    drawChart.drawChartFunction(drawChart, mode);
+    if(drawChart.ChartRef.current.length === 2){
+      ChartWindow.drawChartObjects.value.push(drawChart);
+      drawChart.setDrawChartSignal(drawChart.data.peek());
+      drawChart.drawChartFunction(drawChart, mode);
+    }
   })
   const { ChartRef, yAxisRef } = drawChart;
   const indicatorsLength = computed(() => ChartWindow.offChartIndicatorSignal.value.length);
