@@ -10,7 +10,7 @@ function ToolItems({
   setToogleToolItemsIndex,
   items,
   onClickHandler,
-  mode
+  mode,
 }) {
   const outsideClickRef = useOutsideClick(() => setToogleToolItemsIndex(-1));
   return (
@@ -37,12 +37,16 @@ function ToolItems({
   );
 }
 
-function ToolbarItems({ mode }) {
+function ToolbarItems({ mode, ChartWindow }) {
   const [toogleToolItemsIndex, setToogleToolItemsIndex] = useState(-1);
+  const { drawChartObjects } = ChartWindow;
   function cursorOnClickHandler(index) {
-    const canvas = document.querySelectorAll("canvas")[1];
-    canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
-    canvas.classList.add(`cursor-${cursorConfig[index]}`);
+    drawChartObjects.peek().forEach((drawChartObject) => {
+      console.log(drawChartObject);
+      const canvas = drawChartObject.ChartRef.current[1];
+      canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
+      canvas.classList.add(`cursor-${cursorConfig[index]}`);
+    });
     setToogleToolItemsIndex(-1);
     selectedCursor.value = index;
   }
@@ -82,9 +86,15 @@ function ToolbarItems({ mode }) {
               } rounded-l-md top-[50%] translate-y-[-50%]`}
             >
               {toogleToolItemsIndex === -1 ? (
-                <MdKeyboardArrowRight color={`${mode === "Light" ? "black" : "white"}`} size={15} />
+                <MdKeyboardArrowRight
+                  color={`${mode === "Light" ? "black" : "white"}`}
+                  size={15}
+                />
               ) : (
-                <MdKeyboardArrowLeft color={`${mode === "Light" ? "black" : "white"}`} size={15} />
+                <MdKeyboardArrowLeft
+                  color={`${mode === "Light" ? "black" : "white"}`}
+                  size={15}
+                />
               )}
             </div>
             {toogleToolItemsIndex === index && (

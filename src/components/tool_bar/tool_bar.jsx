@@ -1,7 +1,7 @@
 import React from "react";
 import ToolbarItems from "./toolbarItems";
 
-function ToolBar({ mode }) {
+function ToolBar({ mode, ChartWindow }) {
   return (
     <div
       className={`flex flex-col w-full justify-start items-center border-b-2 ${
@@ -11,7 +11,7 @@ function ToolBar({ mode }) {
       }`}
     >
       <div className="flex items-center justify-start group relative mt-1">
-        <ToolbarItems mode={mode} />
+        <ToolbarItems mode={mode} ChartWindow={ChartWindow} />
       </div>
     </div>
   );
