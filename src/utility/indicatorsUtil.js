@@ -10,7 +10,7 @@ export function calculateSMA(data, period) {
       .slice(i - period + 1, i + 1)
       .reduce((acc, value) => acc + value.Close, 0);
     let average = sum / period;
-    smaValues.push({ x: data[i].x, y: average });
+    smaValues.push({ Date: data[i].Date, Close: average });
   }
 
   return smaValues;
@@ -21,21 +21,21 @@ export function calculateEMA(data, period) {
   const multiplier = 2 / (period + 1);
 
   if (
-    data[period - 1].x !== null &&
-    data[period - 1].y !== null &&
+    data[period - 1].Date !== null &&
+    data[period - 1].Close !== null &&
     data[period]
   ) {
     const sma =
       data.slice(0, period).reduce((acc, value) => acc + value.Close, 0) /
       period;
-    emaValues.push({ x: data[period - 1].x, y: sma });
+    emaValues.push({ Date: data[period - 1].Date, Close: sma });
   }
 
   for (let i = period; i < data.length; i++) {
     const close = data[i].Close;
-    const prevEMA = emaValues[i - period].y;
+    const prevEMA = emaValues[i - period].Close;
     const ema = (close - prevEMA) * multiplier + prevEMA;
-    emaValues.push({ x: data[i].x, y: ema });
+    emaValues.push({ Date: data[i].Date, Close: ema });
   }
 
   return emaValues;
@@ -117,9 +117,10 @@ export function calculateZigZag(data, deviation, pivotLegs) {
   return zigZagPoints;
 }
 
-export const calculateRSI = (data, period) => {
+export const calculateRSI = (data, indicator) => {
   let gains = 0;
   let losses = 0;
+  const { period } = indicator;
   const rsiValues = [];
   for (let i = 1; i <= period; i++) {
     const change = data[i]?.Close - data[i - 1]?.Close;
@@ -128,7 +129,7 @@ export const calculateRSI = (data, period) => {
     } else {
       losses -= change;
     }
-    rsiValues.push({ Date: data[i-1].Date, Close: 0 });
+    rsiValues.push({ Date: data[i - 1].Date, Close: 0 });
   }
 
   let avgGain = gains / period;
@@ -144,15 +145,53 @@ export const calculateRSI = (data, period) => {
 
     let rs = avgLoss === 0 ? 0 : avgGain / avgLoss;
     let rsi = 100 - 100 / (1 + rs);
-    rsiValues.push({ Date: data[i-1].Date, Close: rsi });
+    rsiValues.push({ Date: data[i - 1].Date, Close: rsi });
   }
   return rsiValues;
-}
+};
 
+export const calculateMACD = (data, indicator) => {
+  const { fastPeriod, slowPeriod, signalPeriod } = indicator;
+  const fastEMA = calculateEMA(data, fastPeriod);
+  const slowEMA = calculateEMA(data, slowPeriod);
+  const macdValues = [];
 
-export function drawRSIIndicatorChart( state, mode ){
-  const { yAxisRange, yAxisConfig, ChartRef, yAxisRef, chartCanvasSize, yAxisCanvasSize, data } = state;
-  const { dateConfig, timeRange, xAxisConfig, xAxisRef, chartType } = state.ChartWindow;
+  const minMACDValues = Math.min(fastEMA.length, slowEMA.length);
+
+  for (let i = 0; i < minMACDValues; i++) {
+    macdValues.push({
+      Date: slowEMA[i].Date,
+      Close: fastEMA[i].Close - slowEMA[i].Close,
+    });
+  }
+
+  const signalEMA = calculateEMA(macdValues, signalPeriod);
+
+  const minHistogramValue = Math.min(signalEMA.length, macdValues.length);
+
+  const histogramValues = [];
+  for (let i = 0; i < minHistogramValue; i++) {
+    histogramValues.push({
+      Date: macdValues[i].Date,
+      Close: macdValues[i].Close - signalEMA[i].Close,
+    });
+  }
+
+  return { macdValues, signalEMA, histogramValues };
+};
+
+export function drawRSIIndicatorChart(state, mode) {
+  const {
+    yAxisRange,
+    yAxisConfig,
+    ChartRef,
+    yAxisRef,
+    chartCanvasSize,
+    yAxisCanvasSize,
+    data,
+  } = state;
+  const { dateConfig, timeRange, xAxisConfig, xAxisRef, chartType } =
+    state.ChartWindow;
   if (
     data.peek().length === 0 ||
     yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
