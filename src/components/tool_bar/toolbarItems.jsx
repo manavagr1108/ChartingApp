@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { BiCross } from "react-icons/bi";
 import { MdKeyboardArrowRight, MdKeyboardArrowLeft } from "react-icons/md";
 import { FaArrowPointer } from "react-icons/fa6";
-import { cursorConfig, selectedCursor, selectedLine } from "../../signals/toolbarSignals";
+import { cursorConfig } from "../../signals/toolbarSignals";
 import { useOutsideClick } from "../nav_bar/nav_bar";
 import { PiLineSegmentFill } from "react-icons/pi";
 
@@ -40,26 +40,26 @@ function ToolItems({
 
 function ToolbarItems({ mode, ChartWindow }) {
   const [toogleToolItemsIndex, setToogleToolItemsIndex] = useState(-1);
-  const { drawChartObjects } = ChartWindow;
+  const { drawChartObjects, selectedTool, selectedToolItem, selectedCursor } = ChartWindow;
   function cursorOnClickHandler(index) {
     drawChartObjects.peek().forEach((drawChartObject) => {
-      console.log(drawChartObject);
       const canvas = drawChartObject.ChartRef.current[1];
       canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
       canvas.classList.add(`cursor-${cursorConfig[index]}`);
     });
     setToogleToolItemsIndex(-1);
-    if(selectedLine.peek() !== -1){
-      selectedLine.value = -1;
-    }
+    selectedTool.value = items[0].toolName;
+    selectedToolItem.value = index;
     selectedCursor.value = index;
   }
   function linesOnClickHandler(index) {
     setToogleToolItemsIndex(-1);
-    selectedLine.value = index;
+    selectedTool.value = items[1].toolName;
+    selectedToolItem.value = index;
   }
   const items = [
     {
+      toolName: 'Cursor',
       toolItemsEle: [
         <BiCross color={`${mode === "Light" ? "black" : "white"}`} size={20} />,
         <FaArrowPointer
@@ -71,6 +71,7 @@ function ToolbarItems({ mode, ChartWindow }) {
       onClickFunction: cursorOnClickHandler,
     },
     {
+      toolName: 'TrendLine',
       toolItemsEle: [
         <PiLineSegmentFill
           color={`${mode === "Light" ? "black" : "white"}`}
@@ -103,7 +104,7 @@ function ToolbarItems({ mode, ChartWindow }) {
                 mode === "Light" ? "hover:bg-gray-300" : "hover:bg-gray-700"
               } flex p-[0.3rem] peer/item rounded-md`}
             >
-              {items[index].toolItemsEle[selectedCursor]}
+              {selectedTool.peek() === item.toolName ? items[index].toolItemsEle[selectedToolItem.peek()] : items[index].toolItemsEle[0]}
             </div>
             <div
               onClick={() =>
