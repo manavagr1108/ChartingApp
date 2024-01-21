@@ -40,9 +40,6 @@ class DrawChart{
     this.drawChartFunction = drawChart;
     this.isIndicator = signal(false);
     this.Indicator = signal(null);
-
-    // trend lines data;
-    this.trendLinesData = signal([]);
   }
   #setData(data) {
     this.data.value = data;
