@@ -1,17 +1,23 @@
 import { computed } from "@preact/signals-react";
 import React from "react";
 
-function DrawChart({
-  handleOnMouseMove,
-  removeCursor,
-  drawChart,
-}) {
-  const indicatorsLength = computed(() => drawChart.ChartWindow.offChartIndicatorSignal.value.length);
+export const canvasSizeConfig = {
+  1: "h-[100%]",
+  2: "h-[50%]",
+  3: "h-[33.33%]",
+  4: "h-[25%]",
+};
+
+function DrawChart({ handleOnMouseMove, removeCursor, drawChart }) {
+  const indicatorsLength = computed(
+    () =>
+      canvasSizeConfig[
+        drawChart.ChartWindow.offChartIndicatorSignal.value.length + 1
+      ]
+  );
   return (
     <div
-      className={`flex direction-row flex-wrap w-[100%] ${
-        indicatorsLength.value ? "h-[50%]" : "h-[100%]"
-      }`}
+      className={`flex direction-row flex-wrap w-[100%] ${indicatorsLength.value}`}
     >
       <div className="w-[95%] h-[100%] relative">
         <canvas

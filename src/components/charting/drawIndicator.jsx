@@ -3,6 +3,7 @@ import { computed } from "@preact/signals-react";
 import IndicatorsList from "../indicators/indicatorsList";
 import useDrawChart from "../../hooks/useDrawChart";
 import PaneSeparator from "../paneSeparator/paneSeparator";
+import { canvasSizeConfig } from "./drawChart";
 
 function DrawIndicator({
   mode,
@@ -27,15 +28,14 @@ function DrawIndicator({
   });
   const { ChartRef, yAxisRef } = drawChart;
   const indicatorsLength = computed(
-    () => ChartWindow.offChartIndicatorSignal.value.length
+    () =>
+      canvasSizeConfig[drawChart.ChartWindow.offChartIndicatorSignal.value.length + 1]
   );
   return (
     <>
       <PaneSeparator mode={mode} ChartWindow={ChartWindow} />
       <div
-        className={`flex direction-row relative flex-wrap w-[100%] ${
-          indicatorsLength.value ? "h-[50%]" : "h-[100%]"
-        }`}
+        className={`flex direction-row relative flex-wrap w-[100%] ${indicatorsLength.value}`}
       >
         <div className="w-[95%] h-[100%] relative">
           <canvas
