@@ -16,7 +16,7 @@ import {
   drawYAxis,
   getYCoordinate,
 } from "./yAxisUtils";
-import { drawLinesData, prevLineData, selectedLine } from "../signals/toolbarSignals";
+import { drawLinesData, prevLineData, prevSelectedCanvas, selectedLine } from "../signals/toolbarSignals";
 import { effect } from "@preact/signals-react";
 
 export function drawChart(state, mode) {
@@ -122,6 +122,7 @@ export function drawChart(state, mode) {
     }
   });
   drawIndicators(startIndex, endIndex, ctx, mode, state);
+  state.ChartWindow.drawChartObjects.peek().forEach(obj => drawTrendLine(obj));
 }
 
 export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
@@ -237,7 +238,7 @@ export function handleOnMouseMove(e, state) {
       };
     }
     if (prevLineData.peek() !== null) {
-      const ctx = canvas.getContext("2d");
+      const ctx = prevSelectedCanvas.peek().getContext("2d");
       const prevXCoordIndex = dateConfig.peek().dateToIndex[prevLineData.peek().xLabel];
       const prevXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - prevXCoordIndex);
       const prevYCoord = getYCoordinate(prevLineData.peek().yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
@@ -257,7 +258,6 @@ export function handleOnMouseMove(e, state) {
   } else {
     dateCursor.value = null;
   }
-  drawTrendLine(e, state);
 }
 
 export function handleScroll(e, state) {
@@ -417,9 +417,9 @@ export const removeCursor = (e, state) => {
   }
 };
 const setTrendLine = (e, state) => {
-  const { chartCanvasSize, data, yAxisRange } = state;
-  const { dateConfig, xAxisConfig, timeRange } = state.ChartWindow;
-  const canvas = e.target;
+  const { chartCanvasSize, data, yAxisRange, ChartRef, trendLinesData } = state;
+  const { dateConfig, xAxisConfig, timeRange, selectedTool } = state.ChartWindow;
+  const canvas = ChartRef.current[1];
   const rect = canvas.getBoundingClientRect();
   const x = e.pageX - rect.left;
   const y = e.pageY - rect.top;
@@ -431,43 +431,52 @@ const setTrendLine = (e, state) => {
     getObjtoStringTime(timeRange.peek().startTime)
     ];
   const cursordata = data.peek()[firstIndex - dateIndex];
-  const price =
+  let price =
     yAxisRange.peek().minPrice +
     ((chartCanvasSize.peek().height - y) *
       (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
     chartCanvasSize.peek().height;
+  if(price > yAxisRange.peek().maxPrice){
+    price = yAxisRange.peek().maxPrice;
+  } else if(price < yAxisRange.peek().minPrice){
+    price = yAxisRange.peek().minPrice;
+  }
   const priceText = price.toFixed(2);
   const lineStartPoint = {
     xLabel: cursordata.Date,
     yLabel: priceText,
   }
   if (prevLineData.peek() !== null) {
-    drawLinesData.value.push({
-      startPoint: prevLineData.peek(),
-      endPoint: lineStartPoint,
+    state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+      if(obj.ChartRef.current[1] === prevSelectedCanvas.peek()){
+        obj.trendLinesData.value.push({
+          startPoint: prevLineData.peek(),
+          endPoint: lineStartPoint,
+        })
+        prevLineData.value = null;
+        prevSelectedCanvas.value = null;
+        selectedTool.value = 0;
+        drawTrendLine(obj)
+      }
     })
-    prevLineData.value = null;
-    selectedLine.value = -1;
   } else {
     const ctx = canvas.getContext("2d");
     ctx.font = "12px Arial";
     ctx.fillStyle = "black";
     ctx.beginPath();
-    ctx.arc(x, y, 10, 0, 2 * Math.PI);
+    ctx.arc(x, y, 5, 0, 2 * Math.PI);
     ctx.fill();
     ctx.stroke();
     prevLineData.value = lineStartPoint;
+    prevSelectedCanvas.value = canvas;
   }
 }
 
-const drawTrendLine = (e, state) => {
-  const { chartCanvasSize, yAxisRange } = state;
+const drawTrendLine = (state) => {
+  const { chartCanvasSize, yAxisRange, trendLinesData } = state;
   const { dateConfig, xAxisConfig, timeRange } = state.ChartWindow;
-  const canvas = e.target;
-  const rect = canvas.getBoundingClientRect();
-  const x = e.pageX - rect.left;
-  const y = e.pageY - rect.top;
-  drawLinesData.peek().forEach((lineData) => {
+  const canvas = state.ChartRef.current[0];
+  trendLinesData.peek().forEach((lineData) => {
     const ctx = canvas.getContext("2d");
     const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.startPoint.xLabel];
     const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.endPoint.xLabel];
@@ -476,6 +485,7 @@ const drawTrendLine = (e, state) => {
     const endXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
     const startYCoord = getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+    ctx.strokeStyle = 'Black';
     ctx.beginPath();
     ctx.moveTo(startXCoord, startYCoord);
     ctx.lineTo(endXCoord, endYCoord);
@@ -485,7 +495,8 @@ const drawTrendLine = (e, state) => {
 
 export const chartMouseDown = (e, state) => {
   const { chartMovement } = state;
-  if (selectedLine.peek() !== -1) {
+  const { selectedTool } = state.ChartWindow;
+  if (selectedTool.peek() !== 'Cursor') {
     setTrendLine(e, state);
   } else {
     chartMovement.value.mouseDown = true;
