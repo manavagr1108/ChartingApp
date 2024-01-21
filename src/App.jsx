@@ -16,9 +16,16 @@ function App() {
     <div className="app">
       <div className="grid grid-cols-[3rem_1fr] grid-rows-[3rem_1fr] h-screen">
         <StockSelect mode={mode} />
-        <NavBar mode={mode} ChartWindow={ChartWindow} toggleMode={toggleMode} />
-        <ToolBar mode={mode} ChartWindow={ChartWindow} />
-        <Charting mode={mode} ChartWindow={ChartWindow} />
+        <NavBar
+          mode={mode}
+          ChartWindow={ChartWindow}
+          toggleMode={toggleMode}
+        />
+        <ToolBar mode={mode} />
+        <Charting
+          mode={mode}
+          ChartWindow={ChartWindow}
+        />
       </div>
     </div>
   );
