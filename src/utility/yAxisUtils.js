@@ -1,4 +1,7 @@
 export const priceToColMap = {
+  0.5: 0.05,
+  1: 0.1,
+  2: 0.2,
   5: 0.5,
   10: 1,
   20: 2,

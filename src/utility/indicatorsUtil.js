@@ -305,33 +305,6 @@ export const calculateKeltnerChannels = (data, period, multiplier) => {
   return keltnerChannelsValues;
 };
 
-export const calculateATR = (data, period) => {
-  const atrValues = [];
-
-  for (let i = 0; i < data.length; i++) {
-    const trValues = [];
-
-    if (i < period - 1) {
-      atrValues.push({ Date: data[i].Date, Close: 0 });
-      continue;
-    }
-
-    for (let j = i - period + 1; j <= i; j++) {
-      const tr = Math.max(
-        data[j].High - data[j].Low,
-        Math.abs(data[j].High - (j > 0 ? data[j - 1].Close : data[j].Open)),
-        Math.abs(data[j].Low - (j > 0 ? data[j - 1].Close : data[j].Open))
-      );
-      trValues.push(tr);
-    }
-
-    const atr = trValues.reduce((sum, tr) => sum + tr, 0) / period;
-    atrValues.push({ Date: data[i].Date, Close: atr });
-  }
-
-  return atrValues;
-};
-
 export const calculateDonchainChannels = (data, period) => {
   const donchianChannelsValues = [];
   for (let i = 0; i < data.length; i++) {
@@ -361,6 +334,40 @@ export const calculateDonchainChannels = (data, period) => {
   }
   return donchianChannelsValues;
 };
+
+export function calculateATR(data, period) {
+  const trueRanges = [{ Date: data[0].Date, trueRange: 0 }];
+  const atrValues = [];
+  for (let i = 1; i < data.length; i++) {
+    const high = data[i].High;
+    const low = data[i].Low;
+    const prevClose = data[i - 1].Close;
+
+    const trueRange = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+    trueRanges.push({ Date: data[i].Date, trueRange });
+  }
+
+  // Calculate Average True Range (ATR) using Wilder's smoothing
+  let atrSum = 0;
+  for (let i = 0; i < period; i++) {
+    atrSum += trueRanges[i].trueRange;
+    if (i === period - 1) {
+      atrValues.push({ Date: data[i].Date, Close: atrSum / period });
+    }
+    else {
+      atrValues.push({ Date: data[i].Date, Close: 0 });
+    }
+  }
+  for (let i = period; i < trueRanges.length; i++) {
+    const currentAtr = (atrValues[i - 1].Close * (period - 1) + trueRanges[i].trueRange) / period;
+    atrValues.push({ Date: data[i].Date, Close: currentAtr });
+  }
+  return atrValues;
+}
+
+export function calculateATRDrawChart(data, indicator){
+  return [calculateATR(data, indicator.period)];
+}
 
 export function drawRSIIndicatorChart(state, mode) {
   const {

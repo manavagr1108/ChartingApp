@@ -1,4 +1,5 @@
 import {
+  calculateATRDrawChart,
   calculateMACD,
   calculateRSI,
   drawMACDIndicatorChart,
@@ -76,5 +77,14 @@ export const indicatorConfig = {
     label: "Donchain Channels",
     period: 20,
     chartRequired: false,
+  },
+  ATR: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Average True Range",
+    period: 20,
+    chartRequired: true,
+    drawChartFunction: drawRSIIndicatorChart,
+    getChartData: calculateATRDrawChart,
   },
 };
