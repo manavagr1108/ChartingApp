@@ -6,6 +6,7 @@ import {
   calculateParabolicSAR,
   calculateSMA,
   calculateZigZag,
+  calculateDonchainChannels,
 } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
@@ -59,7 +60,7 @@ export function drawChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-    getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -88,8 +89,9 @@ export function drawChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -97,8 +99,9 @@ export function drawChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -177,6 +180,16 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
       const BB = bbData.slice(startIndex, endIndex + 1).reverse();
       drawBB(indicator, ctx, BB, mode, state);
     }
+    if (indicator.label === indicatorConfig["DonchainChannels"].label) {
+      const donchainData = calculateDonchainChannels(
+        data.peek()[0],
+        indicator.period
+      );
+      const DONCHAIN = donchainData
+        .slice(startIndex - indicator.period + 1, endIndex + 1)
+        .reverse();
+      drawBB(indicator, ctx, DONCHAIN, mode, state);
+    }
   });
 }
 
@@ -235,7 +248,7 @@ export function handleOnMouseMove(e, state) {
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+        getObjtoStringTime(timeRange.peek().startTime)
       ];
     const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata?.Low !== undefined && cursordata?.High !== null) {
@@ -312,10 +325,10 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-        dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
+          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-        dateConfig.peek().indexToDate[0])
+          dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -384,7 +397,7 @@ export function updateCursorValue(state, mode) {
       yAxisRange.peek().minPrice +
       ((chartCanvasSize.peek().height - dateCursor.peek().y) *
         (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-      chartCanvasSize.peek().height;
+        chartCanvasSize.peek().height;
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
@@ -586,7 +599,7 @@ export function drawZigZagIndicator(
         const zigZagValues = Object.values(zigZagData);
         const index1 =
           dateConfig.peek().dateToIndex[
-          zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.date
+            zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.date
           ];
         ctx.moveTo(
           getXCoordinate(
@@ -695,13 +708,13 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
       yAxisRange.peek().minPrice,
       yAxisRange.peek().maxPrice,
       chartCanvasSize.peek().height
-    )
+    );
     const yCoordLower = getYCoordinate(
       data.LowerBand,
       yAxisRange.peek().minPrice,
       yAxisRange.peek().maxPrice,
       chartCanvasSize.peek().height
-    )
+    );
     ctx.fillStyle = "rgba(0,148,255,0.3)";
     ctx.lineWidth = indicator.stroke;
     if (i === 0) {
@@ -714,8 +727,7 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
       ctx.lineTo(xCoordSMA, yCoordLower);
       ctx.stroke();
       // context.moveTo(xCoordSMA, yCoordLower);
-    }
-    else {
+    } else {
       ctx.beginPath();
       ctx.moveTo(prevUpper.xCoordSMA, prevUpper.yCoordUpper);
       ctx.lineTo(xCoordSMA, yCoordUpper);
@@ -725,15 +737,43 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
       ctx.lineTo(xCoordSMA, yCoordLower);
       ctx.stroke();
       ctx.moveTo(prevLower.xCoordSMA, prevLower.yCoordLower);
-      ctx.bezierCurveTo(prevLower.xCoordSMA, prevLower.yCoordLower, prevUpper.xCoordSMA, prevUpper.yCoordUpper, prevUpper.xCoordSMA, prevUpper.yCoordUpper);
-      ctx.bezierCurveTo(prevUpper.xCoordSMA, prevUpper.yCoordUpper, xCoordSMA, yCoordUpper, xCoordSMA, yCoordUpper);
-      ctx.bezierCurveTo(xCoordSMA, yCoordUpper, xCoordSMA, yCoordLower, xCoordSMA, yCoordLower);
-      ctx.bezierCurveTo(xCoordSMA, yCoordLower, prevLower.xCoordSMA, prevLower.yCoordLower, prevLower.xCoordSMA, prevLower.yCoordLower);
+      ctx.bezierCurveTo(
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower,
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper,
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper
+      );
+      ctx.bezierCurveTo(
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper,
+        xCoordSMA,
+        yCoordUpper,
+        xCoordSMA,
+        yCoordUpper
+      );
+      ctx.bezierCurveTo(
+        xCoordSMA,
+        yCoordUpper,
+        xCoordSMA,
+        yCoordLower,
+        xCoordSMA,
+        yCoordLower
+      );
+      ctx.bezierCurveTo(
+        xCoordSMA,
+        yCoordLower,
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower,
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower
+      );
       ctx.closePath();
       ctx.lineWidth = 5;
-      ctx.fillStyle = 'rgba(0,148,255,0.3)';
+      ctx.fillStyle = "rgba(0,148,255,0.3)";
       ctx.fill();
-      ctx.strokeStyle = 'blue';
+      ctx.strokeStyle = "blue";
     }
     prevSma = { xCoordSMA, yCoordSMA };
     prevUpper = { xCoordSMA, yCoordUpper };

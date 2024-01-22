@@ -62,4 +62,11 @@ export const indicatorConfig = {
     stdDev: 2,
     chartRequired: false,
   },
+  DonchainChannels: {
+    color: "#FFA500",
+    stroke: 2,
+    label: "Donchain Channels",
+    period: 20,
+    chartRequired: false,
+  },
 };
