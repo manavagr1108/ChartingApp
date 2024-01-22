@@ -288,6 +288,50 @@ export const calculateBB = (data, period, stdDev) => {
   return sma;
 };
 
+export const calculateKeltnerChannels = (data, period, multiplier) => {
+  const keltnerChannelsValues = [];
+  const atr = calculateATR(data, period);
+  const sma = calculateSMA(data, period);
+  for (let i = 0; i < data.length; i++) {
+    const upper = sma[i].Close + multiplier * atr[i].Close;
+    const lower = sma[i].Close - multiplier * atr[i].Close;
+    keltnerChannelsValues.push({
+      Date: data[i].Date,
+      Close: sma[i].Close,
+      UpperBand: upper,
+      LowerBand: lower,
+    });
+  }
+  return keltnerChannelsValues;
+};
+
+export const calculateATR = (data, period) => {
+  const atrValues = [];
+
+  for (let i = 0; i < data.length; i++) {
+    const trValues = [];
+
+    if (i < period - 1) {
+      atrValues.push({ Date: data[i].Date, Close: 0 });
+      continue;
+    }
+
+    for (let j = i - period + 1; j <= i; j++) {
+      const tr = Math.max(
+        data[j].High - data[j].Low,
+        Math.abs(data[j].High - (j > 0 ? data[j - 1].Close : data[j].Open)),
+        Math.abs(data[j].Low - (j > 0 ? data[j - 1].Close : data[j].Open))
+      );
+      trValues.push(tr);
+    }
+
+    const atr = trValues.reduce((sum, tr) => sum + tr, 0) / period;
+    atrValues.push({ Date: data[i].Date, Close: atr });
+  }
+
+  return atrValues;
+};
+
 export const calculateDonchainChannels = (data, period) => {
   const donchianChannelsValues = [];
   for (let i = 0; i < data.length; i++) {

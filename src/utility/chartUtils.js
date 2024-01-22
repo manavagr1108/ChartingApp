@@ -7,6 +7,7 @@ import {
   calculateSMA,
   calculateZigZag,
   calculateDonchainChannels,
+  calculateKeltnerChannels,
 } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
@@ -180,14 +181,21 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
       const BB = bbData.slice(startIndex, endIndex + 1).reverse();
       drawBB(indicator, ctx, BB, mode, state);
     }
+    if (indicator.label === indicatorConfig["KeltnerChannels"].label) {
+      const KeltnerData = calculateKeltnerChannels(
+        data.peek()[0],
+        indicator.period,
+        indicator.multiplier
+      );
+      const KELTNER = KeltnerData.slice(startIndex, endIndex + 1).reverse();
+      drawBB(indicator, ctx, KELTNER, mode, state);
+    }
     if (indicator.label === indicatorConfig["DonchainChannels"].label) {
       const donchainData = calculateDonchainChannels(
         data.peek()[0],
         indicator.period
       );
-      const DONCHAIN = donchainData
-        .slice(startIndex - indicator.period + 1, endIndex + 1)
-        .reverse();
+      const DONCHAIN = donchainData.slice(startIndex, endIndex + 1).reverse();
       drawBB(indicator, ctx, DONCHAIN, mode, state);
     }
   });

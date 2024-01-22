@@ -62,6 +62,14 @@ export const indicatorConfig = {
     stdDev: 2,
     chartRequired: false,
   },
+  KeltnerChannels: {
+    color: "#FFA500",
+    stroke: 2,
+    label: "Keltner Channels",
+    period: 20,
+    multiplier: 2,
+    chartRequired: false,
+  },
   DonchainChannels: {
     color: "#FFA500",
     stroke: 2,
