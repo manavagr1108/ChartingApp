@@ -182,6 +182,62 @@ export const calculateMACD = (data, indicator) => {
   return [macdValues, signalEMA, histogramValues];
 };
 
+export const calculateParabolicSAR = (data, acceleration, maximum) => {
+  console.log(data, "data");
+  const sarValues = [];
+  let trend = "up";
+  let ep = data[0].Low;
+  let sar = data[0].High;
+  let af = acceleration;
+  let prevSar = data[0].Low;
+  let prevEP = data[0].Low;
+  let prevAF = acceleration;
+  let prevTrend = "up";
+
+  for (let i = 0; i < data.length; i++) {
+    if (trend === "up") {
+      if (data[i].Low <= sar) {
+        trend = "down";
+        sar = ep;
+        ep = data[i].High;
+        af = acceleration;
+      } else {
+        sar = prevSar + prevAF * (prevEP - prevSar);
+        if (data[i].High > prevEP) {
+          ep = data[i].High;
+          af = Math.min(af + acceleration, maximum);
+        } else {
+          ep = prevEP;
+          af = prevAF;
+        }
+      }
+    } else {
+      if (data[i].High >= sar) {
+        trend = "up";
+        sar = ep;
+        ep = data[i].Low;
+        af = acceleration;
+      } else {
+        sar = prevSar + prevAF * (prevEP - prevSar);
+        if (data[i].Low < prevEP) {
+          ep = data[i].Low;
+          af = Math.min(af + acceleration, maximum);
+        } else {
+          ep = prevEP;
+          af = prevAF;
+        }
+      }
+    }
+
+    sarValues.push({ Date: data[i].Date, Close: sar });
+    prevSar = sar;
+    prevTrend = trend;
+    prevEP = ep;
+    prevAF = af;
+  }
+  return sarValues;
+};
+
 export function drawRSIIndicatorChart(state, mode) {
   const {
     yAxisRange,
