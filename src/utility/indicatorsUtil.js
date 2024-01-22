@@ -499,7 +499,7 @@ export function drawRSIIndicatorChart(state, mode) {
     .peek()[0]
     .slice(startIndex, endIndex + 1)
     .reverse();
-  if(Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index"){
+  if (Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index") {
     console.log("Called");
     ctx.beginPath();
     const y30RSI = getYCoordinate(
