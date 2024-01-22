@@ -1,6 +1,7 @@
 import {
   calculateMACD,
   calculateRSI,
+  drawMACDIndicatorChart,
   drawRSIIndicatorChart,
 } from "../utility/indicatorsUtil";
 export const indicatorConfig = {
@@ -42,7 +43,7 @@ export const indicatorConfig = {
     slowPeriod: 26,
     signalPeriod: 9,
     chartRequired: true,
-    drawChartFunction: drawRSIIndicatorChart,
+    drawChartFunction: drawMACDIndicatorChart,
     getChartData: calculateMACD,
   },
 };

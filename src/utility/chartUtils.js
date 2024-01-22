@@ -26,7 +26,7 @@ export function drawChart(state, mode) {
     selectedStock,
   } = state.ChartWindow;
   if (
-    data.peek().length === 0 ||
+    data.peek()[0].length === 0 ||
     yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
     ChartRef.current[1] === undefined
   ) {
@@ -61,7 +61,7 @@ export function drawChart(state, mode) {
   }
   let prev = null;
   const resultData = data
-    .peek()
+    .peek()[0]
     .slice(startIndex, endIndex + 1)
     .reverse();
   ctx.beginPath();
@@ -134,14 +134,14 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
   const { onChartIndicatorSignal } = state.ChartWindow;
   onChartIndicatorSignal.peek().forEach((indicator) => {
     if (indicator.label === indicatorConfig["SMA"].label) {
-      const smaData = calculateSMA(data.peek(), indicator.period);
+      const smaData = calculateSMA(data.peek()[0], indicator.period);
       const SMA = smaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
       drawSMAIndicator(indicator, ctx, SMA, mode, state);
     }
     if (indicator.label === indicatorConfig["EMA"].label) {
-      const emaData = calculateEMA(data.peek(), indicator.period);
+      const emaData = calculateEMA(data.peek()[0], indicator.period);
       const EMA = emaData
         .slice(startIndex - indicator.period + 1, endIndex + 1)
         .reverse();
@@ -149,7 +149,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
     }
     if (indicator.label === indicatorConfig["ZigZag"].label) {
       const zigZagData = calculateZigZag(
-        data.peek(),
+        data.peek()[0],
         indicator.deviation,
         indicator.pivotLegs
       );
@@ -215,7 +215,7 @@ export function handleOnMouseMove(e, state) {
       dateConfig.peek().dateToIndex[
         getObjtoStringTime(timeRange.peek().startTime)
       ];
-    const cursordata = data.peek()[firstIndex - dateIndex];
+    const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata?.Low !== undefined && cursordata?.High !== null) {
       dateCursor.value = {
         date: cursordata.Date,
@@ -290,7 +290,7 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-          dateConfig.peek().indexToDate[data.peek().length - 1]) ||
+          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
           dateConfig.peek().indexToDate[0])
@@ -558,13 +558,13 @@ export function drawZigZagIndicator(
   ctx.beginPath();
   let flag = false;
   for (let i = startIndex; i <= endIndex; i++) {
-    if (zigZagData[data.peek()[i].Date]) {
+    if (zigZagData[data.peek()[0][i].Date]) {
       const index = endIndex - i;
       if (flag === false) {
         const zigZagValues = Object.values(zigZagData);
         const index1 =
           dateConfig.peek().dateToIndex[
-            zigZagValues[zigZagData[data.peek()[i].Date].index - 1]?.date
+            zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.date
           ];
         ctx.moveTo(
           getXCoordinate(
@@ -575,7 +575,7 @@ export function drawZigZagIndicator(
             endIndex - index1
           ),
           getYCoordinate(
-            zigZagValues[zigZagData[data.peek()[i].Date].index - 1]?.value,
+            zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.value,
             yAxisRange.peek().minPrice,
             yAxisRange.peek().maxPrice,
             chartCanvasSize.peek().height
@@ -583,7 +583,7 @@ export function drawZigZagIndicator(
         );
         flag = true;
       }
-      const price = zigZagData[data.peek()[i].Date].value;
+      const price = zigZagData[data.peek()[0][i].Date].value;
       const xCoord = getXCoordinate(
         chartCanvasSize.peek().width,
         xAxisConfig.peek().widthOfOneCS,
@@ -609,7 +609,7 @@ export function drawZigZagIndicator(
       0
     ),
     getYCoordinate(
-      data.peek()[endIndex].Low,
+      data.peek()[0][endIndex].Low,
       yAxisRange.peek().minPrice,
       yAxisRange.peek().maxPrice,
       chartCanvasSize.peek().height

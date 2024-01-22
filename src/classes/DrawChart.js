@@ -52,11 +52,12 @@ class DrawChart{
     return date.slice(11, 21);
   }
   #setSegmentTree() {
-    if (!this.data.peek().length) return;
+    if (!this.data.peek()[0].length) return;
     const segmentTree = [];
-    const Low = this.data.peek()[0].Low !== undefined ? 'Low' : 'Close';
-    const High = this.data.peek()[0].High !== undefined ? 'High' : 'Close';
-    const array = Object.values(this.data.peek());
+    const Low = this.data.peek()[0][0].Low !== undefined ? 'Low' : 'Close';
+    const High = this.data.peek()[0][0].High !== undefined ? 'High' : 'Close';
+    const d = this.data.peek()[0];
+    const array = Object.values(d);
     let n = array.length;
     for (let i = 0; i < n; i++) {
       const ele = array[i];
@@ -97,7 +98,7 @@ class DrawChart{
       this.ChartWindow.dateConfig.peek().dateToIndex,
       getObjtoStringTime(this.ChartWindow.timeRange.peek().endTime),
       getObjtoStringTime(this.ChartWindow.timeRange.peek().startTime),
-      this.data.peek().length
+      this.data.peek()[0].length
     );
     if (this.ChartWindow.lockUpdatePriceRange.peek() && this.yAxisRange.peek().maxPrice > result.maxPrice && this.yAxisRange.peek().minPrice < result.minPrice) return;
     if (

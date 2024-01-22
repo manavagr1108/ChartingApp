@@ -77,7 +77,7 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
 
     if (r & 1) {
       r = r - 1;
-      if(r >= 2*n)r=2*n-1;
+      if (r >= 2 * n) r = 2 * n - 1;
       let ele = segmentTree[r];
       ele = Object.values(ele);
       minPrice = Math.min(minPrice, ele[0].Low);
@@ -133,7 +133,8 @@ export const drawLineChart = (
   height,
   x,
   context,
-  prev
+  prev,
+  color
 ) => {
   const y = getYCoordinate(
     data["Close"],
@@ -142,17 +143,49 @@ export const drawLineChart = (
     height
   );
   if (prev === null) {
+    context.strokeStyle = color
     context.beginPath();
     context.moveTo(x, y);
     context.moveTo(x, y);
     context.stroke();
   } else {
+    context.strokeStyle = color
     context.beginPath();
     context.moveTo(prev.x, prev.y);
     context.lineTo(x, y);
     context.stroke();
   }
   return { x, y };
+};
+export const drawBarChart = (
+  data,
+  minPrice,
+  maxPrice,
+  height,
+  x,
+  context,
+  width
+) => {
+  const y = getYCoordinate(
+    data["Close"],
+    minPrice,
+    maxPrice,
+    height
+  );
+  const yZero = getYCoordinate(0, minPrice, maxPrice, height);
+  if (data['Close'] > 0) {
+    context.fillStyle = 'Green'
+    context.strokeStyle = 'Green'
+    context.beginPath();
+    context.fillRect(x - width / 2, y, width, Math.abs(y - yZero));
+    context.stroke();
+  } else {
+    context.fillStyle = 'Red'
+    context.strokeStyle = 'Red'
+    context.beginPath();
+    context.fillRect(x - width / 2, yZero, width, Math.abs(y - yZero));
+    context.stroke();
+  }
 };
 export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
   const { yAxisConfig, yAxisRange, chartCanvasSize, yAxisCanvasSize } = state;
@@ -175,7 +208,7 @@ export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
 }
 
 export const yAxisMouseDown = (e, state) => {
-  const {yAxisMovement} = state;
+  const { yAxisMovement } = state;
   yAxisMovement.value.mouseDown = true;
   yAxisMovement.value.prevXCoord = e.pageY;
   const canvas = e.target;
@@ -185,7 +218,7 @@ export const yAxisMouseDown = (e, state) => {
 
 export const yAxisMouseMove = (e, state) => {
   const { yAxisMovement, yAxisRange } = state;
-  const {lockUpdatePriceRange } = state.ChartWindow;
+  const { lockUpdatePriceRange } = state.ChartWindow;
   if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
@@ -205,7 +238,7 @@ export const yAxisMouseMove = (e, state) => {
 };
 
 export const yAxisMouseUp = (e, state) => {
-  const {yAxisMovement} = state;
+  const { yAxisMovement } = state;
   if (yAxisMovement.peek().mouseMove) {
     yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
   } else if (yAxisMovement.peek().mouseDown) {
