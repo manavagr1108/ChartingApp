@@ -241,7 +241,46 @@ export const calculateParabolicSAR = (data, acceleration, maximum) => {
   }
   return sarValues;
 };
+export const calculateBB = (data, period, stdDev) => {
+  const BB = [];
+  function calculateSMA(data, period) {
+    return data.reduce((acc, val, index) => {
+      if (index < period - 1) {
+        acc.push({ Date: val.Date, Close: 0 }); // Placeholder for incomplete data
+      } else {
+        const sum = data.slice(index - period + 1, index + 1).reduce((a, v) => a + v.Close, 0);
+        acc.push({ Date: val.Date, Close: sum / period });
+      }
+      return acc;
+    }, []);
+  }
 
+  // Step 2: Calculate Standard Deviation
+  function calculateStandardDeviation(data, period, sma) {
+    return data.reduce((acc, val, index) => {
+      if (index < period - 1) {
+        acc.push({ Date: val.Date, Close: 0 }); // Placeholder for incomplete data
+      } else {
+        const variance = data.slice(index - period + 1, index + 1).reduce((a, v) => a + Math.pow(v.Close - sma[index].Close, 2), 0) / period;
+        acc.push({ Date: val.Date, Close: Math.sqrt(variance) });
+      }
+      return acc;
+    }, []);
+  }
+
+  // Step 3: Calculate Bollinger Bands
+  const sma = calculateSMA(data, period);
+  const stdDeviation = calculateStandardDeviation(data, period, sma);
+  sma.forEach((avg, index) => {
+    sma[index] = {
+      Date: avg.Date,
+      Close: avg.Close,
+      UpperBand: avg.Close + stdDev * stdDeviation[index].Close,
+      LowerBand: avg.Close - stdDev * stdDeviation[index].Close,
+    }
+  });
+  return sma;
+}
 export function drawRSIIndicatorChart(state, mode) {
   const {
     yAxisRange,
@@ -287,7 +326,7 @@ export function drawRSIIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -348,9 +387,8 @@ export function drawRSIIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -358,9 +396,8 @@ export function drawRSIIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -426,7 +463,7 @@ export function drawMACDIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -464,9 +501,8 @@ export function drawMACDIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -474,9 +510,8 @@ export function drawMACDIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);

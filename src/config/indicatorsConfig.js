@@ -54,4 +54,12 @@ export const indicatorConfig = {
     maximum: 0.2,
     chartRequired: false,
   },
+  BB: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Bollinger Bands",
+    period: 20,
+    stdDev: 2,
+    chartRequired: false,
+  },
 };
