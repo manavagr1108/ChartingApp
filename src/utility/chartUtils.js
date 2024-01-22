@@ -8,6 +8,12 @@ import {
   calculateZigZag,
   calculateDonchainChannels,
   calculateKeltnerChannels,
+  calculateAlligator,
+  calculateEnvelope,
+  calculateIchimokuCloud,
+  calculateSuperTrend,
+  calculateDoubleEMA,
+  calculateTripleEMA,
 } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
@@ -83,7 +89,7 @@ export function handleOnMouseMove(e, state) {
     );
     const firstIndex =
       dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+        getObjtoStringTime(timeRange.peek().startTime)
       ];
     const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata === undefined) return;
@@ -173,10 +179,10 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-        dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
+          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-        dateConfig.peek().indexToDate[0])
+          dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -244,7 +250,7 @@ export function updateCursorValue(state, mode) {
       yAxisRange.peek().minPrice +
       ((chartCanvasSize.peek().height - dateCursor.peek().y) *
         (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-      chartCanvasSize.peek().height;
+        chartCanvasSize.peek().height;
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {

@@ -2,7 +2,7 @@ import { monthMap } from "../data/TIME_MAP";
 import {
     indicatorConfig,
 } from "../config/indicatorsConfig";
-import { calculateBB, calculateDonchainChannels, calculateEMA, calculateKeltnerChannels, calculateParabolicSAR, calculateSMA, calculateZigZag } from "./indicatorsUtil";
+import { calculateAlligator, calculateBB, calculateDonchainChannels, calculateDoubleEMA, calculateEMA, calculateEnvelope, calculateIchimokuCloud, calculateKeltnerChannels, calculateParabolicSAR, calculateSMA, calculateSuperTrend, calculateTripleEMA, calculateZigZag } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
     getNewScrollTime,
@@ -191,6 +191,63 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
             );
             const DONCHAIN = donchainData.slice(startIndex, endIndex + 1).reverse();
             drawBB(indicator, ctx, DONCHAIN, mode, state);
+        }
+        if (indicator.label === indicatorConfig["Alligator"].label) {
+            const alligatorData = calculateAlligator(
+                data.peek()[0],
+                indicator.jawPeriod,
+                indicator.teethPeriod,
+                indicator.lipsPeriod
+            );
+            const ALLIGATOR = alligatorData.slice(startIndex, endIndex + 1).reverse();
+            drawAlligator(indicator, ctx, ALLIGATOR, mode, state);
+        }
+        if (indicator.label === indicatorConfig["Envelope"].label) {
+            const EnvelopeData = calculateEnvelope(
+                data.peek()[0],
+                indicator.period,
+                indicator.percentage
+            );
+            const ENVELOPE = EnvelopeData.slice(startIndex, endIndex + 1).reverse();
+            drawBB(indicator, ctx, ENVELOPE, mode, state);
+        }
+        if (indicator.label === indicatorConfig["IchimokuCloud"].label) {
+            const IchimokuData = calculateIchimokuCloud(
+                data.peek()[0],
+                indicator.conversionPeriod,
+                indicator.basePeriod,
+                indicator.spanBPeriod,
+                indicator.laggingSpanPeriod
+            );
+            const ICHIMOKU = IchimokuData.slice(startIndex, endIndex + 1).reverse();
+            drawIchimokuIndicator(indicator, ctx, ICHIMOKU, mode, state);
+        }
+        if (indicator.label === indicatorConfig["SuperTrend"].label) {
+            const superTrendData = calculateSuperTrend(
+                data.peek()[0],
+                indicator.period,
+                indicator.multiplier
+            );
+            const SUPER_TREND = superTrendData
+                .slice(startIndex, endIndex + 1)
+                .reverse();
+            drawSuperTrend(indicator, ctx, SUPER_TREND, mode, state);
+        }
+        if (indicator.label === indicatorConfig["DoubleEMA"].label) {
+            const doubleEMAData = calculateDoubleEMA(
+                data.peek()[0],
+                indicator.period
+            );
+            const DEMA = doubleEMAData.slice(startIndex, endIndex + 1).reverse();
+            drawEMAIndicator(indicator, ctx, DEMA, mode, state);
+        }
+        if (indicator.label === indicatorConfig["TripleEMA"].label) {
+            const tripleEMAData = calculateTripleEMA(
+                data.peek()[0],
+                indicator.period
+            );
+            const TEMA = tripleEMAData.slice(startIndex, endIndex + 1).reverse();
+            drawEMAIndicator(indicator, ctx, TEMA, mode, state);
         }
     });
 }
@@ -571,6 +628,270 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
     ctx.lineWidth = 1;
 }
 
+export function drawAlligator(indicator, ctx, alligatorData, mode, state) {
+    const { chartCanvasSize, yAxisRange } = state;
+    const { timeRange, xAxisConfig } = state.ChartWindow;
+    ctx.strokeStyle = indicator.color;
+    ctx.lineWidth = indicator.stroke;
+    ctx.beginPath();
+    let prevJaw = null;
+    let prevTeeth = null;
+    let prevLips = null;
+
+    alligatorData.forEach((data, i) => {
+        const xCoordJaw = getXCoordinate(
+            chartCanvasSize.peek().width,
+            xAxisConfig.peek().widthOfOneCS,
+            timeRange.peek().scrollDirection,
+            timeRange.peek().scrollOffset,
+            i
+        );
+        const yCoordJaw = getYCoordinate(
+            data.Jaw,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height
+        );
+        const xCoordTeeth = getXCoordinate(
+            chartCanvasSize.peek().width,
+            xAxisConfig.peek().widthOfOneCS,
+            timeRange.peek().scrollDirection,
+            timeRange.peek().scrollOffset,
+            i
+        );
+        const yCoordTeeth = getYCoordinate(
+            data.Teeth,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height
+        );
+        const xCoordLips = getXCoordinate(
+            chartCanvasSize.peek().width,
+            xAxisConfig.peek().widthOfOneCS,
+            timeRange.peek().scrollDirection,
+            timeRange.peek().scrollOffset,
+            i
+        );
+        const yCoordLips = getYCoordinate(
+            data.Lips,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height
+        );
+        ctx.fillStyle = "rgba(0,148,255,0.3)";
+        ctx.lineWidth = indicator.stroke;
+        if (i === 0) {
+            ctx.beginPath();
+            ctx.moveTo(xCoordJaw, yCoordJaw);
+            ctx.lineTo(xCoordJaw, yCoordJaw);
+            ctx.moveTo(xCoordTeeth, yCoordTeeth);
+            ctx.lineTo(xCoordTeeth, yCoordTeeth);
+            ctx.moveTo(xCoordLips, yCoordLips);
+            ctx.lineTo(xCoordLips, yCoordLips);
+            ctx.stroke();
+        } else {
+            ctx.beginPath();
+            ctx.moveTo(prevJaw.xCoordJaw, prevJaw.yCoordJaw);
+            ctx.lineTo(xCoordJaw, yCoordJaw);
+            ctx.moveTo(prevTeeth.xCoordTeeth, prevTeeth.yCoordTeeth);
+            ctx.lineTo(xCoordTeeth, yCoordTeeth);
+            ctx.moveTo(prevLips.xCoordLips, prevLips.yCoordLips);
+            ctx.lineTo(xCoordLips, yCoordLips);
+            ctx.stroke();
+            ctx.moveTo(prevLips.xCoordLips, prevLips.yCoordLips);
+            ctx.bezierCurveTo(
+                prevLips.xCoordLips,
+                prevLips.yCoordLips,
+                prevJaw.xCoordJaw,
+                prevJaw.yCoordJaw,
+                prevJaw.xCoordJaw,
+                prevJaw.yCoordJaw
+            );
+            ctx.bezierCurveTo(
+                prevJaw.xCoordJaw,
+                prevJaw.yCoordJaw,
+                xCoordJaw,
+                yCoordJaw,
+                xCoordJaw,
+                yCoordJaw
+            );
+            ctx.bezierCurveTo(
+                xCoordJaw,
+                yCoordJaw,
+                xCoordTeeth,
+                yCoordTeeth,
+                xCoordTeeth,
+                yCoordTeeth
+            );
+            ctx.bezierCurveTo(
+                xCoordTeeth,
+                yCoordTeeth,
+                xCoordLips,
+                yCoordLips,
+                xCoordLips,
+                yCoordLips
+            );
+            ctx.bezierCurveTo(
+                xCoordLips,
+                yCoordLips,
+                prevLips.xCoordLips,
+                prevLips.yCoordLips,
+                prevLips.xCoordLips,
+                prevLips.yCoordLips
+            );
+            ctx.closePath();
+            ctx.lineWidth = 5;
+            ctx.fillStyle = "rgba(0,148,255,0.3)";
+            ctx.fill();
+            ctx.strokeStyle = "blue";
+        }
+        prevJaw = { xCoordJaw, yCoordJaw };
+        prevTeeth = { xCoordTeeth, yCoordTeeth };
+        prevLips = { xCoordLips, yCoordLips };
+    });
+    ctx.lineWidth = 1;
+}
+export function drawIchimokuIndicator(
+    indicator,
+    ctx,
+    ichimokuData,
+    mode,
+    state
+) {
+    const { chartCanvasSize, yAxisRange } = state;
+    const { timeRange, xAxisConfig } = state.ChartWindow;
+    ctx.strokeStyle = indicator.color;
+    ctx.lineWidth = indicator.stroke;
+    ctx.beginPath();
+    let prevConversion = null;
+    let prevBase = null;
+    let prevSpanA = null;
+    let prevSpanB = null;
+    let prevLaggingSpan = null;
+
+    ichimokuData.forEach((data, i) => {
+        const xCoordConversion = getXCoordinate(
+            chartCanvasSize.peek().width,
+            xAxisConfig.peek().widthOfOneCS,
+            timeRange.peek().scrollDirection,
+            timeRange.peek().scrollOffset,
+            i
+        );
+        prevConversion = drawLineChart(
+            data.Conversion,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height,
+            xCoordConversion,
+            ctx,
+            prevConversion,
+            "red"
+        );
+        prevBase = drawLineChart(
+            data.Base,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height,
+            xCoordConversion,
+            ctx,
+            prevBase,
+            "green"
+        );
+        prevSpanA = drawLineChart(
+            data.SpanA,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height,
+            xCoordConversion,
+            ctx,
+            prevSpanA,
+            "blue"
+        );
+        prevSpanB = drawLineChart(
+            data.SpanB,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height,
+            xCoordConversion,
+            ctx,
+            prevSpanB,
+            "pink"
+        );
+        prevLaggingSpan = drawLineChart(
+            data.LaggingSpan,
+            yAxisRange.peek().minPrice,
+            yAxisRange.peek().maxPrice,
+            chartCanvasSize.peek().height,
+            xCoordConversion,
+            ctx,
+            prevLaggingSpan,
+            "purple"
+        );
+    });
+    ctx.lineWidth = 1;
+}
+
+
+export function drawSuperTrend(indicator, ctx, superTrendData, mode, state) {
+    const { chartCanvasSize, yAxisRange } = state;
+    const { timeRange, xAxisConfig } = state.ChartWindow;
+    ctx.strokeStyle = indicator.color;
+    ctx.lineWidth = indicator.stroke;
+    ctx.beginPath();
+    let prevSuperTrend = null;
+    superTrendData.forEach((data, i) => {
+
+        const xCoord = getXCoordinate(
+            chartCanvasSize.peek().width,
+            xAxisConfig.peek().widthOfOneCS,
+            timeRange.peek().scrollDirection,
+            timeRange.peek().scrollOffset,
+            i
+        );
+        const yCoord1 = getYCoordinate(data.UpperBand, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const yCoord2 = getYCoordinate(data.LowerBand, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const yCoord3 = getYCoordinate(data.Close, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        if (prevSuperTrend === null || data.Trend !== prevSuperTrend.Trend) {
+        } else if (data.Trend === 1) {
+            ctx.strokeStyle = 'Green';
+            ctx.beginPath();
+            ctx.moveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord2);
+            ctx.lineTo(xCoord, yCoord2);
+            ctx.stroke();
+            ctx.moveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord2);
+            ctx.bezierCurveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord2, prevSuperTrend.xCoord, prevSuperTrend.yCoord3, prevSuperTrend.xCoord, prevSuperTrend.yCoord3);
+            ctx.bezierCurveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord3, xCoord, yCoord3, xCoord, yCoord3);
+            ctx.bezierCurveTo(xCoord, yCoord3, xCoord, yCoord2, xCoord, yCoord2);
+            ctx.bezierCurveTo(xCoord, yCoord2, prevSuperTrend.xCoord, prevSuperTrend.yCoord2, prevSuperTrend.xCoord, prevSuperTrend.yCoord2);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(0,255,0,0.2)";
+            ctx.fill();
+        } else if (data.Trend === -1) {
+            ctx.strokeStyle = 'Red';
+            ctx.beginPath();
+            ctx.moveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord1);
+            ctx.lineTo(xCoord, yCoord1);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord3);
+            ctx.bezierCurveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord3, prevSuperTrend.xCoord, prevSuperTrend.yCoord1, prevSuperTrend.xCoord, prevSuperTrend.yCoord1);
+            ctx.bezierCurveTo(prevSuperTrend.xCoord, prevSuperTrend.yCoord1, xCoord, yCoord1, xCoord, yCoord1);
+            ctx.bezierCurveTo(xCoord, yCoord1, xCoord, yCoord3, xCoord, yCoord3);
+            ctx.bezierCurveTo(xCoord, yCoord3, prevSuperTrend.xCoord, prevSuperTrend.yCoord3, prevSuperTrend.xCoord, prevSuperTrend.yCoord3);
+            ctx.closePath();
+            ctx.fillStyle = "rgba(255,0,0,0.2)";
+            ctx.fill();
+        }
+        prevSuperTrend = {
+            Trend: data.Trend,
+            xCoord: xCoord,
+            yCoord1: yCoord1,
+            yCoord2: yCoord2,
+            yCoord3: yCoord3
+        }
+    });
+    ctx.lineWidth = 1;
+}
 
 export const drawTrendLine = (state, i, lineSelected = false) => {
     const { chartCanvasSize, yAxisRange, trendLinesData, ChartRef } = state;

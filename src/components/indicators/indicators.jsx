@@ -151,27 +151,29 @@ function Indicators({ mode, ChartWindow }) {
           >
             Select your Indicator:
           </p>
-          {Object.keys(indicatorConfig).map((key) => (
-            <button
-              className={`flex justify-between items-center w-full h-[100px] border-2 rounded-lg px-5 mt-5 hover:cursor-pointer ${mode === "Light" ? "bg-gray-300 border-gray-300 hover:bg-gray-400" : "bg-gray-700 border-gray-700 hover:bg-gray-800 hover:text-gray-900"}`}
-              key={key}
-              onClick={() => handleKeyClick(key)}
-            >
-              <p
-                className={`${
-                  mode === "Light" ? "text-gray-900" : "text-gray-100"
-                }`}
+          {Object.keys(indicatorConfig)
+            .sort()
+            .map((key) => (
+              <button
+                className={`flex justify-between items-center w-full h-[100px] border-2 rounded-lg px-5 mt-5 hover:cursor-pointer ${mode === "Light" ? "bg-gray-300 border-gray-300 hover:bg-gray-400" : "bg-gray-700 border-gray-700 hover:bg-gray-800 hover:text-gray-900"}`}
+                key={key}
+                onClick={() => handleKeyClick(key)}
               >
-                {indicatorConfig[key].label}
-              </p>
-              <FaArrowRight
-                className={`${
-                  mode === "Light" ? "text-gray-900" : "text-gray-100"
-                }
+                <p
+                  className={`${
+                    mode === "Light" ? "text-gray-900" : "text-gray-100"
+                  }`}
+                >
+                  {indicatorConfig[key].label}
+                </p>
+                <FaArrowRight
+                  className={`${
+                    mode === "Light" ? "text-gray-900" : "text-gray-100"
+                  }
               `}
-              />
-            </button>
-          ))}
+                />
+              </button>
+            ))}
         </div>
       );
     }

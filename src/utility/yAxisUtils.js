@@ -17,8 +17,8 @@ export const priceToColMap = {
   840: 50,
   1140: 100,
   2085: 200,
-  4174: 250
-}
+  4174: 250,
+};
 
 function getLeftDate(date) {
   return date.slice(0, 10);
@@ -33,18 +33,18 @@ export function buildSegmentTree(data) {
   const segmentTree = [];
   const datesToIndex = {};
   const indexToDates = {};
-  const Low = data[0].Low !== undefined ? 'Low' : 'Close';
-  const High = data[0].High !== undefined ? 'High' : 'Close';
+  const Low = data[0].Low !== undefined ? "Low" : "Close";
+  const High = data[0].High !== undefined ? "High" : "Close";
   const array = Object.values(data);
   let n = array.length;
   for (let i = 0; i < n; i++) {
     const ele = array[i];
     const d = {};
-    const date = `${ele.Date}:${ele.Date}`
+    const date = `${ele.Date}:${ele.Date}`;
     d[`${date}`] = {
-      'Low': ele[`${Low}`],
-      'High': ele[`${High}`]
-    }
+      Low: ele[`${Low}`],
+      High: ele[`${High}`],
+    };
     datesToIndex[`${ele.Date}`] = i;
     indexToDates[`${i}`] = ele.Date;
     segmentTree[n + i] = d;
@@ -55,11 +55,11 @@ export function buildSegmentTree(data) {
     const rightEleKey = Object.keys(segmentTree[2 * i + 1])[0];
     const rightEleVal = Object.values(segmentTree[2 * i + 1])[0];
     const d = {};
-    const date = `${getLeftDate(leftEleKey)}:${getRightDate(rightEleKey)}`
+    const date = `${getLeftDate(leftEleKey)}:${getRightDate(rightEleKey)}`;
     d[`${date}`] = {
-      'Low': Math.min(leftEleVal.Low, rightEleVal.Low),
-      'High': Math.max(leftEleVal.High, rightEleVal.High)
-    }
+      Low: Math.min(leftEleVal.Low, rightEleVal.Low),
+      High: Math.max(leftEleVal.High, rightEleVal.High),
+    };
     segmentTree[i] = d;
   }
   return { segmentTree, datesToIndex, indexToDates };
@@ -89,7 +89,10 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
       maxPrice = Math.max(maxPrice, ele[0].High);
     }
   }
-  if (maxPrice != Number.MIN_SAFE_INTEGER && minPrice != Number.MAX_SAFE_INTEGER) {
+  if (
+    maxPrice != Number.MIN_SAFE_INTEGER &&
+    minPrice != Number.MAX_SAFE_INTEGER
+  ) {
     const priceDiff = (maxPrice - minPrice) / 12;
     minPrice = minPrice - priceDiff;
     maxPrice = maxPrice + priceDiff;
@@ -98,10 +101,18 @@ export function getMinMaxPrices(segmentTree, datesToIndex, left, right, n) {
 }
 
 export const getYCoordinate = (price, minPrice, maxPrice, height) => {
-  return height - ((height) / (maxPrice - minPrice)) * (price - minPrice);
-}
+  return height - (height / (maxPrice - minPrice)) * (price - minPrice);
+};
 
-export const drawCandleStick = (data, minPrice, maxPrice, height, x, context, width) => {
+export const drawCandleStick = (
+  data,
+  minPrice,
+  maxPrice,
+  height,
+  x,
+  context,
+  width
+) => {
   let fillColor, borderColor;
   if (data["Close"] > data["Open"]) {
     fillColor = "green";
@@ -142,19 +153,19 @@ export const drawLineChart = (
   color
 ) => {
   const y = getYCoordinate(
-    data["Close"],
+    data["Close"] ? data["Close"] : data,
     minPrice,
     maxPrice,
     height
   );
   if (prev === null) {
-    context.strokeStyle = color
+    context.strokeStyle = color;
     context.beginPath();
     context.moveTo(x, y);
     context.moveTo(x, y);
     context.stroke();
   } else {
-    context.strokeStyle = color
+    context.strokeStyle = color;
     context.beginPath();
     context.moveTo(prev.x, prev.y);
     context.lineTo(x, y);
@@ -162,6 +173,8 @@ export const drawLineChart = (
   }
   return { x, y };
 };
+
+
 export const drawBarChart = (
   data,
   minPrice,
@@ -171,22 +184,17 @@ export const drawBarChart = (
   context,
   width
 ) => {
-  const y = getYCoordinate(
-    data["Close"],
-    minPrice,
-    maxPrice,
-    height
-  );
+  const y = getYCoordinate(data["Close"], minPrice, maxPrice, height);
   const yZero = getYCoordinate(0, minPrice, maxPrice, height);
-  if (data['Close'] > 0) {
-    context.fillStyle = 'Green'
-    context.strokeStyle = 'Green'
+  if (data["Close"] > 0) {
+    context.fillStyle = "Green";
+    context.strokeStyle = "Green";
     context.beginPath();
     context.fillRect(x - width / 2, y, width, Math.abs(y - yZero));
     context.stroke();
   } else {
-    context.fillStyle = 'Red'
-    context.strokeStyle = 'Red'
+    context.fillStyle = "Red";
+    context.strokeStyle = "Red";
     context.beginPath();
     context.fillRect(x - width / 2, yZero, width, Math.abs(y - yZero));
     context.stroke();
@@ -199,8 +207,15 @@ export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
   const maxPrice = yAxisRange.peek().maxPrice;
   const noOfCols = Math.floor((maxPrice - minPrice) / colDiff);
   for (let i = noOfCols + 3; i >= 0; i--) {
-    const text = (Math.floor(yAxisRange.peek().minPrice / colDiff)) * colDiff + (i - 1) * colDiff;
-    const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
+    const text =
+      Math.floor(yAxisRange.peek().minPrice / colDiff) * colDiff +
+      (i - 1) * colDiff;
+    const yCoord = getYCoordinate(
+      text,
+      minPrice,
+      maxPrice,
+      yAxisCanvasSize.peek().height
+    );
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
     yAxisCtx.lineWidth = 1;
     yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
@@ -211,7 +226,7 @@ export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
     ctx.lineTo(chartCanvasSize.peek().width, yCoord);
     ctx.stroke();
   }
-}
+};
 
 export const yAxisMouseDown = (e, state) => {
   const { yAxisMovement } = state;
@@ -225,7 +240,10 @@ export const yAxisMouseDown = (e, state) => {
 export const yAxisMouseMove = (e, state) => {
   const { yAxisMovement, yAxisRange } = state;
   const { lockUpdatePriceRange } = state.ChartWindow;
-  if (yAxisMovement.peek().mouseDown && e.pageY - yAxisMovement.peek().prevXCoord !== 0) {
+  if (
+    yAxisMovement.peek().mouseDown &&
+    e.pageY - yAxisMovement.peek().prevXCoord !== 0
+  ) {
     if (!yAxisMovement.peek().mouseMove) {
       yAxisMovement.value.mouseMove = true;
       lockUpdatePriceRange.value = true;
@@ -235,9 +253,9 @@ export const yAxisMouseMove = (e, state) => {
     if (pDiff > 4000 && pixelMovement < 0) return;
     if (pDiff < 5 && pixelMovement > 0) return;
     yAxisRange.value = {
-      minPrice: yAxisRange.peek().minPrice + pixelMovement,
-      maxPrice: yAxisRange.peek().maxPrice - pixelMovement
-    }
+      minPrice: yAxisRange.peek().minPrice + pixelMovement / 10,
+      maxPrice: yAxisRange.peek().maxPrice - pixelMovement / 10,
+    };
     state.setYAxisConfig();
     yAxisMovement.value.prevXCoord = e.pageY;
   }
@@ -246,7 +264,7 @@ export const yAxisMouseMove = (e, state) => {
 export const yAxisMouseUp = (e, state) => {
   const { yAxisMovement } = state;
   if (yAxisMovement.peek().mouseMove) {
-    yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+    yAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
   } else if (yAxisMovement.peek().mouseDown) {
     yAxisMovement.value.mouseDown = false;
   }
