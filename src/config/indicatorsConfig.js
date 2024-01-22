@@ -46,4 +46,12 @@ export const indicatorConfig = {
     drawChartFunction: drawMACDIndicatorChart,
     getChartData: calculateMACD,
   },
+  ParabolicSAR: {
+    color: "#FFA500",
+    stroke: 2,
+    label: "Parabolic SAR",
+    acceleration: 0.02,
+    maximum: 0.2,
+    chartRequired: false,
+  },
 };

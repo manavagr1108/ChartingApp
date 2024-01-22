@@ -1,6 +1,11 @@
 import { monthMap } from "../data/TIME_MAP";
 import { indicatorConfig } from "../config/indicatorsConfig";
-import { calculateEMA, calculateSMA, calculateZigZag } from "./indicatorsUtil";
+import {
+  calculateEMA,
+  calculateParabolicSAR,
+  calculateSMA,
+  calculateZigZag,
+} from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
   getNewScrollTime,
@@ -154,6 +159,15 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
         indicator.pivotLegs
       );
       drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex, state);
+    }
+    if (indicator.label === indicatorConfig["ParabolicSAR"].label) {
+      const sarData = calculateParabolicSAR(
+        data.peek()[0],
+        indicator.acceleration,
+        indicator.maximum
+      );
+      const SAR = sarData.slice(startIndex, endIndex + 1).reverse();
+      drawParabolicSAR(indicator, ctx, SAR, mode, state);
     }
   });
 }
@@ -616,4 +630,32 @@ export function drawZigZagIndicator(
     )
   );
   ctx.stroke();
+}
+
+export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
+  const { chartCanvasSize, yAxisRange } = state;
+  const { xAxisConfig, timeRange } = state.ChartWindow;
+  ctx.fillStyle = indicator.color;
+
+  for (let i = 0; i < sarData.length; i++) {
+    const xCoord = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoord = getYCoordinate(
+      sarData[i].Close,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+
+    const dotSize = indicator.stroke;
+
+    ctx.beginPath();
+    ctx.arc(xCoord, yCoord, parseInt(dotSize), 0, 2 * Math.PI);
+    ctx.fill();
+  }
 }
