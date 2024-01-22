@@ -162,7 +162,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
     }
     if (indicator.label === indicatorConfig["ParabolicSAR"].label) {
       const sarData = calculateParabolicSAR(
-        data.peek(),
+        data.peek()[0],
         indicator.acceleration,
         indicator.maximum
       );
@@ -633,7 +633,6 @@ export function drawZigZagIndicator(
 }
 
 export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
-  console.log(sarData);
   const { chartCanvasSize, yAxisRange } = state;
   const { xAxisConfig, timeRange } = state.ChartWindow;
   ctx.fillStyle = indicator.color;
@@ -654,7 +653,6 @@ export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
     );
 
     const dotSize = indicator.stroke;
-    console.log(dotSize);
 
     ctx.beginPath();
     ctx.arc(xCoord, yCoord, parseInt(dotSize), 0, 2 * Math.PI);
