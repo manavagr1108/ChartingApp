@@ -439,7 +439,6 @@ export function calculateADX(data, indicator) {
     const smoothedADX = (ADX[i - 1].Close * (period - 1) + DX[i]) / period;
     ADX.push({ Date: data[i].Date, Close: smoothedADX });
   }
-  console.log(ADX);
   return [ADX];
 }
 
