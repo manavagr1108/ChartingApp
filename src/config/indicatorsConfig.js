@@ -1,4 +1,9 @@
-import { calculateRSI, drawRSIIndicatorChart } from "../utility/indicatorsUtil";
+import {
+  calculateMACD,
+  calculateRSI,
+  drawMACDIndicatorChart,
+  drawRSIIndicatorChart,
+} from "../utility/indicatorsUtil";
 export const indicatorConfig = {
   SMA: {
     color: "#FFA500",
@@ -29,5 +34,16 @@ export const indicatorConfig = {
     chartRequired: true,
     drawChartFunction: drawRSIIndicatorChart,
     getChartData: calculateRSI,
+  },
+  MACD: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Moving Average Convergence Divergence",
+    fastPeriod: 12,
+    slowPeriod: 26,
+    signalPeriod: 9,
+    chartRequired: true,
+    drawChartFunction: drawMACDIndicatorChart,
+    getChartData: calculateMACD,
   },
 };

@@ -31,7 +31,7 @@ function Charting({ mode, ChartWindow }) {
     if (selectedStock.value && interval.value && chartType.value){
       getStockDataCallback(selectedStock, interval, stockData).then(() =>{
         ChartWindow.setChartWindowSignal();
-        drawChart.setDrawChartSignal(stockData.peek());
+        drawChart.setDrawChartSignal([stockData.peek()]);
         drawChart.drawChartFunction(drawChart, mode)
       }).catch(e => {
         console.log(e);
