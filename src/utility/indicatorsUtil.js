@@ -288,6 +288,21 @@ export const calculateBB = (data, period, stdDev) => {
   return sma;
 };
 
+export const calculateBBW = (data, indicator) => {
+  const {period, stdDev} = indicator
+  const BBData = calculateBB(data, period, stdDev);
+  const BBW = [];
+  BBData.forEach((bb, i) => {
+    if(i < period){
+      BBW.push({ Date: bb.Date, Close: 0});
+    } else {
+      BBW.push({ Date: bb.Date, Close: (bb.UpperBand - bb.LowerBand)/bb.Close});
+    }
+  })
+  console.log(BBW);
+  return [BBW];
+}
+
 export const calculateKeltnerChannels = (data, period, multiplier) => {
   const keltnerChannelsValues = [];
   const atr = calculateATR(data, period);

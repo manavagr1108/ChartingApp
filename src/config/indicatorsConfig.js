@@ -5,6 +5,7 @@ import {
   drawMACDIndicatorChart,
   drawRSIIndicatorChart,
   calculateADX,
+  calculateBBW
 } from "../utility/indicatorsUtil";
 export const indicatorConfig = {
   SMA: {
@@ -63,6 +64,16 @@ export const indicatorConfig = {
     period: 20,
     stdDev: 2,
     chartRequired: false,
+  },
+  BBW: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Bollinger Bands Width",
+    period: 20,
+    stdDev: 2,
+    chartRequired: true,
+    drawChartFunction: drawRSIIndicatorChart,
+    getChartData: calculateBBW,
   },
   KeltnerChannels: {
     color: "#FFA500",
