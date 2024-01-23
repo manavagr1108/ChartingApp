@@ -343,7 +343,11 @@ export function calculateATR(data, period) {
     const low = data[i].Low;
     const prevClose = data[i - 1].Close;
 
-    const trueRange = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
+    const trueRange = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose)
+    );
     trueRanges.push({ Date: data[i].Date, trueRange });
   }
 
@@ -353,13 +357,14 @@ export function calculateATR(data, period) {
     atrSum += trueRanges[i].trueRange;
     if (i === period - 1) {
       atrValues.push({ Date: data[i].Date, Close: atrSum / period });
-    }
-    else {
+    } else {
       atrValues.push({ Date: data[i].Date, Close: 0 });
     }
   }
   for (let i = period; i < trueRanges.length; i++) {
-    const currentAtr = (atrValues[i - 1].Close * (period - 1) + trueRanges[i].trueRange) / period;
+    const currentAtr =
+      (atrValues[i - 1].Close * (period - 1) + trueRanges[i].trueRange) /
+      period;
     atrValues.push({ Date: data[i].Date, Close: currentAtr });
   }
   return atrValues;
@@ -391,7 +396,8 @@ export function calculateADX(data, indicator) {
   }
 
   // Smoothed Directional Movement (ADM)
-  let smoothedPositiveDMSum = 0, smoothedNegativeDMSum = 0;
+  let smoothedPositiveDMSum = 0,
+    smoothedNegativeDMSum = 0;
   const smoothedPositiveDMs = [];
   const smoothedNegativeDMs = [];
 
@@ -399,8 +405,14 @@ export function calculateADX(data, indicator) {
     smoothedPositiveDMSum += positiveDMs[i].positiveDM;
     smoothedNegativeDMSum += negativeDMs[i].negativeDM;
     if (i === period - 1) {
-      smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: smoothedPositiveDMSum / period });
-      smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: smoothedNegativeDMSum / period });
+      smoothedPositiveDMs.push({
+        Date: data[i].Date,
+        smoothedPositiveDM: smoothedPositiveDMSum / period,
+      });
+      smoothedNegativeDMs.push({
+        Date: data[i].Date,
+        smoothedNegativeDM: smoothedNegativeDMSum / period,
+      });
     } else {
       smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: 0 });
       smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: 0 });
@@ -408,23 +420,43 @@ export function calculateADX(data, indicator) {
   }
   for (let i = period; i < positiveDMs.length; i++) {
     const smoothedPositiveDM =
-      (smoothedPositiveDMs[i - 1].smoothedPositiveDM * (period - 1) + positiveDMs[i].positiveDM) / period;
+      (smoothedPositiveDMs[i - 1].smoothedPositiveDM * (period - 1) +
+        positiveDMs[i].positiveDM) /
+      period;
     const smoothedNegativeDM =
-      (smoothedNegativeDMs[i - 1].smoothedNegativeDM * (period - 1) + negativeDMs[i].negativeDM) / period;
+      (smoothedNegativeDMs[i - 1].smoothedNegativeDM * (period - 1) +
+        negativeDMs[i].negativeDM) /
+      period;
 
-    smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: smoothedPositiveDM });
-    smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: smoothedNegativeDM });
+    smoothedPositiveDMs.push({
+      Date: data[i].Date,
+      smoothedPositiveDM: smoothedPositiveDM,
+    });
+    smoothedNegativeDMs.push({
+      Date: data[i].Date,
+      smoothedNegativeDM: smoothedNegativeDM,
+    });
   }
 
   // Directional Indicators (DI)
-  const positiveDI = smoothedPositiveDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedPositiveDM / smoothedTrueRanges[i].Close) * 100 : 0);
-  const negativeDI = smoothedNegativeDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedNegativeDM / smoothedTrueRanges[i].Close) * 100 : 0);
+  const positiveDI = smoothedPositiveDMs.map((dm, i) =>
+    smoothedTrueRanges[i].Close
+      ? (dm.smoothedPositiveDM / smoothedTrueRanges[i].Close) * 100
+      : 0
+  );
+  const negativeDI = smoothedNegativeDMs.map((dm, i) =>
+    smoothedTrueRanges[i].Close
+      ? (dm.smoothedNegativeDM / smoothedTrueRanges[i].Close) * 100
+      : 0
+  );
 
   // Directional Movement Index (DX)
   const DX = positiveDI.map((di, i) =>
-    di + negativeDI[i] ? Math.abs(di - negativeDI[i]) / (di + negativeDI[i]) * 100 : 0
+    di + negativeDI[i]
+      ? (Math.abs(di - negativeDI[i]) / (di + negativeDI[i])) * 100
+      : 0
   );
-  let DXSum = 0
+  let DXSum = 0;
   const ADX = [];
   for (let i = 0; i < period; i++) {
     DXSum += DX[i];
@@ -442,6 +474,41 @@ export function calculateADX(data, indicator) {
   console.log(ADX);
   return [ADX];
 }
+
+export const calculateAlligator = (
+  data,
+  jawPeriod,
+  teethPeriod,
+  lipsPeriod,
+  jawOffset,
+  teethOffset,
+  lipsOffset
+) => {
+  const alligatorValues = [];
+  const jawValues = calculateSMA(data, jawPeriod);
+  const teethValues = calculateSMA(data, teethPeriod);
+  const lipsValues = calculateSMA(data, lipsPeriod);
+  console.log(jawValues, teethValues, lipsValues);
+  for (let i = 0; i < data.length; i++) {
+    if (i < jawOffset || i < teethOffset || i < lipsOffset) {
+      alligatorValues.push({
+        Date: data[i].Date,
+        Jaw: 0,
+        Teeth: 0,
+        Lips: 0,
+      });
+      continue;
+    }
+
+    alligatorValues.push({
+      Date: data[i].Date,
+      Jaw: jawValues[i - jawOffset].Close,
+      Teeth: teethValues[i - teethOffset].Close,
+      Lips: lipsValues[i - lipsOffset].Close,
+    });
+  }
+  return alligatorValues;
+};
 
 export function drawRSIIndicatorChart(state, mode) {
   const {
@@ -488,7 +555,7 @@ export function drawRSIIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-    getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -499,7 +566,9 @@ export function drawRSIIndicatorChart(state, mode) {
     .peek()[0]
     .slice(startIndex, endIndex + 1)
     .reverse();
-  if(Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index"){
+  if (
+    Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index"
+  ) {
     console.log("Called");
     ctx.beginPath();
     const y30RSI = getYCoordinate(
@@ -552,8 +621,9 @@ export function drawRSIIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -561,8 +631,9 @@ export function drawRSIIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -628,7 +699,7 @@ export function drawMACDIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-    getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -666,8 +737,9 @@ export function drawMACDIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -675,8 +747,9 @@ export function drawMACDIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+        const lineColor = `${
+          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
