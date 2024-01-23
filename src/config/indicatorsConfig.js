@@ -4,8 +4,10 @@ import {
   calculateRSI,
   drawMACDIndicatorChart,
   drawRSIIndicatorChart,
+  drawVortexIndicatorChart,
   calculateADX,
-  calculateBBW
+  calculateBBW,
+  calculateVortex
 } from "../utility/indicatorsUtil";
 export const indicatorConfig = {
   SMA: {
@@ -107,5 +109,14 @@ export const indicatorConfig = {
     chartRequired: true,
     drawChartFunction: drawRSIIndicatorChart,
     getChartData: calculateADX,
+  },
+  Vortex: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Vortex",
+    period: 12,
+    chartRequired: true,
+    drawChartFunction: drawVortexIndicatorChart,
+    getChartData: calculateVortex,
   },
 };
