@@ -104,9 +104,6 @@ export const indicatorConfig = {
     jawPeriod: 13,
     teethPeriod: 8,
     lipsPeriod: 5,
-    jawOffset: 8,
-    teethOffset: 5,
-    lipsOffset: 3,
     chartRequired: false,
   },
 };

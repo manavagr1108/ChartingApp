@@ -204,10 +204,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
         data.peek()[0],
         indicator.jawPeriod,
         indicator.teethPeriod,
-        indicator.lipsPeriod,
-        indicator.jawOffset,
-        indicator.teethOffset,
-        indicator.lipsOffset
+        indicator.lipsPeriod
       );
       console.log(alligatorData);
       const ALLIGATOR = alligatorData.slice(startIndex, endIndex + 1).reverse();

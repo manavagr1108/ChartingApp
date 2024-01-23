@@ -475,22 +475,42 @@ export function calculateADX(data, indicator) {
   return [ADX];
 }
 
+export const calculateSMMA = (data, period) => {
+  const smmaValues = [];
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    sum += data[i].Close;
+    if (i === period - 1) {
+      smmaValues.push({ Date: data[i].Date, Close: sum / period });
+    } else {
+      smmaValues.push({ Date: data[i].Date, Close: 0 });
+    }
+  }
+  for (let i = period; i < data.length; i++) {
+    let average =
+      (smmaValues[i - 1].Close * period -
+        smmaValues[i - 1].Close +
+        data[i].Close) /
+      period;
+    smmaValues.push({ Date: data[i].Date, Close: average });
+  }
+
+  return smmaValues;
+};
+
 export const calculateAlligator = (
   data,
   jawPeriod,
   teethPeriod,
-  lipsPeriod,
-  jawOffset,
-  teethOffset,
-  lipsOffset
+  lipsPeriod
 ) => {
   const alligatorValues = [];
-  const jawValues = calculateSMA(data, jawPeriod);
-  const teethValues = calculateSMA(data, teethPeriod);
-  const lipsValues = calculateSMA(data, lipsPeriod);
-  console.log(jawValues, teethValues, lipsValues);
+  const jawValues = calculateSMMA(data, jawPeriod);
+  const teethValues = calculateSMMA(data, teethPeriod);
+  const lipsValues = calculateSMMA(data, lipsPeriod);
+
   for (let i = 0; i < data.length; i++) {
-    if (i < jawOffset || i < teethOffset || i < lipsOffset) {
+    if (i === 0) {
       alligatorValues.push({
         Date: data[i].Date,
         Jaw: 0,
@@ -498,14 +518,14 @@ export const calculateAlligator = (
         Lips: 0,
       });
       continue;
+    } else {
+      alligatorValues.push({
+        Date: data[i].Date,
+        Jaw: jawValues[i].Close,
+        Teeth: teethValues[i].Close,
+        Lips: lipsValues[i].Close,
+      });
     }
-
-    alligatorValues.push({
-      Date: data[i].Date,
-      Jaw: jawValues[i - jawOffset].Close,
-      Teeth: teethValues[i - teethOffset].Close,
-      Lips: lipsValues[i - lipsOffset].Close,
-    });
   }
   return alligatorValues;
 };
