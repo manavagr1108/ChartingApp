@@ -140,7 +140,7 @@ export const drawLineChart = (
   color
 ) => {
   const y = getYCoordinate(
-    data["Close"],
+    data["Close"] ? data["Close"] : data,
     minPrice,
     maxPrice,
     height

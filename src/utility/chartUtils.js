@@ -208,7 +208,7 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
       );
       console.log(alligatorData);
       const ALLIGATOR = alligatorData.slice(startIndex, endIndex + 1).reverse();
-      drawAlligtor(indicator, ctx, ALLIGATOR, mode, state);
+      drawAlligator(indicator, ctx, ALLIGATOR, mode, state);
     }
   });
 }
@@ -802,7 +802,7 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
   ctx.lineWidth = 1;
 }
 
-export function drawAlligtor(indicator, ctx, alligatorData, mode, state) {
+export function drawAlligator(indicator, ctx, alligatorData, mode, state) {
   const { chartCanvasSize, yAxisRange } = state;
   const { timeRange, xAxisConfig } = state.ChartWindow;
   ctx.strokeStyle = indicator.color;
@@ -820,108 +820,9 @@ export function drawAlligtor(indicator, ctx, alligatorData, mode, state) {
       timeRange.peek().scrollOffset,
       i
     );
-    const yCoordJaw = getYCoordinate(
-      data.Jaw,
-      yAxisRange.peek().minPrice,
-      yAxisRange.peek().maxPrice,
-      chartCanvasSize.peek().height
-    );
-    const xCoordTeeth = getXCoordinate(
-      chartCanvasSize.peek().width,
-      xAxisConfig.peek().widthOfOneCS,
-      timeRange.peek().scrollDirection,
-      timeRange.peek().scrollOffset,
-      i
-    );
-    const yCoordTeeth = getYCoordinate(
-      data.Teeth,
-      yAxisRange.peek().minPrice,
-      yAxisRange.peek().maxPrice,
-      chartCanvasSize.peek().height
-    );
-    const xCoordLips = getXCoordinate(
-      chartCanvasSize.peek().width,
-      xAxisConfig.peek().widthOfOneCS,
-      timeRange.peek().scrollDirection,
-      timeRange.peek().scrollOffset,
-      i
-    );
-    const yCoordLips = getYCoordinate(
-      data.Lips,
-      yAxisRange.peek().minPrice,
-      yAxisRange.peek().maxPrice,
-      chartCanvasSize.peek().height
-    );
-    ctx.fillStyle = "rgba(0,148,255,0.3)";
-    ctx.lineWidth = indicator.stroke;
-    if (i === 0) {
-      ctx.beginPath();
-      ctx.moveTo(xCoordJaw, yCoordJaw);
-      ctx.lineTo(xCoordJaw, yCoordJaw);
-      ctx.moveTo(xCoordTeeth, yCoordTeeth);
-      ctx.lineTo(xCoordTeeth, yCoordTeeth);
-      ctx.moveTo(xCoordLips, yCoordLips);
-      ctx.lineTo(xCoordLips, yCoordLips);
-      ctx.stroke();
-    } else {
-      ctx.beginPath();
-      ctx.moveTo(prevJaw.xCoordJaw, prevJaw.yCoordJaw);
-      ctx.lineTo(xCoordJaw, yCoordJaw);
-      ctx.moveTo(prevTeeth.xCoordTeeth, prevTeeth.yCoordTeeth);
-      ctx.lineTo(xCoordTeeth, yCoordTeeth);
-      ctx.moveTo(prevLips.xCoordLips, prevLips.yCoordLips);
-      ctx.lineTo(xCoordLips, yCoordLips);
-      ctx.stroke();
-      ctx.moveTo(prevLips.xCoordLips, prevLips.yCoordLips);
-      ctx.bezierCurveTo(
-        prevLips.xCoordLips,
-        prevLips.yCoordLips,
-        prevJaw.xCoordJaw,
-        prevJaw.yCoordJaw,
-        prevJaw.xCoordJaw,
-        prevJaw.yCoordJaw
-      );
-      ctx.bezierCurveTo(
-        prevJaw.xCoordJaw,
-        prevJaw.yCoordJaw,
-        xCoordJaw,
-        yCoordJaw,
-        xCoordJaw,
-        yCoordJaw
-      );
-      ctx.bezierCurveTo(
-        xCoordJaw,
-        yCoordJaw,
-        xCoordTeeth,
-        yCoordTeeth,
-        xCoordTeeth,
-        yCoordTeeth
-      );
-      ctx.bezierCurveTo(
-        xCoordTeeth,
-        yCoordTeeth,
-        xCoordLips,
-        yCoordLips,
-        xCoordLips,
-        yCoordLips
-      );
-      ctx.bezierCurveTo(
-        xCoordLips,
-        yCoordLips,
-        prevLips.xCoordLips,
-        prevLips.yCoordLips,
-        prevLips.xCoordLips,
-        prevLips.yCoordLips
-      );
-      ctx.closePath();
-      ctx.lineWidth = 5;
-      ctx.fillStyle = "rgba(0,148,255,0.3)";
-      ctx.fill();
-      ctx.strokeStyle = "blue";
-    }
-    prevJaw = { xCoordJaw, yCoordJaw };
-    prevTeeth = { xCoordTeeth, yCoordTeeth };
-    prevLips = { xCoordLips, yCoordLips };
+    prevJaw = drawLineChart(data.Jaw, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height, xCoordJaw, ctx, prevJaw, 'red');
+    prevTeeth = drawLineChart(data.Teeth, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height, xCoordJaw, ctx, prevTeeth, 'green');
+    prevLips = drawLineChart(data.Lips, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height, xCoordJaw, ctx, prevLips, 'blue');
   });
   ctx.lineWidth = 1;
 }
