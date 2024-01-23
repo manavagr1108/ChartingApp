@@ -365,8 +365,82 @@ export function calculateATR(data, period) {
   return atrValues;
 }
 
-export function calculateATRDrawChart(data, indicator){
+export function calculateATRDrawChart(data, indicator) {
   return [calculateATR(data, indicator.period)];
+}
+
+export function calculateADX(data, indicator) {
+  const { period } = indicator;
+
+  // Smoothed True Range (ATR)
+  const smoothedTrueRanges = calculateATR(data, period);
+
+  // Calculate Directional Movement (DM)
+  const positiveDMs = [{ Date: data[0].Date, positiveDM: 0 }];
+  const negativeDMs = [{ Date: data[0].Date, negativeDM: 0 }];
+
+  for (let i = 1; i < data.length; i++) {
+    const highDiff = data[i].High - data[i - 1].High;
+    const lowDiff = data[i - 1].Low - data[i].Low;
+
+    const positiveDM = highDiff > lowDiff ? Math.max(highDiff, 0) : 0;
+    const negativeDM = lowDiff > highDiff ? Math.max(lowDiff, 0) : 0;
+
+    positiveDMs.push({ Date: data[i].Date, positiveDM });
+    negativeDMs.push({ Date: data[i].Date, negativeDM });
+  }
+
+  // Smoothed Directional Movement (ADM)
+  let smoothedPositiveDMSum = 0, smoothedNegativeDMSum = 0;
+  const smoothedPositiveDMs = [];
+  const smoothedNegativeDMs = [];
+
+  for (let i = 0; i < period; i++) {
+    smoothedPositiveDMSum += positiveDMs[i].positiveDM;
+    smoothedNegativeDMSum += negativeDMs[i].negativeDM;
+    if (i === period - 1) {
+      smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: smoothedPositiveDMSum / period });
+      smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: smoothedNegativeDMSum / period });
+    } else {
+      smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: 0 });
+      smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: 0 });
+    }
+  }
+  for (let i = period; i < positiveDMs.length; i++) {
+    const smoothedPositiveDM =
+      (smoothedPositiveDMs[i - 1].smoothedPositiveDM * (period - 1) + positiveDMs[i].positiveDM) / period;
+    const smoothedNegativeDM =
+      (smoothedNegativeDMs[i - 1].smoothedNegativeDM * (period - 1) + negativeDMs[i].negativeDM) / period;
+
+    smoothedPositiveDMs.push({ Date: data[i].Date, smoothedPositiveDM: smoothedPositiveDM });
+    smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: smoothedNegativeDM });
+  }
+
+  // Directional Indicators (DI)
+  const positiveDI = smoothedPositiveDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedPositiveDM / smoothedTrueRanges[i].Close) * 100 : 0);
+  const negativeDI = smoothedNegativeDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedNegativeDM / smoothedTrueRanges[i].Close) * 100 : 0);
+
+  // Directional Movement Index (DX)
+  const DX = positiveDI.map((di, i) =>
+    di + negativeDI[i] ? Math.abs(di - negativeDI[i]) / (di + negativeDI[i]) * 100 : 0
+  );
+  let DXSum = 0
+  const ADX = [];
+  for (let i = 0; i < period; i++) {
+    DXSum += DX[i];
+    if (i === period - 1) {
+      ADX.push({ Date: data[i].Date, Close: DXSum / period });
+    } else {
+      ADX.push({ Date: data[i].Date, Close: 0 });
+    }
+  }
+  // Average Directional Index (ADX)
+  for (let i = period; i < DX.length; i++) {
+    const smoothedADX = (ADX[i - 1].Close * (period - 1) + DX[i]) / period;
+    ADX.push({ Date: data[i].Date, Close: smoothedADX });
+  }
+  console.log(ADX);
+  return [ADX];
 }
 
 export function drawRSIIndicatorChart(state, mode) {
@@ -414,7 +488,7 @@ export function drawRSIIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -425,39 +499,42 @@ export function drawRSIIndicatorChart(state, mode) {
     .peek()[0]
     .slice(startIndex, endIndex + 1)
     .reverse();
-  ctx.beginPath();
-  const y30RSI = getYCoordinate(
-    30,
-    yAxisRange.peek().minPrice,
-    yAxisRange.peek().maxPrice,
-    chartCanvasSize.peek().height
-  );
-  const y70RSI = getYCoordinate(
-    70,
-    yAxisRange.peek().minPrice,
-    yAxisRange.peek().maxPrice,
-    chartCanvasSize.peek().height
-  );
-  ctx.fillStyle = "rgba(0,148,255,0.3)";
-  ctx.strokeStyle = "gray";
-  ctx.setLineDash([5, 2]);
-  ctx.beginPath();
-  ctx.fillRect(
-    0,
-    y70RSI,
-    chartCanvasSize.peek().width,
-    Math.abs(y70RSI - y30RSI)
-  );
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, y70RSI);
-  ctx.lineTo(chartCanvasSize.peek().width, y70RSI);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, y30RSI);
-  ctx.lineTo(chartCanvasSize.peek().width, y30RSI);
-  ctx.stroke();
-  ctx.setLineDash([]);
+  if(Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index"){
+    console.log("Called");
+    ctx.beginPath();
+    const y30RSI = getYCoordinate(
+      30,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    const y70RSI = getYCoordinate(
+      70,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    ctx.fillStyle = "rgba(0,148,255,0.3)";
+    ctx.strokeStyle = "gray";
+    ctx.setLineDash([5, 2]);
+    ctx.beginPath();
+    ctx.fillRect(
+      0,
+      y70RSI,
+      chartCanvasSize.peek().width,
+      Math.abs(y70RSI - y30RSI)
+    );
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, y70RSI);
+    ctx.lineTo(chartCanvasSize.peek().width, y70RSI);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(0, y30RSI);
+    ctx.lineTo(chartCanvasSize.peek().width, y30RSI);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
   resultData.forEach((d, i) => {
     const xCoord =
       chartCanvasSize.peek().width -
@@ -475,9 +552,8 @@ export function drawRSIIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -485,9 +561,8 @@ export function drawRSIIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -553,7 +628,7 @@ export function drawMACDIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -591,9 +666,8 @@ export function drawMACDIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -601,9 +675,8 @@ export function drawMACDIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);

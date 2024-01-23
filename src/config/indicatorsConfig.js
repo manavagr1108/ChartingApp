@@ -4,6 +4,7 @@ import {
   calculateRSI,
   drawMACDIndicatorChart,
   drawRSIIndicatorChart,
+  calculateADX,
 } from "../utility/indicatorsUtil";
 export const indicatorConfig = {
   SMA: {
@@ -86,5 +87,14 @@ export const indicatorConfig = {
     chartRequired: true,
     drawChartFunction: drawRSIIndicatorChart,
     getChartData: calculateATRDrawChart,
+  },
+  ADX: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Average Directional Index",
+    period: 20,
+    chartRequired: true,
+    drawChartFunction: drawRSIIndicatorChart,
+    getChartData: calculateADX,
   },
 };
