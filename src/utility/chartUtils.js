@@ -1,10 +1,13 @@
 import { monthMap } from "../data/TIME_MAP";
 import { indicatorConfig } from "../config/indicatorsConfig";
 import {
+  calculateBB,
   calculateEMA,
   calculateParabolicSAR,
   calculateSMA,
   calculateZigZag,
+  calculateDonchainChannels,
+  calculateKeltnerChannels,
 } from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
@@ -168,6 +171,32 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
       );
       const SAR = sarData.slice(startIndex, endIndex + 1).reverse();
       drawParabolicSAR(indicator, ctx, SAR, mode, state);
+    }
+    if (indicator.label === indicatorConfig["BB"].label) {
+      const bbData = calculateBB(
+        data.peek()[0],
+        indicator.period,
+        indicator.stdDev
+      );
+      const BB = bbData.slice(startIndex, endIndex + 1).reverse();
+      drawBB(indicator, ctx, BB, mode, state);
+    }
+    if (indicator.label === indicatorConfig["KeltnerChannels"].label) {
+      const KeltnerData = calculateKeltnerChannels(
+        data.peek()[0],
+        indicator.period,
+        indicator.multiplier
+      );
+      const KELTNER = KeltnerData.slice(startIndex, endIndex + 1).reverse();
+      drawBB(indicator, ctx, KELTNER, mode, state);
+    }
+    if (indicator.label === indicatorConfig["DonchainChannels"].label) {
+      const donchainData = calculateDonchainChannels(
+        data.peek()[0],
+        indicator.period
+      );
+      const DONCHAIN = donchainData.slice(startIndex, endIndex + 1).reverse();
+      drawBB(indicator, ctx, DONCHAIN, mode, state);
     }
   });
 }
@@ -658,4 +687,105 @@ export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
     ctx.arc(xCoord, yCoord, parseInt(dotSize), 0, 2 * Math.PI);
     ctx.fill();
   }
+}
+
+export function drawBB(indicator, ctx, BBData, mode, state) {
+  const { chartCanvasSize, yAxisRange } = state;
+  const { timeRange, xAxisConfig } = state.ChartWindow;
+  ctx.strokeStyle = indicator.color;
+  ctx.lineWidth = indicator.stroke;
+  let prevSma = null;
+  let prevUpper = null;
+  let prevLower = null;
+  BBData.forEach((data, i) => {
+    const xCoordSMA = getXCoordinate(
+      chartCanvasSize.peek().width,
+      xAxisConfig.peek().widthOfOneCS,
+      timeRange.peek().scrollDirection,
+      timeRange.peek().scrollOffset,
+      i
+    );
+    const yCoordSMA = getYCoordinate(
+      data.Close,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    const yCoordUpper = getYCoordinate(
+      data.UpperBand,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    const yCoordLower = getYCoordinate(
+      data.LowerBand,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height
+    );
+    ctx.fillStyle = "rgba(0,148,255,0.3)";
+    ctx.lineWidth = indicator.stroke;
+    if (i === 0) {
+      ctx.beginPath();
+      ctx.moveTo(xCoordSMA, yCoordUpper);
+      ctx.lineTo(xCoordSMA, yCoordUpper);
+      ctx.moveTo(xCoordSMA, yCoordSMA);
+      ctx.lineTo(xCoordSMA, yCoordSMA);
+      ctx.moveTo(xCoordSMA, yCoordLower);
+      ctx.lineTo(xCoordSMA, yCoordLower);
+      ctx.stroke();
+      // context.moveTo(xCoordSMA, yCoordLower);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(prevUpper.xCoordSMA, prevUpper.yCoordUpper);
+      ctx.lineTo(xCoordSMA, yCoordUpper);
+      ctx.moveTo(prevSma.xCoordSMA, prevSma.yCoordSMA);
+      ctx.lineTo(xCoordSMA, yCoordSMA);
+      ctx.moveTo(prevLower.xCoordSMA, prevLower.yCoordLower);
+      ctx.lineTo(xCoordSMA, yCoordLower);
+      ctx.stroke();
+      ctx.moveTo(prevLower.xCoordSMA, prevLower.yCoordLower);
+      ctx.bezierCurveTo(
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower,
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper,
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper
+      );
+      ctx.bezierCurveTo(
+        prevUpper.xCoordSMA,
+        prevUpper.yCoordUpper,
+        xCoordSMA,
+        yCoordUpper,
+        xCoordSMA,
+        yCoordUpper
+      );
+      ctx.bezierCurveTo(
+        xCoordSMA,
+        yCoordUpper,
+        xCoordSMA,
+        yCoordLower,
+        xCoordSMA,
+        yCoordLower
+      );
+      ctx.bezierCurveTo(
+        xCoordSMA,
+        yCoordLower,
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower,
+        prevLower.xCoordSMA,
+        prevLower.yCoordLower
+      );
+      ctx.closePath();
+      ctx.lineWidth = 5;
+      ctx.fillStyle = "rgba(0,148,255,0.3)";
+      ctx.fill();
+      ctx.strokeStyle = "blue";
+    }
+    prevSma = { xCoordSMA, yCoordSMA };
+    prevUpper = { xCoordSMA, yCoordUpper };
+    prevLower = { xCoordSMA, yCoordLower };
+  });
+  ctx.lineWidth = 1;
 }
