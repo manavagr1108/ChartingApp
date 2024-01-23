@@ -4,7 +4,10 @@ import {
   calculateRSI,
   drawMACDIndicatorChart,
   drawRSIIndicatorChart,
+  drawVortexIndicatorChart,
   calculateADX,
+  calculateBBW,
+  calculateVortex
 } from "../utility/indicatorsUtil";
 export const indicatorConfig = {
   SMA: {
@@ -64,6 +67,16 @@ export const indicatorConfig = {
     stdDev: 2,
     chartRequired: false,
   },
+  BBW: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Bollinger Bands Width",
+    period: 20,
+    stdDev: 2,
+    chartRequired: true,
+    drawChartFunction: drawRSIIndicatorChart,
+    getChartData: calculateBBW,
+  },
   KeltnerChannels: {
     color: "#FFA500",
     stroke: 2,
@@ -96,5 +109,14 @@ export const indicatorConfig = {
     chartRequired: true,
     drawChartFunction: drawRSIIndicatorChart,
     getChartData: calculateADX,
+  },
+  Vortex: {
+    color: "#FFA500",
+    stroke: 1,
+    label: "Vortex",
+    period: 12,
+    chartRequired: true,
+    drawChartFunction: drawVortexIndicatorChart,
+    getChartData: calculateVortex,
   },
 };

@@ -288,6 +288,20 @@ export const calculateBB = (data, period, stdDev) => {
   return sma;
 };
 
+export const calculateBBW = (data, indicator) => {
+  const { period, stdDev } = indicator
+  const BBData = calculateBB(data, period, stdDev);
+  const BBW = [];
+  BBData.forEach((bb, i) => {
+    if (i < period) {
+      BBW.push({ Date: bb.Date, Close: 0 });
+    } else {
+      BBW.push({ Date: bb.Date, Close: (bb.UpperBand - bb.LowerBand) / bb.Close });
+    }
+  })
+  return [BBW];
+}
+
 export const calculateKeltnerChannels = (data, period, multiplier) => {
   const keltnerChannelsValues = [];
   const atr = calculateATR(data, period);
@@ -416,13 +430,13 @@ export function calculateADX(data, indicator) {
     smoothedNegativeDMs.push({ Date: data[i].Date, smoothedNegativeDM: smoothedNegativeDM });
   }
 
-  // Directional Indicators (DI)
+  // Directional Indicators (period)
   const positiveDI = smoothedPositiveDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedPositiveDM / smoothedTrueRanges[i].Close) * 100 : 0);
   const negativeDI = smoothedNegativeDMs.map((dm, i) => smoothedTrueRanges[i].Close ? (dm.smoothedNegativeDM / smoothedTrueRanges[i].Close) * 100 : 0);
 
   // Directional Movement Index (DX)
-  const DX = positiveDI.map((di, i) =>
-    di + negativeDI[i] ? Math.abs(di - negativeDI[i]) / (di + negativeDI[i]) * 100 : 0
+  const DX = positiveDI.map((period, i) =>
+    period + negativeDI[i] ? Math.abs(period - negativeDI[i]) / (period + negativeDI[i]) * 100 : 0
   );
   let DXSum = 0
   const ADX = [];
@@ -439,8 +453,54 @@ export function calculateADX(data, indicator) {
     const smoothedADX = (ADX[i - 1].Close * (period - 1) + DX[i]) / period;
     ADX.push({ Date: data[i].Date, Close: smoothedADX });
   }
-  console.log(ADX);
   return [ADX];
+}
+
+export const calculateVortex = (data, indicator) => {
+  const { period } = indicator;
+  const TR = calculateATR(data, period);
+  const VMPlus = [{ Date: data[0].Date, positiveMovement: 0 }];
+  const VMMinus = [{ Date: data[0].Date, negativeMovement: 0 }];
+
+  // Calculate True Range (TR), Positive Movement (VM+), and Negative Movement (VM-) values
+  for (let i = 1; i < data.length; i++) {
+    const high = data[i].High;
+    const low = data[i].Low;
+    const prevHigh = data[i - 1].High;
+    const prevLow = data[i - 1].Low;
+
+    const highLowDiff = Math.abs(high - prevLow);
+    const highCloseDiff = Math.abs(low - prevHigh);
+    // const lowCloseDiff = Math.abs(low - prevClose);
+
+    VMPlus.push({ Date: data[i].Date, positiveMovement: highLowDiff });
+    VMMinus.push({ Date: data[i].Date, negativeMovement: highCloseDiff });
+  }
+  // Calculate the True Range (TR) and Directional Movement (DM) averages
+  let sumTR = TR.slice(0, period).reduce((sum, value) => sum + value.Close, 0);
+  let sumVMPlus = VMPlus.slice(0, period).reduce((sum, value) => sum + value.positiveMovement, 0);
+  let sumVMMinus = VMMinus.slice(0, period).reduce((sum, value) => sum + value.negativeMovement, 0);
+  // Calculate the Vortex Indicator (VI) values
+  const vortexPlus = [];
+  const vortexMinus = [];
+  for (let i = 0; i < period; i++) {
+    vortexPlus.push({ Date: data[i].Date, Close: 0 });
+    vortexMinus.push({ Date: data[i].Date, Close: 0 });
+  }
+  for (let i = period; i < data.length; i++) {
+    const VIPlus = sumVMPlus / sumTR;
+    const VIMinus = sumVMMinus / sumTR;
+
+    vortexPlus.push({ Date: data[i].Date, Close: VIPlus });
+    vortexMinus.push({ Date: data[i].Date, Close: VIMinus });
+    if(i !== data.length - 1){
+      sumTR = (sumTR - TR[i-period].Close + TR[i+1].Close);
+      sumVMPlus = (sumVMPlus - VMPlus[i-period].positiveMovement + VMPlus[i+1].positiveMovement);
+      sumVMMinus = (sumVMMinus - VMMinus[i-period].negativeMovement + VMMinus[i+1].negativeMovement);
+    }
+    
+  }
+  return [vortexPlus, vortexMinus];
 }
 
 export function drawRSIIndicatorChart(state, mode) {
@@ -499,7 +559,7 @@ export function drawRSIIndicatorChart(state, mode) {
     .peek()[0]
     .slice(startIndex, endIndex + 1)
     .reverse();
-  if(Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index"){
+  if (Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index") {
     console.log("Called");
     ctx.beginPath();
     const y30RSI = getYCoordinate(
@@ -714,6 +774,126 @@ export function drawMACDIndicatorChart(state, mode) {
       xCoord,
       ctx,
       xAxisConfig.peek().widthOfOneCS - 2
+    );
+  });
+}
+export function drawVortexIndicatorChart(state, mode) {
+  const {
+    yAxisRange,
+    yAxisConfig,
+    ChartRef,
+    yAxisRef,
+    chartCanvasSize,
+    yAxisCanvasSize,
+    data,
+  } = state;
+  const { dateConfig, timeRange, xAxisConfig, xAxisRef, chartType } =
+    state.ChartWindow;
+  if (
+    data.peek()[0].length === 0 ||
+    yAxisRange.peek().maxPrice === yAxisRange.peek().minPrice ||
+    ChartRef.current[1] === undefined
+  ) {
+    return;
+  }
+  const canvas = ChartRef.current[0];
+  const canvasXAxis = xAxisRef.current[0];
+  const canvasYAxis = yAxisRef.current[0];
+  const ctx = canvas.getContext("2d");
+  const xAxisCtx = canvasXAxis.getContext("2d");
+  const yAxisCtx = canvasYAxis.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  xAxisCtx.clearRect(0, 0, canvasXAxis.width, canvasXAxis.height);
+  yAxisCtx.clearRect(0, 0, canvasYAxis.width, canvasYAxis.height);
+  ctx.font = "12px Arial";
+  ctx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  xAxisCtx.font = "12px Arial";
+  xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  yAxisCtx.font = "12px Arial";
+  yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+  drawYAxis(ctx, yAxisCtx, mode, {
+    yAxisConfig,
+    yAxisRange,
+    chartCanvasSize,
+    yAxisCanvasSize,
+  });
+  const startIndex =
+    dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
+  const endIndex =
+    dateConfig.peek().dateToIndex[
+    getObjtoStringTime(timeRange.peek().startTime)
+    ];
+  if (startIndex === undefined || endIndex === undefined) {
+    console.log("Undefined startIndex or endIndex!");
+    return;
+  }
+  let prev = null;
+  let prev1 = null;
+  const resultData = data
+    .peek()[0]
+    .slice(startIndex, endIndex + 1)
+    .reverse();
+  const resultData1 = data
+    .peek()[1]
+    .slice(startIndex, endIndex + 1)
+    .reverse();
+  ctx.beginPath();
+  resultData.forEach((d, i) => {
+    const xCoord =
+      chartCanvasSize.peek().width -
+      i * xAxisConfig.peek().widthOfOneCS -
+      xAxisConfig.peek().widthOfOneCS / 2 -
+      timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+    if (xCoord < 0) {
+      return;
+    }
+    if (
+      i < resultData.length - 1 &&
+      d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
+    ) {
+      const currentMonth = parseInt(d.Date.split("-")[1]);
+      const currentYear = parseInt(d.Date.split("-")[0]);
+      xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      if (currentMonth === 1) {
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
+        ctx.beginPath();
+        ctx.strokeStyle = lineColor;
+        ctx.moveTo(xCoord, 0);
+        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+        ctx.stroke();
+        xAxisCtx.fillText(currentYear, xCoord - 10, 12);
+      } else {
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
+        ctx.beginPath();
+        ctx.strokeStyle = lineColor;
+        ctx.moveTo(xCoord, 0);
+        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+        ctx.stroke();
+        xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+      }
+    }
+    ctx.strokeStyle = "rgba(0,0,255,0.9)";
+    prev = drawLineChart(
+      d,
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height,
+      xCoord,
+      ctx,
+      prev,
+      "blue"
+    );
+    prev1 = drawLineChart(
+      resultData1[i],
+      yAxisRange.peek().minPrice,
+      yAxisRange.peek().maxPrice,
+      chartCanvasSize.peek().height,
+      xCoord,
+      ctx,
+      prev1,
+      "orange"
     );
   });
 }
