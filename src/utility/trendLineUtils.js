@@ -125,7 +125,7 @@ export const setTrendLine = (e, state) => {
         dateConfig.peek().dateToIndex[
         getObjtoStringTime(timeRange.peek().startTime)
         ];
-    const cursordata = data.peek()[firstIndex - dateIndex];
+    const cursordata = data.peek()[0][firstIndex - dateIndex];
     let price =
         yAxisRange.peek().minPrice +
         ((chartCanvasSize.peek().height - y) *
@@ -184,7 +184,7 @@ export const setTrendLine = (e, state) => {
 //         dateConfig.peek().dateToIndex[
 //         getObjtoStringTime(timeRange.peek().startTime)
 //         ];
-//     const cursordata = data.peek()[firstIndex - dateIndex];
+//     const cursordata = data.peek()[0][firstIndex - dateIndex];
 //     let price =
 //         yAxisRange.peek().minPrice +
 //         ((chartCanvasSize.peek().height - y) *

@@ -24,6 +24,7 @@ export function calculateSMA(data, period) {
 }
 
 export function calculateEMA(data, period) {
+  period = parseInt(period);
   const emaValues = [];
   const multiplier = 2 / (period + 1);
   for (let i = 0; i < period - 1; i++) {
