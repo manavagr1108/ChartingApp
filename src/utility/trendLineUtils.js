@@ -38,12 +38,31 @@ function isCursorOnRayLine(e, lineData, state) {
     const rect = canvas.getBoundingClientRect();
     const x = parseInt(e.pageX - rect.left);
     const y = parseInt(e.pageY - rect.top);
-    // if(x > Math.max(startXCoord, endXCoord) || x < Math.min(startXCoord, endXCoord)) return 0;
     if(startXCoord < endXCoord){
         if(x < startXCoord) return 0;
     } else if(endXCoord > startXCoord){
         if(x > startXCoord) return 0;
     }
+    if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
+    if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
+    const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
+    const constant = startYCoord - slope * startXCoord;
+    for (let i = -5; i < 5; i++) {
+        if (parseInt(y) + i === parseInt(slope * x + constant)) return 1;
+    }
+    return 0;
+}
+function isCursorOnExtendedLine(e, lineData, state) {
+    const {
+        startXCoord,
+        endXCoord,
+        startYCoord,
+        endYCoord
+    } = lineData;
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
     if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
     if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
     const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
@@ -59,6 +78,7 @@ export const isCursorOnLine = (e, lineData, state) => {
         case 0: return isCursorOnTrendLine(e, lineData, state);
         case 1: return isCursorOnRayLine(e, lineData, state);
         case 2: return isCursorOnTrendLine(e, lineData, state);
+        case 3: return isCursorOnExtendedLine(e, lineData, state);
     }
 }
 

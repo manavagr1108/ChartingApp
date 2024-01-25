@@ -591,6 +591,7 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
         case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
         case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
         case 2: drawInfoLineUsingPoints(state, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
+        case 3: drawExtendedLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
     }
 }
 
@@ -635,7 +636,33 @@ export const drawRayLineUsingPoints = (canvas, startCoords, endCoords, lineSelec
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
-    drawTrendLineUsingPoints(canvas, startCoords, { x: newEndXCoord, y: newEndYCoord }, lineSelected, ctx1);
+    drawTrendLineUsingPoints(canvas, startCoords, { x: newEndXCoord, y: newEndYCoord }, false, ctx1);
+}
+
+export const drawExtendedLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+    const ctx = canvas.getContext('2d');
+    ctx1 = ctx1 === null ? ctx : ctx1;
+    const slope = (endCoords.y - startCoords.y) / (endCoords.x - startCoords.x);
+    const constant = endCoords.y - (slope * endCoords.x);
+    const newStartYCoord = endCoords.x < startCoords.x ? slope * canvas.width + constant : slope * 0 + constant;
+    const newStartXCoord = (newStartYCoord - constant) / slope;
+    const newEndYCoord = endCoords.x > startCoords.x ? slope * canvas.width + constant : slope * 0 + constant;
+    const newEndXCoord = (newEndYCoord - constant) / slope;
+    if (ctx1 !== null) {
+        ctx1.fillStyle = "White";
+        ctx1.strokeStyle = "blue";
+        ctx1.beginPath();
+        ctx1.arc(endCoords.x, endCoords.y, 5, 0, 2 * Math.PI);
+        ctx1.fill();
+        ctx1.stroke();
+        ctx1.beginPath();
+        ctx1.arc(startCoords.x, startCoords.y, 5, 0, 2 * Math.PI);
+        ctx1.fill();
+        ctx1.stroke();
+        ctx1.strokeStyle = "black";
+        ctx1.fillStyle = "black";
+    }
+    drawTrendLineUsingPoints(canvas, { x: newStartXCoord, y: newStartYCoord }, { x: newEndXCoord, y: newEndYCoord }, false, ctx1);
 }
 
 export const drawInfoLineUsingPoints = (state, canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
