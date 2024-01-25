@@ -59,6 +59,7 @@ class ChartWindow {
     this.selectedTool = signal("Cursor");
     this.selectedToolItem = signal(0);
     this.selectedCursor = signal(0);
+    this.selectedItem = signal(null);
   }
   setXAxisCanvas() {
     this.xAxisCanvasSize.value = setCanvasSize(this.xAxisRef.current[0]);

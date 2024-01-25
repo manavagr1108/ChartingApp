@@ -35,6 +35,8 @@ class DrawChart{
       mouseMove: false,
       prevXCoord: 0,
       prevYCoord: 0,
+      isItem: false,
+      itemData: signal({})
     });
     this.data = signal([]);
     this.ChartWindow = ChartWindow;

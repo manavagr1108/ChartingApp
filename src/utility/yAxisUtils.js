@@ -202,6 +202,7 @@ export const drawYAxis = (ctx, yAxisCtx, mode, state) => {
     const text = (Math.floor(yAxisRange.peek().minPrice / colDiff)) * colDiff + (i - 1) * colDiff;
     const yCoord = getYCoordinate(text, minPrice, maxPrice, yAxisCanvasSize.peek().height);
     yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+    yAxisCtx.lineWidth = 1;
     yAxisCtx.fillText(text.toFixed(2), 15, yCoord + 4);
     const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"}`;
     ctx.beginPath();

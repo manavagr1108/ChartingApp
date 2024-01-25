@@ -333,6 +333,7 @@ export function drawEMAIndicator(
         else ctx.lineTo(xCoord, yCoord);
     }
     ctx.stroke();
+    ctx.lineWidth = 1;
 }
 
 export function drawZigZagIndicator(
@@ -425,33 +426,38 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
     const endXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
     const startYCoord = getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-    const newPath = new Path2D();
+    switch (lineData.toolItemNo) {
+        case 0: drawTrendLineUsingPoints(ctx, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1);
+    }
+}
+
+export const drawTrendLineUsingPoints = (ctx, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+    ctx1 = ctx1 === null ? ctx : ctx1;
+    ctx.strokeStyle = "Black";
+    ctx.beginPath();
+    ctx.moveTo(startCoords.x, startCoords.y);
+    ctx.lineTo(endCoords.x, endCoords.y);
+    ctx.stroke();
+    ctx.strokeStyle = "Black";
     if (lineSelected) {
-        console.log("Called");
-        ctx1.fillStyle = 'White';
+        ctx1.fillStyle = "White";
         ctx1.strokeStyle = "blue";
         ctx1.beginPath();
-        ctx1.arc(startXCoord, startYCoord, 5, 0, 2 * Math.PI);
+        ctx1.arc(startCoords.x, startCoords.y, 5, 0, 2 * Math.PI);
         ctx1.fill();
         ctx1.stroke();
         ctx1.beginPath();
-        ctx1.arc(endXCoord, endYCoord, 5, 0, 2 * Math.PI * 2);
+        ctx1.arc(endCoords.x, endCoords.y, 5, 0, 2 * Math.PI);
         ctx1.fill();
         ctx1.stroke();
-    } else {
-        ctx.strokeStyle = 'Black';
-        ctx.lineWidth = 2;
-        newPath.moveTo(startXCoord, startYCoord);
-        newPath.lineTo(endXCoord, endYCoord);
-        ctx.stroke(newPath);
-        trendLinesData.value[i].path = newPath;
+        ctx1.strokeStyle = "black";
+        ctx1.fillStyle = "black";
     }
 }
 
 
 export const drawTrendLines = (state) => {
-    const { chartCanvasSize, yAxisRange, trendLinesData } = state;
-    const { dateConfig, xAxisConfig, timeRange } = state.ChartWindow;
+    const { trendLinesData } = state;
     trendLinesData.peek().forEach((lineData, i) => {
         drawTrendLine(state, i);
     })
