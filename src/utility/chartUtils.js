@@ -25,7 +25,7 @@ import {
 import { drawLinesData, prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
 import { effect } from "@preact/signals-react";
 import { detectTrendLine, setTool, setTrendLine } from "./trendLineUtils";
-import { drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
+import { drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
 
 export async function getStockDataCallback(
   symbol,
@@ -121,7 +121,8 @@ export function handleOnMouseMove(e, state) {
       const prevXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - prevXCoordIndex);
       const prevYCoord = getYCoordinate(prevLineData.peek().yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
       switch (prevToolItemNo.peek()) {
-        case 0: drawTrendLineUsingPoints(prevSelectedCanvas.peek().getContext("2d"), { x: prevXCoord, y: prevYCoord }, { x, y });
+        case 0: drawTrendLineUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
+        case 1: drawRayLineUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
       }
     }
   } else {
@@ -274,7 +275,8 @@ export function updateCursorValue(state, mode) {
     if (chartMovement.peek().isItem && chartMovement.peek().itemData?.startXCoord !== undefined) {
       const { startXCoord, endXCoord, startYCoord, endYCoord } = chartMovement.peek().itemData;
       switch (chartMovement.peek().itemData.toolItemNo) {
-        case 0: drawTrendLineUsingPoints(ctx, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord });
+        case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+        case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
       }
     }
   });

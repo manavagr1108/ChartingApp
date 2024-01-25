@@ -27,10 +27,37 @@ function isCursorOnTrendLine(e, lineData, state) {
     }
     return 0;
 }
+function isCursorOnRayLine(e, lineData, state) {
+    const {
+        startXCoord,
+        endXCoord,
+        startYCoord,
+        endYCoord
+    } = lineData;
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    // if(x > Math.max(startXCoord, endXCoord) || x < Math.min(startXCoord, endXCoord)) return 0;
+    if(startXCoord < endXCoord){
+        if(x < startXCoord) return 0;
+    } else if(endXCoord > startXCoord){
+        if(x > startXCoord) return 0;
+    }
+    if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
+    if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
+    const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
+    const constant = startYCoord - slope * startXCoord;
+    for (let i = -5; i < 5; i++) {
+        if (parseInt(y) + i === parseInt(slope * x + constant)) return 1;
+    }
+    return 0;
+}
 export const isCursorOnLine = (e, lineData, state) => {
     const { toolItemNo } = lineData;
     switch (toolItemNo) {
         case 0: return isCursorOnTrendLine(e, lineData, state);
+        case 1: return isCursorOnRayLine(e, lineData, state);
     }
 }
 
@@ -170,60 +197,61 @@ export const setTrendLine = (e, state) => {
         prevSelectedCanvas.value = canvas;
     }
 }
-// export const setRayLine = (e, state) => {
-//     const { chartCanvasSize, data, yAxisRange, ChartRef } = state;
-//     const { dateConfig, xAxisConfig, timeRange, selectedTool, selectedToolItem } = state.ChartWindow;
-//     const canvas = ChartRef.current[1];
-//     const rect = canvas.getBoundingClientRect();
-//     const x = e.pageX - rect.left;
-//     const y = e.pageY - rect.top;
-//     const dateIndex = Math.floor(
-//         (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
-//     );
-//     const firstIndex =
-//         dateConfig.peek().dateToIndex[
-//         getObjtoStringTime(timeRange.peek().startTime)
-//         ];
-//     const cursordata = data.peek()[0][firstIndex - dateIndex];
-//     let price =
-//         yAxisRange.peek().minPrice +
-//         ((chartCanvasSize.peek().height - y) *
-//             (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-//         chartCanvasSize.peek().height;
-//     if (price > yAxisRange.peek().maxPrice) {
-//         price = yAxisRange.peek().maxPrice;
-//     } else if (price < yAxisRange.peek().minPrice) {
-//         price = yAxisRange.peek().minPrice;
-//     }
-//     const priceText = price.toFixed(2);
-//     const lineStartPoint = {
-//         xLabel: cursordata.Date,
-//         yLabel: priceText,
-//     }
-//     if (prevLineData.peek() !== null) {
-//         state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
-//             if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
-//                 obj.trendLinesData.value.push({
-//                     startPoint: prevLineData.peek(),
-//                     endPoint: lineStartPoint,
-//                     toolItemNo: 1
-//                 })
-//                 drawTrendLines(obj);
-//                 prevLineData.value = null;
-//                 prevSelectedCanvas.value = null;
-//                 selectedTool.value = 'Cursor';
-//             }
-//         })
-//     } else {
-//         const ctx = canvas.getContext("2d");
-//         ctx.font = "12px Arial";
-//         ctx.fillStyle = 'White';
-//         ctx.strokeStyle = "blue";
-//         ctx.beginPath();
-//         ctx.arc(x, y, 5, 0, 2 * Math.PI);
-//         ctx.fill();
-//         ctx.stroke();
-//         prevLineData.value = lineStartPoint;
-//         prevSelectedCanvas.value = canvas;
-//     }
-// }
+export const setRayLine = (e, state) => {
+    const { chartCanvasSize, data, yAxisRange, ChartRef } = state;
+    const { dateConfig, xAxisConfig, timeRange, selectedTool, selectedToolItem } = state.ChartWindow;
+    const canvas = ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = e.pageX - rect.left;
+    const y = e.pageY - rect.top;
+    const dateIndex = Math.floor(
+        (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
+    );
+    const firstIndex =
+        dateConfig.peek().dateToIndex[
+        getObjtoStringTime(timeRange.peek().startTime)
+        ];
+    const cursordata = data.peek()[0][firstIndex - dateIndex];
+    let price =
+        yAxisRange.peek().minPrice +
+        ((chartCanvasSize.peek().height - y) *
+            (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
+        chartCanvasSize.peek().height;
+    if (price > yAxisRange.peek().maxPrice) {
+        price = yAxisRange.peek().maxPrice;
+    } else if (price < yAxisRange.peek().minPrice) {
+        price = yAxisRange.peek().minPrice;
+    }
+    const priceText = price.toFixed(2);
+    const lineStartPoint = {
+        xLabel: cursordata.Date,
+        yLabel: priceText,
+    }
+    if (prevLineData.peek() !== null) {
+        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+            if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+                obj.trendLinesData.value.push({
+                    startPoint: prevLineData.peek(),
+                    endPoint: lineStartPoint,
+                    toolItemNo: 1
+                })
+                drawTrendLines(obj);
+                prevLineData.value = null;
+                prevSelectedCanvas.value = null;
+                selectedTool.value = 'Cursor';
+            }
+        })
+    } else {
+        const ctx = canvas.getContext("2d");
+        ctx.font = "12px Arial";
+        ctx.fillStyle = 'White';
+        ctx.strokeStyle = "blue";
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
+        prevLineData.value = lineStartPoint;
+        prevToolItemNo.value = 1;
+        prevSelectedCanvas.value = canvas;
+    }
+}

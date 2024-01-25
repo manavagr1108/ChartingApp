@@ -580,7 +580,6 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
     const ctx = canvas.getContext("2d");
     const ctx1 = canvas1.getContext("2d");
     const lineData = trendLinesData.peek()[i];
-    console.log(lineData);
     const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.startPoint.xLabel];
     const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.endPoint.xLabel];
     const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
@@ -589,11 +588,13 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
     const startYCoord = getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     switch (lineData.toolItemNo) {
-        case 0: drawTrendLineUsingPoints(ctx, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1);
+        case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
+        case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
     }
 }
 
-export const drawTrendLineUsingPoints = (ctx, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+export const drawTrendLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+    const ctx = canvas.getContext("2d");
     ctx1 = ctx1 === null ? ctx : ctx1;
     ctx.strokeStyle = "Black";
     ctx.beginPath();
@@ -615,6 +616,25 @@ export const drawTrendLineUsingPoints = (ctx, startCoords, endCoords, lineSelect
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
+}
+export const drawRayLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+    const ctx = canvas.getContext('2d');
+    ctx1 = ctx1 === null ? ctx : ctx1;
+    const slope = (endCoords.y - startCoords.y) / (endCoords.x - startCoords.x);
+    const constant = endCoords.y - (slope * endCoords.x);
+    const newEndYCoord = endCoords.x > startCoords.x ? slope * canvas.width + constant : slope * 0 + constant;
+    const newEndXCoord = (newEndYCoord - constant) / slope;
+    if (ctx1 !== null) {
+        ctx1.fillStyle = "White";
+        ctx1.strokeStyle = "blue";
+        ctx1.beginPath();
+        ctx1.arc(endCoords.x, endCoords.y, 5, 0, 2 * Math.PI);
+        ctx1.fill();
+        ctx1.stroke();
+        ctx1.strokeStyle = "black";
+        ctx1.fillStyle = "black";
+    }
+    drawTrendLineUsingPoints(canvas, startCoords, { x: newEndXCoord, y: newEndYCoord }, lineSelected, ctx1);
 }
 
 
