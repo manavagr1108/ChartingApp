@@ -25,7 +25,7 @@ import {
 import { drawLinesData, prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
 import { effect } from "@preact/signals-react";
 import { detectTrendLine, setTool, setTrendLine } from "./trendLineUtils";
-import { drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
+import { drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
 
 export async function getStockDataCallback(
   symbol,
@@ -123,6 +123,7 @@ export function handleOnMouseMove(e, state) {
       switch (prevToolItemNo.peek()) {
         case 0: drawTrendLineUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
         case 1: drawRayLineUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
+        case 2: drawInfoLineUsingPoints(state, prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
       }
     }
   } else {
@@ -277,6 +278,7 @@ export function updateCursorValue(state, mode) {
       switch (chartMovement.peek().itemData.toolItemNo) {
         case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
         case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+        case 2: drawInfoLineUsingPoints(drawChartobj, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
       }
     }
   });
