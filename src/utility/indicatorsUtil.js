@@ -24,6 +24,7 @@ export function calculateSMA(data, period) {
 }
 
 export function calculateEMA(data, period) {
+  period = parseInt(period);
   const emaValues = [];
   const multiplier = 2 / (period + 1);
   for (let i = 0; i < period - 1; i++) {
@@ -493,12 +494,12 @@ export const calculateVortex = (data, indicator) => {
 
     vortexPlus.push({ Date: data[i].Date, Close: VIPlus });
     vortexMinus.push({ Date: data[i].Date, Close: VIMinus });
-    if(i !== data.length - 1){
-      sumTR = (sumTR - TR[i-period].Close + TR[i+1].Close);
-      sumVMPlus = (sumVMPlus - VMPlus[i-period].positiveMovement + VMPlus[i+1].positiveMovement);
-      sumVMMinus = (sumVMMinus - VMMinus[i-period].negativeMovement + VMMinus[i+1].negativeMovement);
+    if (i !== data.length - 1) {
+      sumTR = (sumTR - TR[i - period].Close + TR[i + 1].Close);
+      sumVMPlus = (sumVMPlus - VMPlus[i - period].positiveMovement + VMPlus[i + 1].positiveMovement);
+      sumVMMinus = (sumVMMinus - VMMinus[i - period].negativeMovement + VMMinus[i + 1].negativeMovement);
     }
-    
+
   }
   return [vortexPlus, vortexMinus];
 }
@@ -560,7 +561,6 @@ export function drawRSIIndicatorChart(state, mode) {
     .slice(startIndex, endIndex + 1)
     .reverse();
   if (Indicator.peek().indicatorOptions.peek().label === "Relative Strength Index") {
-    console.log("Called");
     ctx.beginPath();
     const y30RSI = getYCoordinate(
       30,

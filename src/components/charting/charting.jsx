@@ -8,6 +8,7 @@ import {
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
+import EditSelectedItem from "../EditItem/editSelectedItem";
 
 function Charting({ mode, ChartWindow }) {
   const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
@@ -40,7 +41,7 @@ function Charting({ mode, ChartWindow }) {
   });
   return (
     <div
-      className={`flex w-[100%] flex-col border-l-2 ${
+      className={`flex w-[100%] flex-col relative border-l-2 ${
         mode === "Light"
           ? "border-gray-300 bg-gray-100"
           : "border-gray-800  bg-gray-900"
@@ -85,6 +86,7 @@ function Charting({ mode, ChartWindow }) {
           ></canvas>
         </div>
       </div>
+      {/* <EditSelectedItem ChartWindow={ChartWindow} mode={mode} /> */}
       <div className="w-full h-[5%]"></div>
     </div>
   );

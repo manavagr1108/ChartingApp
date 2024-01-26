@@ -1,5 +1,6 @@
 import { signal } from "@preact/signals-react";
-import { drawChart, setCanvasSize } from "../utility/chartUtils";
+import { setCanvasSize } from "../utility/chartUtils";
+import { drawChart } from "../utility/drawUtils";
 import { getMinMaxPrices, priceToColMap } from "../utility/yAxisUtils";
 import { getObjtoStringTime } from "../utility/xAxisUtils";
 
@@ -34,12 +35,17 @@ class DrawChart{
       mouseMove: false,
       prevXCoord: 0,
       prevYCoord: 0,
+      isItem: false,
+      itemData: signal({})
     });
     this.data = signal([]);
     this.ChartWindow = ChartWindow;
     this.drawChartFunction = drawChart;
     this.isIndicator = signal(false);
     this.Indicator = signal(null);
+
+    // trend lines data;
+    this.trendLinesData = signal([]);
   }
   #setData(data) {
     this.data.value = data;

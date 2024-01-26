@@ -1,14 +1,19 @@
 import React from "react";
+import ToolbarItems from "./toolbarItems";
 
-function ToolBar({ mode }) {
+function ToolBar({ mode, ChartWindow }) {
   return (
     <div
-      className={`flex justify-center items-center border-b-2 ${
+      className={`flex flex-col w-full justify-start items-center border-b-2 ${
         mode === "Light"
           ? "border-gray-300 bg-gray-100"
           : "border-gray-800  bg-gray-900"
       }`}
-    ></div>
+    >
+      <div className="flex items-center justify-start group relative mt-1">
+        <ToolbarItems mode={mode} ChartWindow={ChartWindow} />
+      </div>
+    </div>
   );
 }
 

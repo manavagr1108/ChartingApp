@@ -60,14 +60,12 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   });
   // draw chart
   effect(() => {
-    // if(state.isIndicator.peek()){
-    //   console.log(state.isIndicator.peek(), ChartWindow);
-    // }
     if (
-      ChartWindow.timeRange.value.endTime.Date !== 0 &&
-      ChartWindow.timeRange.value.startTime.Date !== 0 &&
-      ChartWindow.chartType.value &&
-      ChartWindow.onChartIndicatorSignal.value
+      state.trendLinesData.value &&
+      state.ChartWindow.timeRange.value.endTime.Date !== 0 &&
+      state.ChartWindow.timeRange.value.startTime.Date !== 0 &&
+      state.ChartWindow.chartType.value &&
+      state.ChartWindow.onChartIndicatorSignal.value
     ) {
       if (
         state.ChartRef.current[0] !== null &&

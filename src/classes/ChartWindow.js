@@ -53,7 +53,13 @@ class ChartWindow {
     this.interval = signal("1d");
     this.chartType = signal("Candles");
     this.selectedStock = signal("AAPL");
-    this.mode = signal("")
+    this.mode = signal("");
+
+    //tool bar signals;
+    this.selectedTool = signal("Cursor");
+    this.selectedToolItem = signal(0);
+    this.selectedCursor = signal(0);
+    this.selectedItem = signal(null);
   }
   setXAxisCanvas() {
     this.xAxisCanvasSize.value = setCanvasSize(this.xAxisRef.current[0]);
