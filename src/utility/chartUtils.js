@@ -133,7 +133,7 @@ export function handleOnMouseMove(e, state) {
           case 3: drawExtendedLineUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
         } break;
         case 'Fib': switch (prevToolItemNo.peek()) {
-          case 0: drawFibUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, true); break;
+          case 0: drawFibUsingPoints(prevSelectedCanvas.peek(), { x: prevXCoord, y: prevYCoord }, { x, y }, false, true); break;
         }break;
       }
     }
@@ -286,12 +286,18 @@ export function updateCursorValue(state, mode) {
     ctx.setLineDash([]);
     if (chartMovement.peek().isItem && chartMovement.peek().itemData?.startXCoord !== undefined) {
       const { startXCoord, endXCoord, startYCoord, endYCoord, toolItemNo, toolName } = chartMovement.peek().itemData;
-      switch (toolItemNo) {
-        case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
-        case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
-        case 2: drawInfoLineUsingPoints(drawChartobj, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
-        case 3: drawExtendedLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+      switch (toolName) {
+        case 'Line' : switch (toolItemNo) {
+          case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+          case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+          case 2: drawInfoLineUsingPoints(drawChartobj, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+          case 3: drawExtendedLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
+        } break;
+        case 'Fib' : switch (toolItemNo) {
+          case 0: drawFibUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, false, true, ctx); break;
+        }
       }
+      
     }
   });
 }
@@ -327,7 +333,7 @@ export const chartMouseDown = (e, state) => {
   if (selectedTool.peek() !== 'Cursor') {
     setTool(e, state);
   } else if (selectedEle !== null) {
-    switch (selectedEle.toolName){
+    switch (selectedEle.toolName) {
       case 'Line': selectedItem.value = trendLinesData.peek()[selectedEle.index]; break
       case 'Fib': selectedItem.value = fibData.peek()[selectedEle.index]; break
     }
@@ -335,21 +341,31 @@ export const chartMouseDown = (e, state) => {
       prevLineData.value = selectedEle.startPoint;
       prevToolItemNo.value = selectedEle.toolItemNo;
       prevSelectedCanvas.value = ChartRef.current[1];
-      trendLinesData.value = trendLinesData.peek().filter((ele, i) => i !== selectedEle.index);
       selectedTool.value = selectedEle.toolName;
-      switch (selectedEle.toolName){
-        case 'Line': drawTrendLines(state); break
-        case 'Fib': drawFibs(state); break
+      switch (selectedEle.toolName) {
+        case 'Line': {
+          trendLinesData.value = trendLinesData.peek().filter((ele, i) => i !== selectedEle.index);
+          drawTrendLines(state); break
+        }
+        case 'Fib': {
+          fibData.value = fibData.peek().filter((ele, i) => i !== selectedEle.index);
+          drawFibs(state); break
+        }
       }
     } else if (selectedEle.startPoint === null) {
       prevLineData.value = selectedEle.endPoint;
       prevToolItemNo.value = selectedEle.toolItemNo;
       prevSelectedCanvas.value = ChartRef.current[1];
-      trendLinesData.value = trendLinesData.peek().filter((ele, i) => i !== selectedEle.index);
       selectedTool.value = selectedEle.toolName;
-      switch (selectedEle.toolName){
-        case 'Line': drawTrendLines(state); break
-        case 'Fib': drawFibs(state); break
+      switch (selectedEle.toolName) {
+        case 'Line': {
+          trendLinesData.value = trendLinesData.peek().filter((ele, i) => i !== selectedEle.index);
+          drawTrendLines(state); break
+        }
+        case 'Fib': {
+          fibData.value = fibData.peek().filter((ele, i) => i !== selectedEle.index);
+          drawFibs(state); break
+        }
       }
     } else {
       chartMovement.value.isItem = true;
@@ -431,15 +447,25 @@ export const chartMouseMove = (e, state) => {
       const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
       chartMovement.value.mouseMove = true;
       drawChartObjects.peek().forEach((obj) => {
-        const { trendLinesData } = obj;
-        trendLinesData.peek().forEach((trendLine, i) => {
-          if (trendLine === selectedItem.peek()) {
-            trendLinesData.value = trendLinesData
-              .peek()
-              .filter((_, j) => i !== j);
-            return;
-          }
-        });
+        const { trendLinesData, fibData } = obj;
+        switch (chartMovement.peek().itemData.toolName) {
+          case 'Line': trendLinesData.peek().forEach((trendLine, i) => {
+            if (trendLine === selectedItem.peek()) {
+              trendLinesData.value = trendLinesData
+                .peek()
+                .filter((_, j) => i !== j);
+              return;
+            }
+          }); break;
+          case 'Fib': fibData.peek().forEach((fib, i) => {
+            if (fib === selectedItem.peek()) {
+              fibData.value = fibData
+                .peek()
+                .filter((_, j) => i !== j);
+              return;
+            }
+          }); break;
+        }
       });
       chartMovement.value.itemData = {
         ...chartMovement.value.itemData,
@@ -466,7 +492,7 @@ export const chartMouseMove = (e, state) => {
   }
 };
 export const chartMouseUp = (e, state) => {
-  const { chartMovement, trendLinesData, chartCanvasSize, yAxisRange, data } = state;
+  const { chartMovement, trendLinesData, chartCanvasSize, yAxisRange, data, fibData } = state;
   const { xAxisConfig, dateConfig, timeRange } = state.ChartWindow;
   if (!chartMovement.peek().mouseMove && chartMovement.peek().mouseDown) {
     e.target.classList.remove("cursor-grabbing");
@@ -479,7 +505,8 @@ export const chartMouseUp = (e, state) => {
       endXCoord,
       startYCoord,
       endYCoord,
-      toolItemNo
+      toolItemNo,
+      toolName
     } = chartMovement.peek().itemData;
     const x1 = startXCoord;
     const y1 = startYCoord;
@@ -515,12 +542,24 @@ export const chartMouseUp = (e, state) => {
       xLabel: cursordata2.Date,
       yLabel: price2.toFixed(2),
     }
-    trendLinesData.value.push({
-      startPoint: lineStartPoint,
-      endPoint: lineEndPoint,
-      toolItemNo: toolItemNo
-    })
-    drawTrendLines(state);
+    switch (toolName) {
+      case 'Line': {
+        trendLinesData.value.push({
+          startPoint: lineStartPoint,
+          endPoint: lineEndPoint,
+          toolItemNo: toolItemNo
+        })
+        drawTrendLines(state);
+      } break;
+      case 'Fib': {
+        fibData.value.push({
+          startPoint: lineStartPoint,
+          endPoint: lineEndPoint,
+          toolItemNo: toolItemNo
+        })
+        drawFibs(state, true, true);
+      }
+    }
   }
   if (chartMovement.peek().mouseMove) {
     e.target.classList.remove("cursor-grabbing");

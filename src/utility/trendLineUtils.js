@@ -84,6 +84,55 @@ export const isCursorOnLine = (e, lineData, state) => {
     }
 }
 
+export const isCursorOnFibLine = (e, fibData, state) => {
+    let {
+        startXCoord,
+        endXCoord,
+        startYCoord,
+        endYCoord
+    } = fibData;
+    if (startYCoord < endYCoord) {
+        const temp = startYCoord;
+        startYCoord = endYCoord;
+        endYCoord = temp;
+    }
+    if (startXCoord > endXCoord) {
+        const temp = startXCoord;
+        startXCoord = endXCoord;
+        endXCoord = temp;
+    }
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    const fibValues = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+    let result = 0;
+    let prevY = 0;
+    fibValues.forEach((val) => {
+        const yi = Math.abs(val * (endYCoord - startYCoord));
+        if(x < startXCoord || x > endXCoord) return 0;
+        for (let i = -5; i <= 5; i++) {
+            if (parseInt(y) + i === parseInt(prevY + endYCoord)) {
+                result = 1;
+            }
+            prevY = yi;
+        }
+
+    })
+    return result;
+}
+
+export const isCursorFib = (e, fibData, state) => {
+    const { toolItemNo } = fibData;
+    switch (toolItemNo) {
+        case 0: {
+            const onDiagonal = isCursorOnTrendLine(e, fibData, state);
+            if(onDiagonal !== 0) return onDiagonal;
+            return isCursorOnFibLine(e, fibData, state);
+        }
+    }
+}
+
 export const detectTrendLine = (e, state) => {
     const { chartCanvasSize, yAxisRange, trendLinesData, fibData } = state;
     const { dateConfig, xAxisConfig, timeRange, selectedCursor } = state.ChartWindow;
@@ -158,7 +207,7 @@ export const detectTrendLine = (e, state) => {
         const startYCoord = -5 + getYCoordinate(fib.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
         const endYCoord = 5 + getYCoordinate(fib.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
         const toolItemNo = fib.toolItemNo;
-        const online = isCursorOnLine(e, {
+        const online = isCursorFib(e, {
             startXCoord,
             endXCoord,
             startYCoord,
@@ -168,7 +217,7 @@ export const detectTrendLine = (e, state) => {
         if (online === 1) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
             canvas.classList.add("cursor-pointer");
-            drawFib(state, i, true);
+            drawFib(state, i, true, true);
             returnVal = {
                 ...fib,
                 index: i,
@@ -180,7 +229,7 @@ export const detectTrendLine = (e, state) => {
         if (online === 2 || online === 3) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
             canvas.classList.add("cursor-default");
-            drawFib(state, i, true);
+            drawFib(state, i, true, true);
             if (online == 2) {
                 returnVal = {
                     startPoint: null,
@@ -308,7 +357,7 @@ export const setFibTool = (e, state) => {
                     endPoint: lineStartPoint,
                     toolItemNo: selectedToolItem.peek(),
                 })
-                drawFibs(obj);
+                drawFibs(obj, true, false);
                 prevLineData.value = null;
                 prevToolItemNo.value = null;
                 prevSelectedCanvas.value = null;

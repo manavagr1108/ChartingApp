@@ -62,6 +62,7 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   effect(() => {
     if (
       state.trendLinesData.value &&
+      state.fibData.value &&
       state.ChartWindow.timeRange.value.endTime.Date !== 0 &&
       state.ChartWindow.timeRange.value.startTime.Date !== 0 &&
       state.ChartWindow.chartType.value &&
