@@ -1,5 +1,5 @@
 # Use an official Node.js runtime as a parent image
-FROM node:16
+FROM node:16 as build
 
 # Set the working directory in the container
 WORKDIR /app
@@ -10,11 +10,17 @@ COPY package*.json ./
 # Install app dependencies
 RUN npm install
 
-# Copy the rest of your application code to the working directory
+# Copy the rest of your application code to the working directorys
 COPY . .
 
 # Expose a port to communicate with the React app
-EXPOSE 5173
+EXPOSE 3000
 
 # Start your React app
-CMD ["npm", "run", "dev"]
+run npm run build
+
+FROM nginx
+COPY ./nginx/nginx.conf /etc/nginx/nginx.conf
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# CMD ["nginx", "-g", "daemon off;"]

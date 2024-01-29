@@ -8,7 +8,6 @@ import {
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
-import EditSelectedItem from "../EditItem/editSelectedItem";
 
 function Charting({ mode, ChartWindow }) {
   const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;

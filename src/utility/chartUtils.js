@@ -71,7 +71,7 @@ export function setCanvasSize(element) {
 
 export function handleOnMouseMove(e, state) {
   const { chartCanvasSize, data, yAxisRange } = state;
-  const { dateCursor, xAxisConfig, dateConfig, timeRange, selectedTool } = state.ChartWindow;
+  const { dateCursor, xAxisConfig, dateConfig, timeRange, selectedTool, selectedStock } = state.ChartWindow;
   if (data.peek()[0] === undefined) return;
   const canvas = e.target;
   const rect = canvas.getBoundingClientRect();
@@ -95,7 +95,7 @@ export function handleOnMouseMove(e, state) {
     if (cursordata?.Low !== undefined && cursordata?.High !== null) {
       dateCursor.value = {
         date: cursordata.Date,
-        text: `${cursordata.Date} Open: ${cursordata.Open.toFixed(
+        text: `${selectedStock.peek()} ${cursordata.Date} Open: ${cursordata.Open.toFixed(
           2
         )} High: ${cursordata.High.toFixed(2)} Low: ${cursordata.Low.toFixed(
           2
@@ -258,7 +258,7 @@ export function updateCursorValue(state, mode) {
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
-      ctx.fillText(dateCursor.peek().text, 50, 20);
+      ctx.fillText(dateCursor.peek().text, 20, 20);
       // Draw on YAxis
       yAxisCtx.fillRect(
         0,

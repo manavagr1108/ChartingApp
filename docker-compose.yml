@@ -1,0 +1,12 @@
+version: "3.9"
+
+services:
+    server:
+        container_name: chartcraft
+        image: chartcraft:prod
+        build:
+            context: .
+            # target: prod
+        ports:
+            - 3000:3000
+        restart: always

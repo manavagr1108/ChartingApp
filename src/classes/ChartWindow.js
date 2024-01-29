@@ -52,7 +52,7 @@ class ChartWindow {
     this.drawChartObjects = signal([]);
     this.interval = signal("1d");
     this.chartType = signal("Candles");
-    this.selectedStock = signal("AAPL");
+    this.selectedStock = signal("INFY.NS");
     this.mode = signal("");
 
     //tool bar signals;
