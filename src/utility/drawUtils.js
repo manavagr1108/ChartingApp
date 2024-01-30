@@ -3,10 +3,7 @@ import {
     indicatorConfig,
 } from "../config/indicatorsConfig";
 import { calculateAlligator, calculateBB, calculateDonchainChannels, calculateDoubleEMA, calculateEMA, calculateEnvelope, calculateIchimokuCloud, calculateKeltnerChannels, calculateParabolicSAR, calculateSMA, calculateSuperTrend, calculateTripleEMA, calculateZigZag } from "./indicatorsUtil";
-import { getStockData } from "./stock_api";
 import {
-    getNewScrollTime,
-    getNewZoomTime,
     getObjtoStringTime,
     getXCoordinate,
 } from "./xAxisUtils";
@@ -16,7 +13,6 @@ import {
     drawYAxis,
     getYCoordinate,
 } from "./yAxisUtils";
-import { drawLinesData, prevLineData, prevSelectedCanvas, selectedLine } from "../signals/toolbarSignals";
 
 export function drawChart(state, mode) {
     const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
@@ -69,12 +65,72 @@ export function drawChart(state, mode) {
         .reverse();
     ctx.beginPath();
     resultData.forEach((d, i) => {
+        if (i === 0 && endIndex <= data.peek()[0].length - 3) {
+            i = i - 1;
+            d = data.peek()[0][endIndex + 1];
+            const xCoord =
+                chartCanvasSize.peek().width -
+                i * xAxisConfig.peek().widthOfOneCS -
+                xAxisConfig.peek().widthOfOneCS / 2 -
+                timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+            if (
+                i < resultData.length - 1 &&
+                d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
+            ) {
+                const currentMonth = parseInt(d.Date.split("-")[1]);
+                const currentYear = parseInt(d.Date.split("-")[0]);
+                xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+                if (currentMonth === 1) {
+                    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+                        }`;
+                    ctx.beginPath();
+                    ctx.strokeStyle = lineColor;
+                    ctx.moveTo(xCoord, 0);
+                    ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+                    ctx.stroke();
+                    xAxisCtx.fillText(currentYear, xCoord - 10, 12);
+                } else {
+                    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+                        }`;
+                    ctx.beginPath();
+                    ctx.strokeStyle = lineColor;
+                    ctx.moveTo(xCoord, 0);
+                    ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+                    ctx.stroke();
+                    xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+                }
+            }
+            if (chartType.peek() === "Candles") {
+                drawCandleStick(
+                    d,
+                    yAxisRange.peek().minPrice,
+                    yAxisRange.peek().maxPrice,
+                    chartCanvasSize.peek().height,
+                    xCoord,
+                    ctx,
+                    xAxisConfig.peek().widthOfOneCS - 2
+                );
+            } else if (chartType.peek() === "Line") {
+                ctx.strokeStyle = "rgba(0,0,255,0.9)";
+                prev = drawLineChart(
+                    d,
+                    yAxisRange.peek().minPrice,
+                    yAxisRange.peek().maxPrice,
+                    chartCanvasSize.peek().height,
+                    xCoord,
+                    ctx,
+                    prev
+                );
+            }
+            i = 0;
+            d = resultData[0];
+        }
         const xCoord =
             chartCanvasSize.peek().width -
             i * xAxisConfig.peek().widthOfOneCS -
             xAxisConfig.peek().widthOfOneCS / 2 -
             timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
-        if (xCoord < 0) {
+        if (xCoord < - 2 * xAxisConfig.widthOfOneCS) {
             return;
         }
         if (
