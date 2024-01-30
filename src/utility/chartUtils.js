@@ -83,9 +83,12 @@ export function handleOnMouseMove(e, state) {
     y >= 0 &&
     y <= chartCanvasSize.peek().height
   ) {
-    const dateIndex = Math.floor(
+    let dateIndex = Math.round(
       (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
     );
+    if(dateIndex * xAxisConfig.peek().widthOfOneCS > chartCanvasSize.peek().width - x){
+      dateIndex-=1;
+    }
     const firstIndex =
       dateConfig.peek().dateToIndex[
         getObjtoStringTime(timeRange.peek().startTime)
