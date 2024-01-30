@@ -79,7 +79,8 @@ function Indicators({ mode, ChartWindow }) {
               property === "label" ||
               property === "chartRequired" ||
               property === "drawChartFunction" ||
-              property === "getChartData"
+              property === "getChartData" ||
+              property === "name"
             )
               return null;
 

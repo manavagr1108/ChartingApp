@@ -49,6 +49,7 @@ class ChartWindow {
     this.stockData = signal([]);
     this.offChartIndicatorSignal = signal([]);
     this.onChartIndicatorSignal = signal([]);
+    this.onChartIndicatorData = signal([]);
     this.drawChartObjects = signal([]);
     this.interval = signal("1d");
     this.chartType = signal("Candles");

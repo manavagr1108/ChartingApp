@@ -7,7 +7,8 @@ import {
   getYCoordinate,
 } from "./yAxisUtils";
 
-export function calculateSMA(data, period) {
+export function calculateSMA(data, indicator) {
+  const { period } = indicator;
   const smaValues = [];
   for (let i = 0; i < period - 1; i++) {
     smaValues.push({ Date: data[i].Date, Close: 0 });
@@ -38,7 +39,9 @@ export const calculateSMAHighLowAvg = (data, period) => {
   return smaHighLowValues;
 };
 
-export function calculateEMA(data, period) {
+export function calculateEMA(data, indicator) {
+  console.log("Called");
+  let { period } = indicator;
   period = parseInt(period);
   const emaValues = [];
   const multiplier = 2 / (period + 1);
@@ -58,7 +61,8 @@ export function calculateEMA(data, period) {
   return emaValues;
 }
 
-export function calculateZigZag(data, deviation, pivotLegs) {
+export function calculateZigZag(data, indicator) {
+  const { deviation, pivotLegs } = indicator;
   let trend = null;
   let lastPivotPrice = data[0].Close;
   let lastPivotIndex = 0;
@@ -169,8 +173,8 @@ export const calculateRSI = (data, indicator) => {
 
 export const calculateMACD = (data, indicator) => {
   const { fastPeriod, slowPeriod, signalPeriod } = indicator;
-  const fastEMA = calculateEMA(data, fastPeriod);
-  const slowEMA = calculateEMA(data, slowPeriod);
+  const fastEMA = calculateEMA(data, { period: fastPeriod });
+  const slowEMA = calculateEMA(data, { period: slowPeriod });
   const macdValues = [];
 
   const minMACDValues = Math.min(fastEMA.length, slowEMA.length);
@@ -182,7 +186,7 @@ export const calculateMACD = (data, indicator) => {
     });
   }
 
-  const signalEMA = calculateEMA(macdValues, signalPeriod);
+  const signalEMA = calculateEMA(macdValues, { period: signalPeriod });
 
   const minHistogramValue = Math.min(signalEMA.length, macdValues.length);
 
@@ -197,7 +201,8 @@ export const calculateMACD = (data, indicator) => {
   return [macdValues, signalEMA, histogramValues];
 };
 
-export const calculateParabolicSAR = (data, acceleration, maximum) => {
+export const calculateParabolicSAR = (data, indicator) => {
+  const { acceleration, maximum } = indicator;
   const sarValues = [];
   let trend = "up";
   let ep = data[0].Low;
@@ -251,9 +256,10 @@ export const calculateParabolicSAR = (data, acceleration, maximum) => {
   }
   return sarValues;
 };
-export const calculateBB = (data, period, stdDev) => {
+export const calculateBB = (data, indicator) => {
+  const { period, stdDev } = indicator
   const BB = [];
-  function calculateSMA(data, period) {
+  function calculateSMA(data, { period }) {
     return data.reduce((acc, val, index) => {
       if (index < period - 1) {
         acc.push({ Date: val.Date, Close: 0 }); // Placeholder for incomplete data
@@ -285,7 +291,7 @@ export const calculateBB = (data, period, stdDev) => {
   }
 
   // Step 3: Calculate Bollinger Bands
-  const sma = calculateSMA(data, period);
+  const sma = calculateSMA(data, { period });
   const stdDeviation = calculateStandardDeviation(data, period, sma);
   sma.forEach((avg, index) => {
     sma[index] = {
@@ -300,7 +306,7 @@ export const calculateBB = (data, period, stdDev) => {
 
 export const calculateBBW = (data, indicator) => {
   const { period, stdDev } = indicator;
-  const BBData = calculateBB(data, period, stdDev);
+  const BBData = calculateBB(data, indicator);
   const BBW = [];
   BBData.forEach((bb, i) => {
     if (i < period) {
@@ -315,10 +321,11 @@ export const calculateBBW = (data, indicator) => {
   return [BBW];
 };
 
-export const calculateKeltnerChannels = (data, period, multiplier) => {
+export const calculateKeltnerChannels = (data, indicator) => {
+  const { period, multiplier } = indicator;
   const keltnerChannelsValues = [];
   const atr = calculateATR(data, period);
-  const sma = calculateSMA(data, period);
+  const sma = calculateSMA(data, { period });
   for (let i = 0; i < data.length; i++) {
     const upper = sma[i].Close + multiplier * atr[i].Close;
     const lower = sma[i].Close - multiplier * atr[i].Close;
@@ -332,7 +339,8 @@ export const calculateKeltnerChannels = (data, period, multiplier) => {
   return keltnerChannelsValues;
 };
 
-export const calculateDonchainChannels = (data, period) => {
+export const calculateDonchainChannels = (data, indicator) => {
+  const { period } = indicator
   const donchianChannelsValues = [];
   for (let i = 0; i < data.length; i++) {
     if (i < period - 1) {
@@ -583,10 +591,9 @@ export const calculateSMMA = (data, period) => {
 
 export const calculateAlligator = (
   data,
-  jawPeriod,
-  teethPeriod,
-  lipsPeriod
+  indicator
 ) => {
+  const { jawPeriod, teethPeriod, lipsPeriod } = indicator;
   const alligatorValues = [];
   const jawValues = calculateSMMA(data, jawPeriod);
   const teethValues = calculateSMMA(data, teethPeriod);
@@ -644,7 +651,7 @@ export const calculateStochastic = (data, indicator) => {
     }
   }
 
-  const signal = calculateSMA(stochasticValues, signalPeriod);
+  const signal = calculateSMA(stochasticValues, { period: signalPeriod });
   return [stochasticValues, signal];
 };
 
@@ -686,7 +693,7 @@ export const calculateMomentum = (data, indicator) => {
 
 export const calculateBBP = (data, indicator) => {
   const { period } = indicator;
-  const ema = calculateEMA(data, period);
+  const ema = calculateEMA(data, { period });
   const BBP = [];
   for (let i = 0; i < period; i++) BBP.push({ Date: data[i].Date, Close: 0 });
   for (var i = period; i < data.length; i++) {
@@ -715,9 +722,10 @@ export const calculateAwesomeOscillator = (data, indicator) => {
   return [awesomeValues];
 };
 
-export const calculateEnvelope = (data, period, percentage) => {
+export const calculateEnvelope = (data, indicator) => {
+  const { period, percentage } = indicator;
   const Envelope = [];
-  const sma = calculateSMA(data, period);
+  const sma = calculateSMA(data, { period });
   for (let i = 0; i < period; i++)
     Envelope.push({ Date: data[i].Date, Close: 0, UpperBand: 0, LowerBand: 0 });
   for (var i = period; i < data.length; i++) {
@@ -735,11 +743,9 @@ export const calculateEnvelope = (data, period, percentage) => {
 
 export const calculateIchimokuCloud = (
   data,
-  conversionPeriod,
-  basePeriod,
-  spanBPeriod,
-  laggingSpanPeriod
+  indicator
 ) => {
+  const { conversionPeriod, basePeriod, spanBPeriod, laggingSpanPeriod } = indicator
   const ichimokuCloudValues = [];
   const conversionLine = calculateConversionLine(data, conversionPeriod);
   const baseLine = calculateBaseLine(data, basePeriod);
@@ -899,7 +905,8 @@ export const calculateCCI = (data, indicator) => {
   return [cciValues];
 };
 
-export const calculateSuperTrend = (data, period, multiplier) => {
+export const calculateSuperTrend = (data, indicator) => {
+  const { period, multiplier } = indicator;
   const superTrendValues = [];
   const atr = calculateATR(data, period);
 
@@ -1026,9 +1033,10 @@ export const calculateWilliamsR = (data, indicator) => {
   return [williamsRValues];
 };
 
-export const calculateDoubleEMA = (data, period) => {
-  const ema = calculateEMA(data, period);
-  const emaOfEma = calculateEMA(ema, period);
+export const calculateDoubleEMA = (data, indicator) => {
+  const {period} = indicator;
+  const ema = calculateEMA(data, { period });
+  const emaOfEma = calculateEMA(ema, { period });
   const doubleEMA = [];
   for (let i = 0; i < period; i++) {
     doubleEMA.push({ Date: data[i].Date, Close: 0 });
@@ -1041,9 +1049,10 @@ export const calculateDoubleEMA = (data, period) => {
   return doubleEMA;
 };
 
-export const calculateTripleEMA = (data, period) => {
-  const ema = calculateEMA(data, period);
-  const emaOfEma = calculateEMA(ema, period);
+export const calculateTripleEMA = (data, indicator) => {
+  const {period} = indicator;
+  const ema = calculateEMA(data, { period });
+  const emaOfEma = calculateEMA(ema, { period });
   const tripleEMA = [];
   for (let i = 0; i < period; i++) {
     tripleEMA.push({ Date: data[i].Date, Close: 0 });
@@ -1102,7 +1111,7 @@ export function drawRSIIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1165,9 +1174,8 @@ export function drawRSIIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1175,9 +1183,8 @@ export function drawRSIIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1243,7 +1250,7 @@ export function drawMACDIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1281,9 +1288,8 @@ export function drawMACDIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1291,9 +1297,8 @@ export function drawMACDIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1378,7 +1383,7 @@ export function drawVortexIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1412,9 +1417,8 @@ export function drawVortexIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1422,9 +1426,8 @@ export function drawVortexIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1501,7 +1504,7 @@ export function drawBBPIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1531,9 +1534,8 @@ export function drawBBPIndicatorChart(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1541,9 +1543,8 @@ export function drawBBPIndicatorChart(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1609,7 +1610,7 @@ export function drawAwesomeOscillatorIndicator(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1639,9 +1640,8 @@ export function drawAwesomeOscillatorIndicator(state, mode) {
       const currentYear = parseInt(d.Date.split("-")[0]);
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
       if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -1649,9 +1649,8 @@ export function drawAwesomeOscillatorIndicator(state, mode) {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);

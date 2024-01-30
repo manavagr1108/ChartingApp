@@ -190,121 +190,22 @@ export function drawChart(state, mode) {
 
 export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
     const { data } = state;
-    const { onChartIndicatorSignal } = state.ChartWindow;
-    onChartIndicatorSignal.peek().forEach((indicator) => {
-        if (indicator.label === indicatorConfig["SMA"].label) {
-            const smaData = calculateSMA(data.peek()[0], indicator.period);
-            const SMA = smaData
-                .slice(startIndex - indicator.period + 1, endIndex + 1)
-                .reverse();
-            drawSMAIndicator(indicator, ctx, SMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["EMA"].label) {
-            const emaData = calculateEMA(data.peek()[0], indicator.period);
-            const EMA = emaData
-                .slice(startIndex - indicator.period + 1, endIndex + 1)
-                .reverse();
-            drawEMAIndicator(indicator, ctx, EMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["ZigZag"].label) {
+    const { onChartIndicatorSignal, onChartIndicatorData } = state.ChartWindow;
+    onChartIndicatorSignal.peek().forEach((indicator, index) => {
+        if (indicatorConfig[indicator.name] === undefined) return;
+        else if (indicator.label === indicatorConfig["ZigZag"].label) {
             const zigZagData = calculateZigZag(
                 data.peek()[0],
-                indicator.deviation,
-                indicator.pivotLegs
+                indicator
             );
             drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex, state);
         }
-        if (indicator.label === indicatorConfig["ParabolicSAR"].label) {
-            const sarData = calculateParabolicSAR(
-                data.peek()[0],
-                indicator.acceleration,
-                indicator.maximum
-            );
-            const SAR = sarData.slice(startIndex, endIndex + 1).reverse();
-            drawParabolicSAR(indicator, ctx, SAR, mode, state);
-        }
-        if (indicator.label === indicatorConfig["BB"].label) {
-            const bbData = calculateBB(
-                data.peek()[0],
-                indicator.period,
-                indicator.stdDev
-            );
-            const BB = bbData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, BB, mode, state);
-        }
-        if (indicator.label === indicatorConfig["KeltnerChannels"].label) {
-            const KeltnerData = calculateKeltnerChannels(
-                data.peek()[0],
-                indicator.period,
-                indicator.multiplier
-            );
-            const KELTNER = KeltnerData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, KELTNER, mode, state);
-        }
-        if (indicator.label === indicatorConfig["DonchainChannels"].label) {
-            const donchainData = calculateDonchainChannels(
-                data.peek()[0],
-                indicator.period
-            );
-            const DONCHAIN = donchainData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, DONCHAIN, mode, state);
-        }
-        if (indicator.label === indicatorConfig["Alligator"].label) {
-            const alligatorData = calculateAlligator(
-                data.peek()[0],
-                indicator.jawPeriod,
-                indicator.teethPeriod,
-                indicator.lipsPeriod
-            );
-            const ALLIGATOR = alligatorData.slice(startIndex, endIndex + 1).reverse();
-            drawAlligator(indicator, ctx, ALLIGATOR, mode, state);
-        }
-        if (indicator.label === indicatorConfig["Envelope"].label) {
-            const EnvelopeData = calculateEnvelope(
-                data.peek()[0],
-                indicator.period,
-                indicator.percentage
-            );
-            const ENVELOPE = EnvelopeData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, ENVELOPE, mode, state);
-        }
-        if (indicator.label === indicatorConfig["IchimokuCloud"].label) {
-            const IchimokuData = calculateIchimokuCloud(
-                data.peek()[0],
-                indicator.conversionPeriod,
-                indicator.basePeriod,
-                indicator.spanBPeriod,
-                indicator.laggingSpanPeriod
-            );
-            const ICHIMOKU = IchimokuData.slice(startIndex, endIndex + 1).reverse();
-            drawIchimokuIndicator(indicator, ctx, ICHIMOKU, mode, state);
-        }
-        if (indicator.label === indicatorConfig["SuperTrend"].label) {
-            const superTrendData = calculateSuperTrend(
-                data.peek()[0],
-                indicator.period,
-                indicator.multiplier
-            );
-            const SUPER_TREND = superTrendData
+        else {
+            const dataComplete = onChartIndicatorData.peek()[index] === undefined ? (onChartIndicatorData.peek()[index] = indicator.getChartData(data.peek()[0], indicator)) : onChartIndicatorData.peek()[index];
+            const dataToDraw = dataComplete
                 .slice(startIndex, endIndex + 1)
                 .reverse();
-            drawSuperTrend(indicator, ctx, SUPER_TREND, mode, state);
-        }
-        if (indicator.label === indicatorConfig["DoubleEMA"].label) {
-            const doubleEMAData = calculateDoubleEMA(
-                data.peek()[0],
-                indicator.period
-            );
-            const DEMA = doubleEMAData.slice(startIndex, endIndex + 1).reverse();
-            drawEMAIndicator(indicator, ctx, DEMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["TripleEMA"].label) {
-            const tripleEMAData = calculateTripleEMA(
-                data.peek()[0],
-                indicator.period
-            );
-            const TEMA = tripleEMAData.slice(startIndex, endIndex + 1).reverse();
-            drawEMAIndicator(indicator, ctx, TEMA, mode, state);
+            indicator.drawChartFunction(indicator, ctx, dataToDraw, mode, state);
         }
     });
 }
