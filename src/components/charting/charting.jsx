@@ -63,6 +63,7 @@ function Charting({ mode, ChartWindow }) {
             offChartIndicators.map((_, index) => {
               return (
                 <DrawIndicator
+                  key={index}
                   mode={mode}
                   index={index}
                   offChartIndicators={offChartIndicators}
