@@ -1,8 +1,8 @@
-import { monthMap } from "../data/TIME_MAP";
 import {
     indicatorConfig,
 } from "../config/indicatorsConfig";
-import { calculateAlligator, calculateBB, calculateDonchainChannels, calculateDoubleEMA, calculateEMA, calculateEnvelope, calculateIchimokuCloud, calculateKeltnerChannels, calculateParabolicSAR, calculateSMA, calculateSuperTrend, calculateTripleEMA, calculateZigZag } from "./indicatorsUtil";
+import { monthMap } from "../data/TIME_MAP";
+import { calculateZigZag } from "./indicatorsUtil";
 import {
     getObjtoStringTime,
     getXCoordinate,
@@ -294,15 +294,6 @@ export function drawRSIIndicatorChart(state, mode) {
             }
         }
         if (chartType.peek() === "Candles") {
-            // drawCandleStick(
-            //   d,
-            //   yAxisRange.peek().minPrice,
-            //   yAxisRange.peek().maxPrice,
-            //   chartCanvasSize.peek().height,
-            //   xCoord,
-            //   ctx,
-            //   xAxisConfig.peek().widthOfOneCS - 2
-            // );
             ctx.strokeStyle = "rgba(0,0,255,0.9)";
             prev = drawLineChart(
                 d,

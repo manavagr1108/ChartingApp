@@ -1,12 +1,9 @@
-import React, { useEffect, useState, useRef } from "react";
-import { searchSymbol } from "../../utility/stock_api.js";
-import { FaSearch } from "react-icons/fa";
+import React, { useEffect, useRef } from "react";
 import { MdOutlineCandlestickChart, MdOutlineShowChart } from "react-icons/md";
 import { intervalMap } from "../../utility/xAxisUtils.js";
-import { effect } from "@preact/signals-react";
 import DropdownMenu from "../dropdown/dropdownMenu.jsx";
-import SearchBar from "../search_bar/search_bar.jsx";
 import Indicators from "../indicators/indicators.jsx";
+import SearchBar from "../search_bar/search_bar.jsx";
 
 const chartTypes = {
   Candles: <MdOutlineCandlestickChart size={22} />,
