@@ -126,10 +126,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
                             indicators[selectedKey]?.[property]
                           }
                           onChange={(e) =>
-                            handlePropertyInputChange(
-                              property,
-                              parseInt(e.target.value)
-                            )
+                            handlePropertyInputChange(property, parseInt(e.target.value))
                           }
                           className={`w-[180px] h-auto px-2 py-3 ${mode === "Light" ? "bg-gray-200 text-gray-900" : "bg-gray-800 text-gray-100"} rounded-md mr-5`}
                         />
