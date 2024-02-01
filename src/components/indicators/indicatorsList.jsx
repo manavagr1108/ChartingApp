@@ -1,5 +1,5 @@
 import React from "react";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdSettings } from "react-icons/md";
 
 function IndicatorsList({ mode, indicators, ChartWindow }) {
   const {onChartIndicatorSignal, offChartIndicatorSignal, onChartIndicatorData} = ChartWindow;
