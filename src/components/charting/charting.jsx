@@ -1,14 +1,13 @@
-import React, { useState } from "react";
 import { effect } from "@preact/signals-react";
+import React, { useState } from "react";
 import {
+  getStockDataCallback,
   handleOnMouseMove,
   removeCursor,
-  getStockDataCallback,
 } from "../../utility/chartUtils";
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
-import EditSelectedItem from "../EditItem/editSelectedItem";
 
 function Charting({ mode, ChartWindow }) {
   const { xAxisRef, selectedStock, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
@@ -64,6 +63,7 @@ function Charting({ mode, ChartWindow }) {
             offChartIndicators.map((_, index) => {
               return (
                 <DrawIndicator
+                  key={index}
                   mode={mode}
                   index={index}
                   offChartIndicators={offChartIndicators}

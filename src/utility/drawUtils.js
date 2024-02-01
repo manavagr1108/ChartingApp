@@ -1,12 +1,9 @@
-import { monthMap } from "../data/TIME_MAP";
 import {
     indicatorConfig,
 } from "../config/indicatorsConfig";
-import { calculateAlligator, calculateBB, calculateDonchainChannels, calculateDoubleEMA, calculateEMA, calculateEnvelope, calculateIchimokuCloud, calculateKeltnerChannels, calculateParabolicSAR, calculateSMA, calculateSuperTrend, calculateTripleEMA, calculateZigZag } from "./indicatorsUtil";
-import { getStockData } from "./stock_api";
+import { monthMap } from "../data/TIME_MAP";
+import { calculateZigZag } from "./indicatorsUtil";
 import {
-    getNewScrollTime,
-    getNewZoomTime,
     getObjtoStringTime,
     getXCoordinate,
 } from "./xAxisUtils";
@@ -16,7 +13,6 @@ import {
     drawYAxis,
     getYCoordinate,
 } from "./yAxisUtils";
-import { drawLinesData, prevLineData, prevSelectedCanvas, selectedLine } from "../signals/toolbarSignals";
 
 export function drawChart(state, mode) {
     const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
@@ -69,12 +65,72 @@ export function drawChart(state, mode) {
         .reverse();
     ctx.beginPath();
     resultData.forEach((d, i) => {
+        if (i === 0 && endIndex <= data.peek()[0].length - 3) {
+            i = i - 1;
+            d = data.peek()[0][endIndex + 1];
+            const xCoord =
+                chartCanvasSize.peek().width -
+                i * xAxisConfig.peek().widthOfOneCS -
+                xAxisConfig.peek().widthOfOneCS / 2 -
+                timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+            if (
+                i < resultData.length - 1 &&
+                d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
+            ) {
+                const currentMonth = parseInt(d.Date.split("-")[1]);
+                const currentYear = parseInt(d.Date.split("-")[0]);
+                xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+                if (currentMonth === 1) {
+                    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+                        }`;
+                    ctx.beginPath();
+                    ctx.strokeStyle = lineColor;
+                    ctx.moveTo(xCoord, 0);
+                    ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+                    ctx.stroke();
+                    xAxisCtx.fillText(currentYear, xCoord - 10, 12);
+                } else {
+                    const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+                        }`;
+                    ctx.beginPath();
+                    ctx.strokeStyle = lineColor;
+                    ctx.moveTo(xCoord, 0);
+                    ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+                    ctx.stroke();
+                    xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+                }
+            }
+            if (chartType.peek() === "Candles") {
+                drawCandleStick(
+                    d,
+                    yAxisRange.peek().minPrice,
+                    yAxisRange.peek().maxPrice,
+                    chartCanvasSize.peek().height,
+                    xCoord,
+                    ctx,
+                    xAxisConfig.peek().widthOfOneCS - 2
+                );
+            } else if (chartType.peek() === "Line") {
+                ctx.strokeStyle = "rgba(0,0,255,0.9)";
+                prev = drawLineChart(
+                    d,
+                    yAxisRange.peek().minPrice,
+                    yAxisRange.peek().maxPrice,
+                    chartCanvasSize.peek().height,
+                    xCoord,
+                    ctx,
+                    prev
+                );
+            }
+            i = 0;
+            d = resultData[0];
+        }
         const xCoord =
             chartCanvasSize.peek().width -
             i * xAxisConfig.peek().widthOfOneCS -
             xAxisConfig.peek().widthOfOneCS / 2 -
             timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
-        if (xCoord < 0) {
+        if (xCoord < - 2 * xAxisConfig.widthOfOneCS) {
             return;
         }
         if (
@@ -134,121 +190,22 @@ export function drawChart(state, mode) {
 
 export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
     const { data } = state;
-    const { onChartIndicatorSignal } = state.ChartWindow;
-    onChartIndicatorSignal.peek().forEach((indicator) => {
-        if (indicator.label === indicatorConfig["SMA"].label) {
-            const smaData = calculateSMA(data.peek()[0], indicator.period);
-            const SMA = smaData
-                .slice(startIndex - indicator.period + 1, endIndex + 1)
-                .reverse();
-            drawSMAIndicator(indicator, ctx, SMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["EMA"].label) {
-            const emaData = calculateEMA(data.peek()[0], indicator.period);
-            const EMA = emaData
-                .slice(startIndex - indicator.period + 1, endIndex + 1)
-                .reverse();
-            drawEMAIndicator(indicator, ctx, EMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["ZigZag"].label) {
+    const { onChartIndicatorSignal, onChartIndicatorData } = state.ChartWindow;
+    onChartIndicatorSignal.peek().forEach((indicator, index) => {
+        if (indicatorConfig[indicator.name] === undefined) return;
+        else if (indicator.label === indicatorConfig["ZigZag"].label) {
             const zigZagData = calculateZigZag(
                 data.peek()[0],
-                indicator.deviation,
-                indicator.pivotLegs
+                indicator
             );
             drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex, state);
         }
-        if (indicator.label === indicatorConfig["ParabolicSAR"].label) {
-            const sarData = calculateParabolicSAR(
-                data.peek()[0],
-                indicator.acceleration,
-                indicator.maximum
-            );
-            const SAR = sarData.slice(startIndex, endIndex + 1).reverse();
-            drawParabolicSAR(indicator, ctx, SAR, mode, state);
-        }
-        if (indicator.label === indicatorConfig["BB"].label) {
-            const bbData = calculateBB(
-                data.peek()[0],
-                indicator.period,
-                indicator.stdDev
-            );
-            const BB = bbData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, BB, mode, state);
-        }
-        if (indicator.label === indicatorConfig["KeltnerChannels"].label) {
-            const KeltnerData = calculateKeltnerChannels(
-                data.peek()[0],
-                indicator.period,
-                indicator.multiplier
-            );
-            const KELTNER = KeltnerData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, KELTNER, mode, state);
-        }
-        if (indicator.label === indicatorConfig["DonchainChannels"].label) {
-            const donchainData = calculateDonchainChannels(
-                data.peek()[0],
-                indicator.period
-            );
-            const DONCHAIN = donchainData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, DONCHAIN, mode, state);
-        }
-        if (indicator.label === indicatorConfig["Alligator"].label) {
-            const alligatorData = calculateAlligator(
-                data.peek()[0],
-                indicator.jawPeriod,
-                indicator.teethPeriod,
-                indicator.lipsPeriod
-            );
-            const ALLIGATOR = alligatorData.slice(startIndex, endIndex + 1).reverse();
-            drawAlligator(indicator, ctx, ALLIGATOR, mode, state);
-        }
-        if (indicator.label === indicatorConfig["Envelope"].label) {
-            const EnvelopeData = calculateEnvelope(
-                data.peek()[0],
-                indicator.period,
-                indicator.percentage
-            );
-            const ENVELOPE = EnvelopeData.slice(startIndex, endIndex + 1).reverse();
-            drawBB(indicator, ctx, ENVELOPE, mode, state);
-        }
-        if (indicator.label === indicatorConfig["IchimokuCloud"].label) {
-            const IchimokuData = calculateIchimokuCloud(
-                data.peek()[0],
-                indicator.conversionPeriod,
-                indicator.basePeriod,
-                indicator.spanBPeriod,
-                indicator.laggingSpanPeriod
-            );
-            const ICHIMOKU = IchimokuData.slice(startIndex, endIndex + 1).reverse();
-            drawIchimokuIndicator(indicator, ctx, ICHIMOKU, mode, state);
-        }
-        if (indicator.label === indicatorConfig["SuperTrend"].label) {
-            const superTrendData = calculateSuperTrend(
-                data.peek()[0],
-                indicator.period,
-                indicator.multiplier
-            );
-            const SUPER_TREND = superTrendData
+        else {
+            const dataComplete = onChartIndicatorData.peek()[index] === undefined ? (onChartIndicatorData.peek()[index] = indicator.getChartData(data.peek()[0], indicator)) : onChartIndicatorData.peek()[index];
+            const dataToDraw = dataComplete
                 .slice(startIndex, endIndex + 1)
                 .reverse();
-            drawSuperTrend(indicator, ctx, SUPER_TREND, mode, state);
-        }
-        if (indicator.label === indicatorConfig["DoubleEMA"].label) {
-            const doubleEMAData = calculateDoubleEMA(
-                data.peek()[0],
-                indicator.period
-            );
-            const DEMA = doubleEMAData.slice(startIndex, endIndex + 1).reverse();
-            drawEMAIndicator(indicator, ctx, DEMA, mode, state);
-        }
-        if (indicator.label === indicatorConfig["TripleEMA"].label) {
-            const tripleEMAData = calculateTripleEMA(
-                data.peek()[0],
-                indicator.period
-            );
-            const TEMA = tripleEMAData.slice(startIndex, endIndex + 1).reverse();
-            drawEMAIndicator(indicator, ctx, TEMA, mode, state);
+            indicator.drawChartFunction(indicator, ctx, dataToDraw, mode, state);
         }
     });
 }
@@ -337,15 +294,6 @@ export function drawRSIIndicatorChart(state, mode) {
             }
         }
         if (chartType.peek() === "Candles") {
-            // drawCandleStick(
-            //   d,
-            //   yAxisRange.peek().minPrice,
-            //   yAxisRange.peek().maxPrice,
-            //   chartCanvasSize.peek().height,
-            //   xCoord,
-            //   ctx,
-            //   xAxisConfig.peek().widthOfOneCS - 2
-            // );
             ctx.strokeStyle = "rgba(0,0,255,0.9)";
             prev = drawLineChart(
                 d,

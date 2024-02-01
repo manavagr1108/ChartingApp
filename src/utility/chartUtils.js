@@ -1,20 +1,3 @@
-import { monthMap } from "../data/TIME_MAP";
-import { indicatorConfig } from "../config/indicatorsConfig";
-import {
-  calculateBB,
-  calculateEMA,
-  calculateParabolicSAR,
-  calculateSMA,
-  calculateZigZag,
-  calculateDonchainChannels,
-  calculateKeltnerChannels,
-  calculateAlligator,
-  calculateEnvelope,
-  calculateIchimokuCloud,
-  calculateSuperTrend,
-  calculateDoubleEMA,
-  calculateTripleEMA,
-} from "./indicatorsUtil";
 import { getStockData } from "./stock_api";
 import {
   getNewScrollTime,
@@ -23,15 +6,11 @@ import {
   getXCoordinate,
 } from "./xAxisUtils";
 import {
-  drawCandleStick,
-  drawLineChart,
-  drawYAxis,
   getYCoordinate,
 } from "./yAxisUtils";
-import { drawLinesData, prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
-import { effect } from "@preact/signals-react";
-import { detectTrendLine, setTool, setTrendLine } from "./trendLineUtils";
-import { drawExtendedLineUsingPoints, drawFib, drawFibUsingPoints, drawFibs, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
+import { prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
+import { detectTrendLine, setTool } from "./trendLineUtils";
+import { drawExtendedLineUsingPoints, drawFibUsingPoints, drawFibs, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils";
 
 export async function getStockDataCallback(
   symbol,
@@ -83,9 +62,12 @@ export function handleOnMouseMove(e, state) {
     y >= 0 &&
     y <= chartCanvasSize.peek().height
   ) {
-    const dateIndex = Math.floor(
+    let dateIndex = Math.round(
       (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
     );
+    if(dateIndex * xAxisConfig.peek().widthOfOneCS > chartCanvasSize.peek().width - x){
+      dateIndex-=1;
+    }
     const firstIndex =
       dateConfig.peek().dateToIndex[
         getObjtoStringTime(timeRange.peek().startTime)

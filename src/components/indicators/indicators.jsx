@@ -18,16 +18,16 @@ function Indicators({ mode, ChartWindow }) {
 
   const handleKeyClick = (key) => {
     setSelectedKey(key);
+    handlePropertyInputChange(key);
   };
 
-  const handlePropertyInputChange = (property, value) => {
+  const handlePropertyInputChange = (selectedKey, property = null, value = null) => {
     const selectedIndicatorConfig = indicatorConfig[selectedKey];
-    if (!inputValues[selectedKey]) {
+    if (!inputValues[selectedKey] && (property === null || value === null)) {
       setInputValues((prevValues) => ({
         ...prevValues,
         [selectedKey]: {
           ...selectedIndicatorConfig,
-          [property]: value,
         },
       }));
     } else {
@@ -79,7 +79,8 @@ function Indicators({ mode, ChartWindow }) {
               property === "label" ||
               property === "chartRequired" ||
               property === "drawChartFunction" ||
-              property === "getChartData"
+              property === "getChartData" ||
+              property === "name"
             )
               return null;
 
@@ -99,7 +100,7 @@ function Indicators({ mode, ChartWindow }) {
                       type="color"
                       value={inputValues[selectedKey]?.[property] || ""}
                       onChange={(e) =>
-                        handlePropertyInputChange(property, e.target.value)
+                        handlePropertyInputChange(selectedKey, property, e.target.value)
                       }
                       className={`w-[40px] h-[40px] p-[1px] border-2 ${mode === "Light" ? "border-gray-200" : "border-gray-900"} rounded-md`}
                     />
@@ -123,7 +124,7 @@ function Indicators({ mode, ChartWindow }) {
                     type="number"
                     value={inputValues[selectedKey]?.[property] || ""}
                     onChange={(e) =>
-                      handlePropertyInputChange(property, e.target.value)
+                      handlePropertyInputChange(selectedKey, property, e.target.value)
                     }
                     className={`w-[180px] h-auto px-2 py-3 ${mode === "Light" ? "bg-gray-200 text-gray-900" : "bg-gray-800 text-gray-100"} rounded-md mr-5`}
                   />

@@ -1,4 +1,4 @@
-import { effect, signal } from "@preact/signals-react";
+import { signal } from "@preact/signals-react";
 
 export const cursorConfig = ['crosshair', 'default']
 
