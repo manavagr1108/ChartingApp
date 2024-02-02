@@ -1,9 +1,9 @@
 import { useState } from "react";
-import Charting from "../components/charting/charting";
-import NavBar from "../components/nav_bar/nav_bar";
-import StockSelect from "../components/stock_select/stock_select";
-import ToolBar from "../components/tool_bar/tool_bar";
-import useChartWindow from "../hooks/useChartWindow";
+import Charting from "../../components/charting/charting";
+import NavBar from "../../components/nav_bar/nav_bar";
+import StockSelect from "../../components/stock_select/stock_select";
+import ToolBar from "../../components/tool_bar/tool_bar";
+import useChartWindow from "../../hooks/useChartWindow";
 
 function Chart() {
   const [mode, setMode] = useState("Light");

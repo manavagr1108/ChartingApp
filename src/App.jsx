@@ -1,17 +1,17 @@
 import "./App.css";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Chart from "./screens/chart";
-import Login from "./screens/login";
-import Register from "./screens/register";
+import { userRoutes } from "./routes/userRoutes";
 
 function App() {
   return (
     <Router>
       <div>
         <Routes>
-          <Route path="/" element={<Chart />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {userRoutes.map((route, index) => (
+            <Route key={index} path={route.path} element={route.element}>
+              {route.children}
+            </Route>
+          ))}
         </Routes>
       </div>
     </Router>
