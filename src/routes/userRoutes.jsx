@@ -1,6 +1,6 @@
-import Chart from "../pages/user/chart";
-import Login from "../pages/user/login";
-import Register from "../pages/user/register";
+import Chart from "../pages/User/chart";
+import Login from "../pages/User/login";
+import Register from "../pages/User/register";
 
 export const userRoutes = [
   {
