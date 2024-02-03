@@ -110,8 +110,12 @@ function ToolbarItems({ mode, ChartWindow }) {
           color={`${mode === "Light" ? "black" : "white"}`}
           size={20}
         />,
+        <MdOutlineHorizontalSplit
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
       ],
-      toolLabels: ["Fibonacci Retracement"],
+      toolLabels: ["Fibonacci Retracement","Trend Based Fibonacci Retracement"],
       onClickFunction: fibOnClickHandler,
     },
   ];

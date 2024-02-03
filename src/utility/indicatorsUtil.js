@@ -40,7 +40,6 @@ export const calculateSMAHighLowAvg = (data, period) => {
 };
 
 export function calculateEMA(data, indicator) {
-  console.log("Called");
   let { period } = indicator;
   period = parseInt(period);
   const emaValues = [];

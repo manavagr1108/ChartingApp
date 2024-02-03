@@ -845,29 +845,22 @@ export function drawSuperTrend(indicator, ctx, superTrendData, mode, state) {
 }
 
 export const drawTrendLine = (state, i, lineSelected = false) => {
-    const { chartCanvasSize, yAxisRange, trendLinesData, ChartRef } = state;
-    const { dateConfig, xAxisConfig, timeRange } = state.ChartWindow;
+    const { trendLinesData, ChartRef } = state;
     const canvas = ChartRef.current[0];
     const canvas1 = ChartRef.current[1];
     const ctx = canvas.getContext("2d");
     const ctx1 = canvas1.getContext("2d");
     const lineData = trendLinesData.peek()[i];
-    const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[0].xLabel];
-    const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[1].xLabel];
-    const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
-    const startXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
-    const endXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-    const startYCoord = getYCoordinate(lineData.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-    const endYCoord = getYCoordinate(lineData.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+    const points = getCoordsArray(state, lineData.points);
     switch (lineData.toolItemNo) {
-        case 0: drawTrendLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
-        case 1: drawRayLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
-        case 2: drawInfoLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
-        case 3: drawExtendedLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
+        case 0: drawTrendLineUsingPoints(state, canvas, points, lineSelected, ctx1); break;
+        case 1: drawRayLineUsingPoints(state, canvas, points, lineSelected, ctx1); break;
+        case 2: drawInfoLineUsingPoints(state, canvas, points, lineSelected, ctx1); break;
+        case 3: drawExtendedLineUsingPoints(state, canvas, points, lineSelected, ctx1); break;
     }
 }
 
-const getCoordsArray = (state, points) => {
+export const getCoordsArray = (state, points) => {
     const { chartCanvasSize, yAxisRange } = state
     const { timeRange, xAxisConfig, dateConfig } = state.ChartWindow;
     const firstIndex =
@@ -903,7 +896,6 @@ export const drawTrendLineUsingPoints = (state, canvas, points, lineSelected = f
     ctx.moveTo(startCoords.x, startCoords.y);
     ctx.lineTo(endCoords.x, endCoords.y);
     ctx.stroke();
-    ctx.strokeStyle = "Black";
     if (lineSelected) {
         ctx1.fillStyle = "White";
         ctx1.strokeStyle = "blue";
@@ -937,7 +929,7 @@ export const drawRayLineUsingPoints = (state, canvas, points, lineSelected = fal
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
-    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
+    drawTrendLineUsingPoints(state, canvas, [startCoords, { x: newEndXCoord, y: newEndYCoord }], false, ctx1);
 }
 
 export const drawExtendedLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
@@ -964,7 +956,7 @@ export const drawExtendedLineUsingPoints = (state, canvas, points, lineSelected 
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
-    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
+    drawTrendLineUsingPoints(state, canvas, [{ x: newStartXCoord, y: newStartYCoord }, { x: newEndXCoord, y: newEndYCoord }], false, ctx1);
 }
 
 export const drawInfoLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
@@ -1018,6 +1010,7 @@ export const drawFib = (state, i, lineSelected = false, fromDrawChart = false) =
     const lineData = fibData.peek()[i];
     switch (lineData.toolItemNo) {
         case 0: drawFibUsingPoints(state, canvas, lineData.points, lineSelected, fromDrawChart, ctx1); break;
+        case 1: drawTrendFibUsingPoints(state, canvas, lineData.points, lineSelected, fromDrawChart, ctx1); break;
     }
 }
 
@@ -1087,6 +1080,62 @@ export const drawFibUsingPoints = (state, canvas, points, lineSelected = false, 
             ctx.closePath();
             prevY = yi
         })
+    }
+}
+export const drawFibRevUsingPoints = (state, canvas, points, lineSelected = false, fromDrawChart = false, ctx1 = null) => {
+    if (!fromDrawChart) return;
+    const [lineStartCoords, lineEndCoords, fibEndCoords] = getCoordsArray(state, points);
+    drawTrendLineUsingPoints(state, canvas, [lineEndCoords, fibEndCoords], lineSelected, ctx1);
+    if (lineSelected) {
+        ctx1.fillStyle = "White";
+        ctx1.strokeStyle = "blue";
+        ctx1.beginPath();
+        ctx1.arc(fibEndCoords.x, fibEndCoords.y, 5, 0, 2 * Math.PI);
+        ctx1.fill();
+        ctx1.stroke();
+        ctx1.strokeStyle = "black";
+        ctx1.fillStyle = "black";
+    } else {
+        if (fibEndCoords.x > lineEndCoords.x) {
+            const temp = fibEndCoords.x;
+            fibEndCoords.x = lineEndCoords.x;
+            lineEndCoords.x = temp;
+        }
+        const ctx = canvas.getContext("2d");
+        const fibValues = [0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+        const fibColors = ["rgba(255, 90, 71,0.3)", "rgba(126, 255, 71,0.3)", "rgba(50, 129, 168,0.3)", "rgba(76, 50, 168,0.3)", "rgba(168, 50, 146,0.3)", "rgba(189, 186, 55,0.3)"];
+        let prevY = 0;
+        fibValues.forEach((val, i) => {
+            const yi = Math.abs(val * (lineEndCoords.y - lineStartCoords.y));
+            ctx.beginPath();
+            ctx.fillStyle = fibColors[i];
+            ctx.rect(fibEndCoords.x, fibEndCoords.y - yi, Math.abs(lineEndCoords.x - fibEndCoords.x), yi - prevY);
+            ctx.fill();
+            ctx.closePath();
+            ctx.beginPath();
+            ctx.fillStyle = "Black";
+            ctx.fillText(val, fibEndCoords.x - 20, fibEndCoords.y - yi);
+            ctx.fill();
+            ctx.closePath();
+            ctx.beginPath();
+            ctx.strokeStyle = fibColors[i];
+            ctx.lineWidth= 2;
+            ctx.moveTo(fibEndCoords.x, fibEndCoords.y - yi);
+            ctx.lineTo(lineEndCoords.x, fibEndCoords.y - yi);
+            ctx.stroke();
+            ctx.lineWidth= 1;
+            prevY = yi
+        })
+        ctx.lineWidth = 1;
+    }
+}
+
+export const drawTrendFibUsingPoints = (state, canvas, points, lineSelected = false, fromDrawChart = false, ctx1 = null) => {
+    if (!fromDrawChart) return;
+    const [lineStartCoords, lineEndCoords, fibEndCoords] = getCoordsArray(state, points);
+    drawTrendLineUsingPoints(state, canvas, points, lineSelected, ctx1);
+    if (fibEndCoords !== undefined) {
+        drawFibRevUsingPoints(state, canvas, points, lineSelected, fromDrawChart, ctx1);
     }
 }
 

@@ -9,70 +9,64 @@ function isIntersect(x, y, startXCoord, startYCoord, radius) {
     return Math.sqrt((x - startXCoord) ** 2 + (y - startYCoord) ** 2) <= radius;
 }
 function isCursorOnTrendLine(e, lineData, state) {
-    const {
-        startXCoord,
-        endXCoord,
-        startYCoord,
-        endYCoord
+    let {
+        points
     } = lineData;
     const canvas = state.ChartRef.current[1];
+    let [startCoords, endCoords] = points;
     const rect = canvas.getBoundingClientRect();
     const x = parseInt(e.pageX - rect.left);
     const y = parseInt(e.pageY - rect.top);
-    if (x > Math.max(startXCoord, endXCoord) || x < Math.min(startXCoord, endXCoord)) return 0;
-    if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
-    if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
-    const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
-    const constant = startYCoord - slope * startXCoord;
+    if (x > Math.max(startCoords.x, endCoords.x) || x < Math.min(startCoords.x, endCoords.x)) return -1;
+    if (isIntersect(x, y, startCoords.x + 5, startCoords.y + 5, 5)) return 0;
+    if (isIntersect(x, y, endCoords.x - 5, endCoords.y - 5, 5)) return 1;
+    const slope = (startCoords.y - endCoords.y) / (startCoords.x - endCoords.x);
+    const constant = startCoords.y - slope * startCoords.x;
     for (let i = -5; i < 5; i++) {
-        if (parseInt(y) + i === parseInt(slope * x + constant)) return 1;
+        if (parseInt(y) + i === parseInt(slope * x + constant)) return 2;
     }
-    return 0;
+    return -1;
 }
 function isCursorOnRayLine(e, lineData, state) {
-    const {
-        startXCoord,
-        endXCoord,
-        startYCoord,
-        endYCoord
+    let {
+        points
     } = lineData;
+    let [startCoords, endCoords] = points;
     const canvas = state.ChartRef.current[1];
     const rect = canvas.getBoundingClientRect();
     const x = parseInt(e.pageX - rect.left);
     const y = parseInt(e.pageY - rect.top);
-    if (startXCoord < endXCoord) {
-        if (x < startXCoord) return 0;
-    } else if (endXCoord > startXCoord) {
-        if (x > startXCoord) return 0;
+    if (startCoords.x < endCoords.x) {
+        if (x < startCoords.x) return -1;
+    } else if (endCoords.x > startCoords.x) {
+        if (x > startCoords.x) return -1;
     }
-    if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
-    if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
-    const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
-    const constant = startYCoord - slope * startXCoord;
+    if (isIntersect(x, y, startCoords.x + 5, startCoords.y + 5, 5)) return 0;
+    if (isIntersect(x, y, endCoords.x - 5, endCoords.y - 5, 5)) return 1;
+    const slope = (startCoords.y - endCoords.y) / (startCoords.x - endCoords.x);
+    const constant = startCoords.y - slope * startCoords.x;
     for (let i = -5; i < 5; i++) {
-        if (parseInt(y) + i === parseInt(slope * x + constant)) return 1;
+        if (parseInt(y) + i === parseInt(slope * x + constant)) return 2;
     }
-    return 0;
+    return -1;
 }
 function isCursorOnExtendedLine(e, lineData, state) {
-    const {
-        startXCoord,
-        endXCoord,
-        startYCoord,
-        endYCoord
+    let {
+        points
     } = lineData;
+    let [startCoords, endCoords] = points;
     const canvas = state.ChartRef.current[1];
     const rect = canvas.getBoundingClientRect();
     const x = parseInt(e.pageX - rect.left);
     const y = parseInt(e.pageY - rect.top);
-    if (isIntersect(x, y, startXCoord + 5, startYCoord + 5, 5)) return 2;
-    if (isIntersect(x, y, endXCoord - 5, endYCoord - 5, 5)) return 3;
-    const slope = (startYCoord - endYCoord) / (startXCoord - endXCoord);
-    const constant = startYCoord - slope * startXCoord;
+    if (isIntersect(x, y, startCoords.x + 5, startCoords.y + 5, 5)) return 0;
+    if (isIntersect(x, y, endCoords.x - 5, endCoords.y - 5, 5)) return 1;
+    const slope = (startCoords.y - endCoords.y) / (startCoords.x - endCoords.x);
+    const constant = startCoords.y - slope * startCoords.x;
     for (let i = -5; i < 5; i++) {
-        if (parseInt(y) + i === parseInt(slope * x + constant)) return 1;
+        if (parseInt(y) + i === parseInt(slope * x + constant)) return 2;
     }
-    return 0;
+    return -1;
 }
 export const isCursorOnLine = (e, lineData, state) => {
     const { toolItemNo } = lineData;
@@ -86,20 +80,18 @@ export const isCursorOnLine = (e, lineData, state) => {
 
 export const isCursorOnFibLine = (e, fibData, state) => {
     let {
-        startXCoord,
-        endXCoord,
-        startYCoord,
-        endYCoord
+        points
     } = fibData;
-    if (startYCoord < endYCoord) {
-        const temp = startYCoord;
-        startYCoord = endYCoord;
-        endYCoord = temp;
+    let [startCoords, endCoords] = points;
+    if (startCoords.y < e) {
+        const temp = endCoords.y;
+        startCoords.y = endCoords.y;
+        endCoords.y = temp;
     }
-    if (startXCoord > endXCoord) {
-        const temp = startXCoord;
-        startXCoord = endXCoord;
-        endXCoord = temp;
+    if (startCoords.x > endCoords.x) {
+        const temp = startCoords.x;
+        startCoords.x = endCoords.x;
+        endCoords.x = temp;
     }
     const canvas = state.ChartRef.current[1];
     const rect = canvas.getBoundingClientRect();
@@ -109,10 +101,10 @@ export const isCursorOnFibLine = (e, fibData, state) => {
     let result = 0;
     let prevY = 0;
     fibValues.forEach((val) => {
-        const yi = Math.abs(val * (endYCoord - startYCoord));
-        if(x < startXCoord || x > endXCoord) return 0;
+        const yi = Math.abs(val * (endCoords.y - startCoords.y));
+        if (x < startCoords.x || x > endCoords.x) return -1;
         for (let i = -5; i <= 5; i++) {
-            if (parseInt(y) + i === parseInt(prevY + endYCoord)) {
+            if (parseInt(y) + i === parseInt(prevY + endCoords.y)) {
                 result = 1;
             }
             prevY = yi;
@@ -122,13 +114,57 @@ export const isCursorOnFibLine = (e, fibData, state) => {
     return result;
 }
 
+export const isCursorOnFibRevLine = (e, fibData, state) => {
+    let {
+        points
+    } = fibData;
+    let [lineStartCoords, lineEndCoords, fibEndCoords] = points;
+    if (fibEndCoords.x > lineEndCoords.x) {
+        const temp = fibEndCoords.x;
+        fibEndCoords.x = lineEndCoords.x;
+        lineEndCoords.x = temp;
+    }
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    const fibValues = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+    let result = 0;
+    fibValues.forEach((val) => {
+        const yi = Math.abs(val * (lineStartCoords.y - lineEndCoords.y));
+        if (x < fibEndCoords.x || x > lineEndCoords.x) return -1;
+        for (let i = -5; i <= 5; i++) {
+            if (parseInt(y) + i === parseInt(fibEndCoords.y - yi)) {
+                result = 1;
+            }
+        }
+
+    })
+    return result;
+}
+
 export const isCursorFib = (e, fibData, state) => {
-    const { toolItemNo } = fibData;
+    const { toolItemNo, points } = fibData;
     switch (toolItemNo) {
         case 0: {
             const onDiagonal = isCursorOnTrendLine(e, fibData, state);
-            if(onDiagonal !== 0) return onDiagonal;
-            return isCursorOnFibLine(e, fibData, state);
+            if (onDiagonal !== -1) return onDiagonal;
+            if (isCursorOnFibLine(e, fibData, state) === 1) return points.length;
+            return -1;
+        }
+        case 1: {
+            const onDiagonal1 = isCursorOnTrendLine(e, { points: points.slice(0, 2) }, state);
+            const onDiagonal2 = isCursorOnTrendLine(e, { points: points.slice(1, 3) }, state);
+            if (onDiagonal1 !== -1){
+                if(onDiagonal1 === 2) return points.length;
+                return onDiagonal1;
+            }
+            if (onDiagonal2 !== -1){
+                if(onDiagonal2 === 2) return points.length;
+                return onDiagonal2 + 1;
+            }
+            if (isCursorOnFibRevLine(e, fibData, state) === 1) return points.length;
+            return -1;
         }
     }
 }
@@ -147,106 +183,87 @@ export const detectTrendLine = (e, state) => {
     }
     let returnVal = null
     trendLinesData.peek().forEach((lineData, i) => {
-        const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[0].xLabel];
-        const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[1].xLabel];
         const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
-        const startXCoord = -5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
-        const endXCoord = 5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-        const startYCoord = -5 + getYCoordinate(lineData.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-        const endYCoord = 5 + getYCoordinate(lineData.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const points = [];
+        lineData.points.forEach((point, i) => {
+            const startXCoordIndex = dateConfig.peek().dateToIndex[point.xLabel];
+            const startXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
+            const startYCoord = getYCoordinate(point.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+            points.push({
+                x: startXCoord,
+                y: startYCoord
+            })
+        })
         const toolItemNo = lineData.toolItemNo;
         const online = isCursorOnLine(e, {
-            startXCoord,
-            endXCoord,
-            startYCoord,
-            endYCoord,
+            points,
             toolItemNo
         }, state);
-        if (online === 1) {
+        if (online === points.length) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
-            canvas.classList.add("cursor-pointer");
+            canvas.classList.add("cursor-default");
             drawTrendLine(state, i, true);
             returnVal = {
                 ...lineData,
+                selectedPoint: online,
                 index: i,
                 toolItemNo,
                 toolName: 'Line'
             };
             return lineData;
         }
-        if (online === 2 || online === 3) {
+        if (online !== -1) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
-            canvas.classList.add("cursor-default");
+            canvas.classList.add("cursor-pointer");
             drawTrendLine(state, i, true);
-            if (online == 2) {
-                returnVal = {
-                    startPoint: null,
-                    endPoint: lineData.points[1],
-                    points: [],
-                    index: i,
-                    toolItemNo,
-                    toolName: 'Line'
-                }
-            } else {
-                returnVal = {
-                    startPoint: lineData.points[0],
-                    endPoint: null,
-                    index: i,
-                    toolItemNo,
-                    toolName: 'Line'
-                }
+            returnVal = {
+                selectedPoint: online,
+                index: i,
+                toolItemNo,
+                toolName: 'Line'
             }
             return lineData.startPoint;
         }
     })
     fibData.peek().forEach((fib, i) => {
-        const startXCoordIndex = dateConfig.peek().dateToIndex[fib.points[0].xLabel];
-        const endXCoordIndex = dateConfig.peek().dateToIndex[fib.points[1].xLabel];
         const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
-        const startXCoord = -5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
-        const endXCoord = 5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-        const startYCoord = -5 + getYCoordinate(fib.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-        const endYCoord = 5 + getYCoordinate(fib.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const points = [];
+        fib.points.forEach((point, i) => {
+            const startXCoordIndex = dateConfig.peek().dateToIndex[point.xLabel];
+            const startXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
+            const startYCoord = getYCoordinate(point.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+            points.push({
+                x: startXCoord,
+                y: startYCoord
+            })
+        })
         const toolItemNo = fib.toolItemNo;
         const online = isCursorFib(e, {
-            startXCoord,
-            endXCoord,
-            startYCoord,
-            endYCoord,
+            points,
             toolItemNo
         }, state);
-        if (online === 1) {
+        if (online === points.length) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
             canvas.classList.add("cursor-pointer");
             drawFib(state, i, true, true);
             returnVal = {
                 ...fib,
+                selectedPoint: online,
                 index: i,
                 toolItemNo,
                 toolName: 'Fib'
             };
             return;
         }
-        if (online === 2 || online === 3) {
+        if (online !== -1) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
             canvas.classList.add("cursor-default");
             drawFib(state, i, true, true);
-            if (online == 2) {
-                returnVal = {
-                    startPoint: null,
-                    endPoint: fib.points[1],
-                    index: i,
-                    toolItemNo,
-                    toolName: 'Fib'
-                }
-            } else {
-                returnVal = {
-                    startPoint: fib.points[0],
-                    endPoint: null,
-                    index: i,
-                    toolItemNo,
-                    toolName: 'Fib'
-                }
+            returnVal = {
+                selectedPoint: online,
+                index: i,
+                toolItemNo,
+                toolName: 'Fib'
             }
             return;
         }
@@ -293,9 +310,20 @@ export const setTrendLine = (e, state) => {
     if (prevLineData.peek() !== null) {
         state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
             if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+                let flag = 0;
+                const points = [];
+                prevLineData.peek().forEach((point) => {
+                    if (point === null) {
+                        flag = 1;
+                        points.push(lineStartPoint);
+                    } else {
+                        points.push(point);
+                    }
+                });
+                if (flag === 0) points.push(lineStartPoint);
                 obj.trendLinesData.value.push({
                     toolItemNo: selectedToolItem.peek(),
-                    points: [...prevLineData.peek(), lineStartPoint]
+                    points: points
                 })
                 drawTrendLines(obj);
                 prevLineData.value = null;
@@ -317,6 +345,34 @@ export const setTrendLine = (e, state) => {
         prevToolItemNo.value = selectedToolItem.peek();
         prevSelectedCanvas.value = canvas;
     }
+}
+
+const setToolData = (state, lineStartPoint) => {
+    const { selectedTool, selectedToolItem } = state.ChartWindow;
+    state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+        if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+            let flag = 0;
+            const points = [];
+            prevLineData.peek().forEach((point) => {
+                if (point === null) {
+                    flag = 1;
+                    points.push(lineStartPoint);
+                } else {
+                    points.push(point);
+                }
+            });
+            if (flag === 0) points.push(lineStartPoint);
+            obj.fibData.value.push({
+                points: points,
+                toolItemNo: selectedToolItem.peek(),
+            })
+            drawFibs(obj, true, false);
+            prevLineData.value = null;
+            prevToolItemNo.value = null;
+            prevSelectedCanvas.value = null;
+            selectedTool.value = 'Cursor';
+        }
+    })
 }
 
 export const setFibTool = (e, state) => {
@@ -350,19 +406,30 @@ export const setFibTool = (e, state) => {
         yLabel: priceText,
     }
     if (prevLineData.peek() !== null) {
-        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
-            if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
-                obj.fibData.value.push({
-                    points: [...prevLineData.peek(), lineStartPoint],
-                    toolItemNo: selectedToolItem.peek(),
-                })
-                drawFibs(obj, true, false);
-                prevLineData.value = null;
-                prevToolItemNo.value = null;
-                prevSelectedCanvas.value = null;
-                selectedTool.value = 'Cursor';
+        switch (prevToolItemNo.peek()) {
+            case 0: {
+                setToolData(state, lineStartPoint);
+                break;
             }
-        })
+            case 1: {
+                if (prevLineData.peek().length === 1) {
+                    const ctx = canvas.getContext("2d");
+                    ctx.font = "12px Arial";
+                    ctx.fillStyle = 'White';
+                    ctx.strokeStyle = "blue";
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    prevLineData.value = [...prevLineData.peek(), lineStartPoint];
+                    prevToolItemNo.value = selectedToolItem.peek();
+                    prevSelectedCanvas.value = canvas;
+                } else {
+                    setToolData(state, lineStartPoint);
+                    break;
+                }
+            }
+        }
     } else {
         const ctx = canvas.getContext("2d");
         ctx.font = "12px Arial";
