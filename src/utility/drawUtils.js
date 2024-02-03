@@ -2,6 +2,7 @@ import {
     indicatorConfig,
 } from "../config/indicatorsConfig";
 import { monthMap } from "../data/TIME_MAP";
+import { prevLineData } from "../signals/toolbarSignals";
 import { calculateZigZag } from "./indicatorsUtil";
 import {
     getObjtoStringTime,
@@ -13,6 +14,7 @@ import {
     drawYAxis,
     getYCoordinate,
 } from "./yAxisUtils";
+
 
 export function drawChart(state, mode) {
     const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
@@ -850,22 +852,50 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
     const ctx = canvas.getContext("2d");
     const ctx1 = canvas1.getContext("2d");
     const lineData = trendLinesData.peek()[i];
-    const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.startPoint.xLabel];
-    const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.endPoint.xLabel];
+    const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[0].xLabel];
+    const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[1].xLabel];
     const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
     const startXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
     const endXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-    const startYCoord = getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-    const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+    const startYCoord = getYCoordinate(lineData.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+    const endYCoord = getYCoordinate(lineData.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     switch (lineData.toolItemNo) {
-        case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
-        case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
-        case 2: drawInfoLineUsingPoints(state, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
-        case 3: drawExtendedLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, ctx1); break;
+        case 0: drawTrendLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
+        case 1: drawRayLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
+        case 2: drawInfoLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
+        case 3: drawExtendedLineUsingPoints(state, canvas, [{ x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }], lineSelected, ctx1); break;
     }
 }
 
-export const drawTrendLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+const getCoordsArray = (state, points) => {
+    const { chartCanvasSize, yAxisRange } = state
+    const { timeRange, xAxisConfig, dateConfig } = state.ChartWindow;
+    const firstIndex =
+        dateConfig.peek().dateToIndex[
+        getObjtoStringTime(timeRange.peek().startTime)
+        ];
+    const coordsArray = [];
+    points.forEach((point, index) => {
+        if (point.x !== undefined) {
+            coordsArray.push({
+                x: point.x,
+                y: point.y
+            })
+        } else {
+            const prevXCoordIndex = dateConfig.peek().dateToIndex[point.xLabel];
+            const xCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - prevXCoordIndex);
+            const yCoord = getYCoordinate(parseFloat(point.yLabel), yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+            coordsArray.push({
+                x: xCoord,
+                y: yCoord
+            })
+        }
+    })
+    return coordsArray;
+}
+
+export const drawTrendLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
+    const [startCoords, endCoords] = getCoordsArray(state, points);
     const ctx = canvas.getContext("2d");
     ctx1 = ctx1 === null ? ctx : ctx1;
     ctx.strokeStyle = "Black";
@@ -889,7 +919,8 @@ export const drawTrendLineUsingPoints = (canvas, startCoords, endCoords, lineSel
         ctx1.fillStyle = "black";
     }
 }
-export const drawRayLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+export const drawRayLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
+    const [startCoords, endCoords] = getCoordsArray(state, points);
     const ctx = canvas.getContext('2d');
     ctx1 = ctx1 === null ? ctx : ctx1;
     const slope = (endCoords.y - startCoords.y) / (endCoords.x - startCoords.x);
@@ -906,10 +937,11 @@ export const drawRayLineUsingPoints = (canvas, startCoords, endCoords, lineSelec
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
-    drawTrendLineUsingPoints(canvas, startCoords, { x: newEndXCoord, y: newEndYCoord }, false, ctx1);
+    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
 }
 
-export const drawExtendedLineUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+export const drawExtendedLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
+    const [startCoords, endCoords] = getCoordsArray(state, points);
     const ctx = canvas.getContext('2d');
     ctx1 = ctx1 === null ? ctx : ctx1;
     const slope = (endCoords.y - startCoords.y) / (endCoords.x - startCoords.x);
@@ -932,10 +964,11 @@ export const drawExtendedLineUsingPoints = (canvas, startCoords, endCoords, line
         ctx1.strokeStyle = "black";
         ctx1.fillStyle = "black";
     }
-    drawTrendLineUsingPoints(canvas, { x: newStartXCoord, y: newStartYCoord }, { x: newEndXCoord, y: newEndYCoord }, false, ctx1);
+    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
 }
 
-export const drawInfoLineUsingPoints = (state, canvas, startCoords, endCoords, lineSelected = false, ctx1 = null) => {
+export const drawInfoLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
+    const [startCoords, endCoords] = getCoordsArray(state, points);
     const { yAxisRange, chartCanvasSize } = state;
     const { xAxisConfig } = state.ChartWindow;
     const ctx = canvas.getContext('2d');
@@ -956,7 +989,7 @@ export const drawInfoLineUsingPoints = (state, canvas, startCoords, endCoords, l
     const dateIndex2 = Math.floor(
         (chartCanvasSize.peek().width - endCoords.x) / xAxisConfig.peek().widthOfOneCS
     );
-    drawTrendLineUsingPoints(canvas, startCoords, endCoords, lineSelected, ctx1);
+    drawTrendLineUsingPoints(state, canvas, points, lineSelected, ctx1);
     ctx.beginPath();
     ctx.clearRect((startCoords.x + endCoords.x) / 2 + 10, (startCoords.y + endCoords.y) / 2 + 10, 200, 50);
     ctx.fillStyle = "rgba(58,220,255,0.3)"
@@ -978,26 +1011,19 @@ export const drawTrendLines = (state) => {
 }
 
 export const drawFib = (state, i, lineSelected = false, fromDrawChart = false) => {
-    const { chartCanvasSize, yAxisRange, fibData, ChartRef } = state;
-    const { dateConfig, xAxisConfig, timeRange } = state.ChartWindow;
+    const { fibData, ChartRef } = state;
     const canvas = ChartRef.current[0];
     const canvas1 = ChartRef.current[1];
     const ctx1 = canvas1.getContext("2d");
     const lineData = fibData.peek()[i];
-    const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.startPoint.xLabel];
-    const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.endPoint.xLabel];
-    const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
-    const startXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
-    const endXCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-    const startYCoord = getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-    const endYCoord = getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
     switch (lineData.toolItemNo) {
-        case 0: drawFibUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, lineSelected, fromDrawChart, ctx1); break;
+        case 0: drawFibUsingPoints(state, canvas, lineData.points, lineSelected, fromDrawChart, ctx1); break;
     }
 }
 
-export const drawFibUsingPoints = (canvas, startCoords, endCoords, lineSelected = false, fromDrawChart = false, ctx1 = null) => {
+export const drawFibUsingPoints = (state, canvas, points, lineSelected = false, fromDrawChart = false, ctx1 = null) => {
     if (!fromDrawChart) return;
+    const [startCoords, endCoords] = getCoordsArray(state, points);
     if (lineSelected) {
         ctx1.fillStyle = "White";
         ctx1.strokeStyle = "blue";
@@ -1032,7 +1058,7 @@ export const drawFibUsingPoints = (canvas, startCoords, endCoords, lineSelected 
             ctx1.stroke();
         })
     } else {
-        drawTrendLineUsingPoints(canvas, startCoords, endCoords);
+        drawTrendLineUsingPoints(state, canvas, points);
         if (startCoords.y < endCoords.y) {
             const temp = startCoords.y;
             startCoords.y = endCoords.y;

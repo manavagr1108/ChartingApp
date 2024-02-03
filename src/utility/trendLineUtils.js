@@ -147,13 +147,13 @@ export const detectTrendLine = (e, state) => {
     }
     let returnVal = null
     trendLinesData.peek().forEach((lineData, i) => {
-        const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.startPoint.xLabel];
-        const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.endPoint.xLabel];
+        const startXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[0].xLabel];
+        const endXCoordIndex = dateConfig.peek().dateToIndex[lineData.points[1].xLabel];
         const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
         const startXCoord = -5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
         const endXCoord = 5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-        const startYCoord = -5 + getYCoordinate(lineData.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-        const endYCoord = 5 + getYCoordinate(lineData.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const startYCoord = -5 + getYCoordinate(lineData.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const endYCoord = 5 + getYCoordinate(lineData.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
         const toolItemNo = lineData.toolItemNo;
         const online = isCursorOnLine(e, {
             startXCoord,
@@ -181,14 +181,15 @@ export const detectTrendLine = (e, state) => {
             if (online == 2) {
                 returnVal = {
                     startPoint: null,
-                    endPoint: lineData.endPoint,
+                    endPoint: lineData.points[1],
+                    points: [],
                     index: i,
                     toolItemNo,
                     toolName: 'Line'
                 }
             } else {
                 returnVal = {
-                    startPoint: lineData.startPoint,
+                    startPoint: lineData.points[0],
                     endPoint: null,
                     index: i,
                     toolItemNo,
@@ -199,13 +200,13 @@ export const detectTrendLine = (e, state) => {
         }
     })
     fibData.peek().forEach((fib, i) => {
-        const startXCoordIndex = dateConfig.peek().dateToIndex[fib.startPoint.xLabel];
-        const endXCoordIndex = dateConfig.peek().dateToIndex[fib.endPoint.xLabel];
+        const startXCoordIndex = dateConfig.peek().dateToIndex[fib.points[0].xLabel];
+        const endXCoordIndex = dateConfig.peek().dateToIndex[fib.points[1].xLabel];
         const firstIndex = dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().startTime)];
         const startXCoord = -5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - startXCoordIndex);
         const endXCoord = 5 + getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - endXCoordIndex);
-        const startYCoord = -5 + getYCoordinate(fib.startPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
-        const endYCoord = 5 + getYCoordinate(fib.endPoint.yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const startYCoord = -5 + getYCoordinate(fib.points[0].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+        const endYCoord = 5 + getYCoordinate(fib.points[1].yLabel, yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
         const toolItemNo = fib.toolItemNo;
         const online = isCursorFib(e, {
             startXCoord,
@@ -233,14 +234,14 @@ export const detectTrendLine = (e, state) => {
             if (online == 2) {
                 returnVal = {
                     startPoint: null,
-                    endPoint: fib.endPoint,
+                    endPoint: fib.points[1],
                     index: i,
                     toolItemNo,
                     toolName: 'Fib'
                 }
             } else {
                 returnVal = {
-                    startPoint: fib.startPoint,
+                    startPoint: fib.points[0],
                     endPoint: null,
                     index: i,
                     toolItemNo,
@@ -293,9 +294,8 @@ export const setTrendLine = (e, state) => {
         state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
             if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
                 obj.trendLinesData.value.push({
-                    startPoint: prevLineData.peek(),
-                    endPoint: lineStartPoint,
                     toolItemNo: selectedToolItem.peek(),
+                    points: [...prevLineData.peek(), lineStartPoint]
                 })
                 drawTrendLines(obj);
                 prevLineData.value = null;
@@ -313,7 +313,7 @@ export const setTrendLine = (e, state) => {
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
-        prevLineData.value = lineStartPoint;
+        prevLineData.value = [lineStartPoint];
         prevToolItemNo.value = selectedToolItem.peek();
         prevSelectedCanvas.value = canvas;
     }
@@ -353,8 +353,7 @@ export const setFibTool = (e, state) => {
         state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
             if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
                 obj.fibData.value.push({
-                    startPoint: prevLineData.peek(),
-                    endPoint: lineStartPoint,
+                    points: [...prevLineData.peek(), lineStartPoint],
                     toolItemNo: selectedToolItem.peek(),
                 })
                 drawFibs(obj, true, false);
@@ -373,7 +372,7 @@ export const setFibTool = (e, state) => {
         ctx.arc(x, y, 5, 0, 2 * Math.PI);
         ctx.fill();
         ctx.stroke();
-        prevLineData.value = lineStartPoint;
+        prevLineData.value = [lineStartPoint];
         prevToolItemNo.value = selectedToolItem.peek();
         prevSelectedCanvas.value = canvas;
     }
