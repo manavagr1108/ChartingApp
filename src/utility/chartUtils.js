@@ -10,7 +10,7 @@ import {
 } from "./yAxisUtils";
 import { prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
 import { detectTrendLine, setTool } from "./trendLineUtils";
-import { drawExtendedLineUsingPoints, drawFibUsingPoints, drawFibs, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendFibUsingPoints, drawTrendLineUsingPoints, drawTrendLines, getCoordsArray } from "./drawUtils";
+import { drawExtendedLineUsingPoints, drawFibChannelUsingPoints, drawFibUsingPoints, drawFibs, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendFibUsingPoints, drawTrendLineUsingPoints, drawTrendLines, getCoordsArray } from "./drawUtils";
 
 export async function getStockDataCallback(
   symbol,
@@ -116,6 +116,7 @@ export function handleOnMouseMove(e, state) {
         case 'Fib': switch (prevToolItemNo.peek()) {
           case 0: drawFibUsingPoints(state, prevSelectedCanvas.peek(), points, false, true); break;
           case 1: drawTrendFibUsingPoints(state, prevSelectedCanvas.peek(), points, false, true); break;
+          case 2: drawFibChannelUsingPoints(state, prevSelectedCanvas.peek(), points, false, true); break;
         }break;
       }
     }
@@ -278,6 +279,7 @@ export function updateCursorValue(state, mode) {
         case 'Fib': switch (toolItemNo) {
           case 0: drawFibUsingPoints(drawChartobj, canvas, points, false, true, ctx); break;
           case 1: drawTrendFibUsingPoints(drawChartobj, canvas, points, false, true, ctx); break;
+          case 2: drawFibChannelUsingPoints(drawChartobj, canvas, points, false, true, ctx); break;
         }
       }
 

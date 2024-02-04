@@ -136,7 +136,49 @@ export const isCursorOnFibRevLine = (e, fibData, state) => {
         for (let i = -5; i <= 5; i++) {
             if (parseInt(y) + i === parseInt(fibEndCoords.y - yi)) {
                 result = 1;
+                break;
             }
+        }
+
+    })
+    return result;
+}
+
+export const isCursorOnFibChannelLine = (e, fibData, state) => {
+    let {
+        points
+    } = fibData;
+    let [lineStartCoords, lineEndCoords, fibEndCoords] = points;
+    if (fibEndCoords.x > lineEndCoords.x) {
+        const temp = fibEndCoords.x;
+        fibEndCoords.x = lineEndCoords.x;
+        lineEndCoords.x = temp;
+    }
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    const fibValues = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+    let result = 0;
+    fibValues.forEach((val) => {
+        // if (x < fibEndCoords.x || x > lineEndCoords.x) return -1;
+        const len = (Math.sqrt((fibEndCoords.y - lineStartCoords.y) ** 2 + (fibEndCoords.x - lineStartCoords.x) ** 2));
+        const yi = Math.abs(val * len);
+        const cos0 = (fibEndCoords.x - lineStartCoords.x) / len;
+        const sin0 = (fibEndCoords.y - lineStartCoords.y) / len;
+        const x3 = yi * cos0 + lineStartCoords.x;
+        const y3 = yi * sin0 + lineStartCoords.y;
+
+        const slope1 = (fibEndCoords.y - lineStartCoords.y) / (fibEndCoords.x - lineStartCoords.x);
+        const constant1 = lineEndCoords.y - slope1 * lineEndCoords.x;
+
+        const slope2 = (lineEndCoords.y - lineStartCoords.y) / (lineEndCoords.x - lineStartCoords.x);
+        const constant2 = y3 - slope2 * x3;
+
+        const x4 = (constant2 - constant1) / (slope1 - slope2);
+        const y4 = slope1 * x4 + constant1;
+        if (isCursorOnTrendLine(e, { points: [{ x: x3, y: y3 }, { x: x4, y: y4 }] }, state) !== -1){
+            result = 1;
         }
 
     })
@@ -155,15 +197,29 @@ export const isCursorFib = (e, fibData, state) => {
         case 1: {
             const onDiagonal1 = isCursorOnTrendLine(e, { points: points.slice(0, 2) }, state);
             const onDiagonal2 = isCursorOnTrendLine(e, { points: points.slice(1, 3) }, state);
-            if (onDiagonal1 !== -1){
-                if(onDiagonal1 === 2) return points.length;
+            if (onDiagonal1 !== -1) {
+                if (onDiagonal1 === 2) return points.length;
                 return onDiagonal1;
             }
-            if (onDiagonal2 !== -1){
-                if(onDiagonal2 === 2) return points.length;
+            if (onDiagonal2 !== -1) {
+                if (onDiagonal2 === 2) return points.length;
                 return onDiagonal2 + 1;
             }
             if (isCursorOnFibRevLine(e, fibData, state) === 1) return points.length;
+            return -1;
+        }
+        case 2: {
+            const onDiagonal1 = isCursorOnTrendLine(e, { points: points.slice(0, 2) }, state);
+            const onDiagonal2 = isCursorOnTrendLine(e, { points: points.slice(1, 3) }, state);
+            if (onDiagonal1 !== -1) {
+                if (onDiagonal1 === 2) return points.length;
+                return onDiagonal1;
+            }
+            if (onDiagonal2 !== -1) {
+                if (onDiagonal2 === 2) return points.length;
+                return onDiagonal2 + 1;
+            }
+            if (isCursorOnFibChannelLine(e, fibData, state) === 1) return points.length;
             return -1;
         }
     }
@@ -426,8 +482,26 @@ export const setFibTool = (e, state) => {
                     prevSelectedCanvas.value = canvas;
                 } else {
                     setToolData(state, lineStartPoint);
-                    break;
                 }
+                break;
+            }
+            case 2: {
+                if (prevLineData.peek().length === 1) {
+                    const ctx = canvas.getContext("2d");
+                    ctx.font = "12px Arial";
+                    ctx.fillStyle = 'White';
+                    ctx.strokeStyle = "blue";
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    prevLineData.value = [...prevLineData.peek(), lineStartPoint];
+                    prevToolItemNo.value = selectedToolItem.peek();
+                    prevSelectedCanvas.value = canvas;
+                } else {
+                    setToolData(state, lineStartPoint);
+                }
+                break;
             }
         }
     } else {
