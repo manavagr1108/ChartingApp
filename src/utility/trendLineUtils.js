@@ -209,6 +209,30 @@ export const isCursorOnFibTimeZoneLine = (e, fibData, state) => {
     return result;
 }
 
+export const isCursorOnTrendBasedFibTimeZoneLine = (e, fibData, state) => {
+    let {
+        points
+    } = fibData;
+    const [lineStartCoords, lineEndCoords, fibEndCoords] = points;
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    const fibValues = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
+    let result = 0;
+    fibValues.forEach((val) => {
+        const len = (lineEndCoords.x - lineStartCoords.x);
+        const yi = Math.abs(val * len);
+        for (let i = -5; i < 5; i++) {
+            if (parseInt(x) + i === parseInt(fibEndCoords.x + yi)) {
+                result = 1;
+                return 1;
+            }
+        }
+    })
+    return result;
+}
+
 export const isCursorFib = (e, fibData, state) => {
     const { toolItemNo, points } = fibData;
     switch (toolItemNo) {
@@ -250,6 +274,20 @@ export const isCursorFib = (e, fibData, state) => {
             const onDiagonal = isCursorOnTrendLine(e, fibData, state);
             if (onDiagonal !== -1) return onDiagonal;
             if (isCursorOnFibTimeZoneLine(e, fibData, state) === 1) return points.length;
+            return -1;
+        }
+        case 4: {
+            const onDiagonal1 = isCursorOnTrendLine(e, { points: points.slice(0, 2) }, state);
+            const onDiagonal2 = isCursorOnTrendLine(e, { points: points.slice(1, 3) }, state);
+            if (onDiagonal1 !== -1) {
+                if (onDiagonal1 === 2) return points.length;
+                return onDiagonal1;
+            }
+            if (onDiagonal2 !== -1) {
+                if (onDiagonal2 === 2) return points.length;
+                return onDiagonal2 + 1;
+            }
+            if (isCursorOnTrendBasedFibTimeZoneLine(e, fibData, state) === 1) return points.length;
             return -1;
         }
     }
@@ -535,6 +573,24 @@ export const setFibTool = (e, state) => {
             }
             case 3: {
                 setToolData(state, lineStartPoint);
+                break;
+            }
+            case 4: {
+                if (prevLineData.peek().length === 1) {
+                    const ctx = canvas.getContext("2d");
+                    ctx.font = "12px Arial";
+                    ctx.fillStyle = 'White';
+                    ctx.strokeStyle = "blue";
+                    ctx.beginPath();
+                    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+                    ctx.fill();
+                    ctx.stroke();
+                    prevLineData.value = [...prevLineData.peek(), lineStartPoint];
+                    prevToolItemNo.value = selectedToolItem.peek();
+                    prevSelectedCanvas.value = canvas;
+                } else {
+                    setToolData(state, lineStartPoint);
+                }
                 break;
             }
         }
