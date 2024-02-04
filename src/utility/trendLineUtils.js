@@ -177,10 +177,34 @@ export const isCursorOnFibChannelLine = (e, fibData, state) => {
 
         const x4 = (constant2 - constant1) / (slope1 - slope2);
         const y4 = slope1 * x4 + constant1;
-        if (isCursorOnTrendLine(e, { points: [{ x: x3, y: y3 }, { x: x4, y: y4 }] }, state) !== -1){
+        if (isCursorOnTrendLine(e, { points: [{ x: x3, y: y3 }, { x: x4, y: y4 }] }, state) !== -1) {
             result = 1;
         }
 
+    })
+    return result;
+}
+
+
+export const isCursorOnFibTimeZoneLine = (e, fibData, state) => {
+    let {
+        points
+    } = fibData;
+    const [lineStartCoords, lineEndCoords] = points;
+    const canvas = state.ChartRef.current[1];
+    const rect = canvas.getBoundingClientRect();
+    const x = parseInt(e.pageX - rect.left);
+    const y = parseInt(e.pageY - rect.top);
+    const fibValues = [0, 1, 2, 3, 5, 8, 13, 21];
+    let result = 0;
+    fibValues.forEach((val) => {
+        const width = val * (lineEndCoords.x - lineStartCoords.x);
+        for (let i = -5; i < 5; i++) {
+            if (parseInt(x) + i === parseInt(lineStartCoords.x + width)) {
+                result = 1;
+                return 1;
+            }
+        }
     })
     return result;
 }
@@ -220,6 +244,12 @@ export const isCursorFib = (e, fibData, state) => {
                 return onDiagonal2 + 1;
             }
             if (isCursorOnFibChannelLine(e, fibData, state) === 1) return points.length;
+            return -1;
+        }
+        case 3: {
+            const onDiagonal = isCursorOnTrendLine(e, fibData, state);
+            if (onDiagonal !== -1) return onDiagonal;
+            if (isCursorOnFibTimeZoneLine(e, fibData, state) === 1) return points.length;
             return -1;
         }
     }
@@ -501,6 +531,10 @@ export const setFibTool = (e, state) => {
                 } else {
                     setToolData(state, lineStartPoint);
                 }
+                break;
+            }
+            case 3: {
+                setToolData(state, lineStartPoint);
                 break;
             }
         }
