@@ -1,9 +1,13 @@
 import React, { useState } from "react";
 import { BiCross } from "react-icons/bi";
-import { MdKeyboardArrowRight, MdKeyboardArrowLeft, MdOutlineHorizontalSplit } from "react-icons/md";
+import {
+  MdKeyboardArrowRight,
+  MdKeyboardArrowLeft,
+  MdOutlineHorizontalSplit,
+} from "react-icons/md";
 import { FaArrowPointer } from "react-icons/fa6";
 import { cursorConfig } from "../../signals/toolbarSignals";
-import { useOutsideClick } from "../nav_bar/nav_bar";
+import { useOutsideClick } from "../navbar/navbar";
 import { PiLineSegmentFill } from "react-icons/pi";
 
 function ToolItems({

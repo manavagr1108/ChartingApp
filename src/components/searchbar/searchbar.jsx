@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { searchSymbol } from "../../utility/stock_api.js";
+import { searchSymbol } from "../../utility/stockApi.js";
 import { FaSearch } from "react-icons/fa";
-import { useOutsideClick } from "../nav_bar/nav_bar.jsx";
+import { useOutsideClick } from "../navbar/navbar.jsx";
 
 function SearchBar({ selectedStock, mode }) {
   const [searchVal, setSearchVal] = useState("");

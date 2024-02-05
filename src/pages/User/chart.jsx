@@ -1,8 +1,8 @@
 import { useState } from "react";
 import Charting from "../../components/charting/charting";
-import NavBar from "../../components/nav_bar/nav_bar";
-import StockSelect from "../../components/stock_select/stock_select";
-import ToolBar from "../../components/tool_bar/tool_bar";
+import NavBar from "../../components/navbar/navbar";
+import StockSelect from "../../components/stockSelect/stockSelect";
+import ToolBar from "../../components/toolbar/toolbar";
 import useChartWindow from "../../hooks/useChartWindow";
 
 function Chart() {

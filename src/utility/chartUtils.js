@@ -1,4 +1,4 @@
-import { getStockData } from "./stock_api";
+import { getStockData } from "./stockApi";
 import {
   getNewScrollTime,
   getNewZoomTime,
@@ -65,12 +65,12 @@ export function handleOnMouseMove(e, state) {
     let dateIndex = Math.round(
       (chartCanvasSize.peek().width - x) / xAxisConfig.peek().widthOfOneCS
     );
-    if(dateIndex * xAxisConfig.peek().widthOfOneCS > chartCanvasSize.peek().width - x){
-      dateIndex-=1;
+    if (dateIndex * xAxisConfig.peek().widthOfOneCS > chartCanvasSize.peek().width - x) {
+      dateIndex -= 1;
     }
     const firstIndex =
       dateConfig.peek().dateToIndex[
-        getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
       ];
     const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata === undefined) return;
@@ -165,10 +165,10 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
+        dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-          dateConfig.peek().indexToDate[0])
+        dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -236,7 +236,7 @@ export function updateCursorValue(state, mode) {
       yAxisRange.peek().minPrice +
       ((chartCanvasSize.peek().height - dateCursor.peek().y) *
         (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-        chartCanvasSize.peek().height;
+      chartCanvasSize.peek().height;
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
@@ -269,17 +269,17 @@ export function updateCursorValue(state, mode) {
     if (chartMovement.peek().isItem && chartMovement.peek().itemData?.startXCoord !== undefined) {
       const { startXCoord, endXCoord, startYCoord, endYCoord, toolItemNo, toolName } = chartMovement.peek().itemData;
       switch (toolName) {
-        case 'Line' : switch (toolItemNo) {
+        case 'Line': switch (toolItemNo) {
           case 0: drawTrendLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
           case 1: drawRayLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
           case 2: drawInfoLineUsingPoints(drawChartobj, canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
           case 3: drawExtendedLineUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }); break;
         } break;
-        case 'Fib' : switch (toolItemNo) {
+        case 'Fib': switch (toolItemNo) {
           case 0: drawFibUsingPoints(canvas, { x: startXCoord, y: startYCoord }, { x: endXCoord, y: endYCoord }, false, true, ctx); break;
         }
       }
-      
+
     }
   });
 }
