@@ -1,11 +1,21 @@
-import { drawAlligator, drawBB, drawEMAIndicator, drawIchimokuIndicator, drawParabolicSAR, drawSMAIndicator, drawZigZagIndicator } from "../utility/drawUtils";
+import {
+  drawMACDIndicatorChart,
+  drawRSIIndicatorChart,
+  drawBBPIndicatorChart,
+  drawAwesomeOscillatorIndicator,
+  drawVortexIndicatorChart,
+  drawAlligator,
+  drawBB,
+  drawEMAIndicator,
+  drawIchimokuIndicator,
+  drawParabolicSAR,
+  drawSMAIndicator,
+  drawZigZagIndicator
+} from "../utility/drawUtils/indicatorDraw";
 import {
   calculateATRDrawChart,
   calculateMACD,
   calculateRSI,
-  drawMACDIndicatorChart,
-  drawRSIIndicatorChart,
-  drawVortexIndicatorChart,
   calculateADX,
   calculateBBW,
   calculateVortex,
@@ -13,9 +23,7 @@ import {
   calculateROC,
   calculateMomentum,
   calculateBBP,
-  drawBBPIndicatorChart,
   calculateAwesomeOscillator,
-  drawAwesomeOscillatorIndicator,
   calculateCCI,
   calculateAverageDayRange,
   calculateBalanceOfPower,
@@ -33,7 +41,7 @@ import {
   calculateSuperTrend,
   calculateDoubleEMA,
   calculateTripleEMA,
-} from "../utility/indicatorsUtil";
+} from "../utility/calulations.js/indicatorCalcualations";
 export const indicatorConfig = {
   SMA: {
     name: 'SMA',

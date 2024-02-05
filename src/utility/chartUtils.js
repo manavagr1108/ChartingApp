@@ -3,14 +3,11 @@ import {
   getNewScrollTime,
   getNewZoomTime,
   getObjtoStringTime,
-  getXCoordinate,
 } from "./xAxisUtils";
-import {
-  getYCoordinate,
-} from "./yAxisUtils";
 import { prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
-import { detectTrendLine, setTool } from "./trendLineUtils";
-import { drawExtendedLineUsingPoints, drawFibChannelUsingPoints, drawFibTimeZoneUsingPoints, drawFibUsingPoints, drawFibs, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendFibTimeUsingPoints, drawTrendFibUsingPoints, drawTrendLineUsingPoints, drawTrendLines, getCoordsArray } from "./drawUtils";
+import { detectTrendLine, setTool, getCoordsArray } from "./toolsUtils";
+import { drawFibChannelUsingPoints, drawFibTimeZoneUsingPoints, drawFibUsingPoints, drawFibs, drawTrendFibTimeUsingPoints, drawTrendFibUsingPoints } from "./drawUtils/toolsDraw/fibTool";
+import { drawExtendedLineUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
 
 export async function getStockDataCallback(
   symbol,
