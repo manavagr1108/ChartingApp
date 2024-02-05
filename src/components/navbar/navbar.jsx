@@ -3,7 +3,7 @@ import { MdOutlineCandlestickChart, MdOutlineShowChart } from "react-icons/md";
 import { intervalMap } from "../../utility/xAxisUtils.js";
 import DropdownMenu from "../dropdown/dropdownMenu.jsx";
 import Indicators from "../indicators/indicators.jsx";
-import SearchBar from "../search_bar/search_bar.jsx";
+import SearchBar from "../searchbar/searchbar.jsx";
 
 const chartTypes = {
   Candles: <MdOutlineCandlestickChart size={22} />,
