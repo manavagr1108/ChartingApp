@@ -1,23 +1,35 @@
-import React, { useState } from "react";
-import { searchSymbol } from "../../utility/stockApi.js";
+import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { useOutsideClick } from "../navbar/navbar.jsx";
+import { useOutsideClick } from "../nav_bar/nav_bar.jsx";
+import { stocksConfig } from "../../config/stocksConfig.js";
 
-function SearchBar({ selectedStock, mode }) {
+function SearchBar({ instrumentKey, mode }) {
   const [searchVal, setSearchVal] = useState("");
   const [filteredProduct, setFilteredProduct] = useState([]);
   const dropRefSelectStock = useOutsideClick(() => setSearchVal(""));
-  const updateBestMatches = async () => {
-    const data = await searchSymbol(searchVal);
-    if (data && data.result) setFilteredProduct(data.result);
+  const updateBestMatches = () => {
+    const searchTerm = searchVal.toUpperCase();
+    const matchingStocks = Object.entries(stocksConfig)
+      .filter(
+        ([key, value]) =>
+          key.toUpperCase().includes(searchTerm) ||
+          value.toUpperCase().includes(searchTerm)
+      )
+      .map(([key, value]) => key);
+    setFilteredProduct(matchingStocks);
   };
-  const selectStock = (stock) => {
-    setSearchVal(() => {
-      return stock;
-    });
-    selectedStock.value = stock;
+
+  const selectStock = (key) => {
+    setSearchVal(() => stocksConfig[key]);
+    instrumentKey.value = key;
     setFilteredProduct([]);
+    setSearchVal("");
   };
+
+  useEffect(() => {
+    updateBestMatches();
+  }, [searchVal]);
+
   return (
     <div
       ref={dropRefSelectStock}
@@ -32,11 +44,6 @@ function SearchBar({ selectedStock, mode }) {
       <input
         type="search"
         onChange={(e) => setSearchVal(e.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            updateBestMatches();
-          }
-        }}
         className={`w-[300px] border-l-2 ${
           mode === "Light" ? "border-gray-300" : "border-gray-600"
         } h-3/5 outline-none pl-2 ${
@@ -55,34 +62,24 @@ function SearchBar({ selectedStock, mode }) {
               : "hidden"
           }
         >
-          {filteredProduct[0] !== searchVal &&
-            filteredProduct.map((item) => {
-              return (
-                <button
-                  onClick={(e) => selectStock(item.symbol)}
-                  value={item.symbol}
-                  key={item.symbol}
-                  className={`flex rounded-lg px-2 py-1 items-center justify-between w-full ${
-                    mode === "Light" ? "hover:bg-white" : "hover:bg-gray-800"
-                  }`}
+          {filteredProduct.map((instrumentKey) => {
+            return (
+              <button
+                onClick={() => selectStock(instrumentKey)}
+                value={instrumentKey}
+                key={instrumentKey}
+                className={`flex rounded-lg px-2 py-1 items-center justify-between w-full ${
+                  mode === "Light" ? "hover:bg-white" : "hover:bg-gray-800"
+                }`}
+              >
+                <span
+                  className={mode === "Light" ? "text-gray-800" : "text-white"}
                 >
-                  <span
-                    className={
-                      mode === "Light" ? "text-gray-800" : "text-white"
-                    }
-                  >
-                    {item.symbol}
-                  </span>
-                  <span
-                    className={
-                      mode === "Light" ? "text-gray-800" : "text-white"
-                    }
-                  >
-                    {item.description}
-                  </span>
-                </button>
-              );
-            })}
+                  {stocksConfig[instrumentKey]}
+                </span>
+              </button>
+            );
+          })}
         </div>
       }
     </div>

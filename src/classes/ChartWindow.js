@@ -51,9 +51,9 @@ class ChartWindow {
     this.onChartIndicatorSignal = signal([]);
     this.onChartIndicatorData = signal([]);
     this.drawChartObjects = signal([]);
-    this.interval = signal("1d");
+    this.interval = signal("day");
     this.chartType = signal("Candles");
-    this.selectedStock = signal("AAPL");
+    this.instrumentKey = signal("NSE_INDEX|Nifty 50");
     this.mode = signal("");
 
     //tool bar signals;
@@ -90,8 +90,12 @@ class ChartWindow {
   }
   setXAxisConfig() {
     const noOfDataPoints =
-        this.dateConfig.peek().dateToIndex[getObjtoStringTime(this.timeRange.peek().startTime)] -
-        this.dateConfig.peek().dateToIndex[getObjtoStringTime(this.timeRange.peek().endTime)];
+      this.dateConfig.peek().dateToIndex[
+        getObjtoStringTime(this.timeRange.peek().startTime)
+      ] -
+      this.dateConfig.peek().dateToIndex[
+        getObjtoStringTime(this.timeRange.peek().endTime)
+      ];
     const widthOfOneCS = this.xAxisCanvasSize.peek().width / noOfDataPoints;
     this.xAxisConfig.value.noOfDataPoints = noOfDataPoints;
     this.xAxisConfig.value.widthOfOneCS = widthOfOneCS;
