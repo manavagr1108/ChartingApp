@@ -1,12 +1,39 @@
 import { cursorConfig, prevLineData, prevSelectedCanvas, prevToolItemNo } from "../signals/toolbarSignals";
-import { drawFib } from "./drawUtils";
-import { drawFibs } from "./drawUtils";
-import { drawTrendLine, drawTrendLines } from "./drawUtils";
+import { drawFib, drawFibs } from "./drawUtils/toolsDraw/fibTool";
+import { drawTrendLine, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
 import { getObjtoStringTime, getXCoordinate } from "./xAxisUtils";
 import { getYCoordinate } from "./yAxisUtils";
 
 function isIntersect(x, y, startXCoord, startYCoord, radius) {
     return Math.sqrt((x - startXCoord) ** 2 + (y - startYCoord) ** 2) <= radius;
+}
+
+
+export const getCoordsArray = (state, points) => {
+    const { chartCanvasSize, yAxisRange } = state
+    const { timeRange, xAxisConfig, dateConfig } = state.ChartWindow;
+    const firstIndex =
+        dateConfig.peek().dateToIndex[
+        getObjtoStringTime(timeRange.peek().startTime)
+        ];
+    const coordsArray = [];
+    points.forEach((point, index) => {
+        if (point.x !== undefined) {
+            coordsArray.push({
+                x: point.x,
+                y: point.y
+            })
+        } else {
+            const prevXCoordIndex = dateConfig.peek().dateToIndex[point.xLabel];
+            const xCoord = getXCoordinate(chartCanvasSize.peek().width, xAxisConfig.peek().widthOfOneCS, timeRange.peek().scrollDirection, timeRange.peek().scrollOffset, firstIndex - prevXCoordIndex);
+            const yCoord = getYCoordinate(parseFloat(point.yLabel), yAxisRange.peek().minPrice, yAxisRange.peek().maxPrice, chartCanvasSize.peek().height);
+            coordsArray.push({
+                x: xCoord,
+                y: yCoord
+            })
+        }
+    })
+    return coordsArray;
 }
 function isCursorOnTrendLine(e, lineData, state) {
     let {
@@ -325,7 +352,7 @@ export const detectTrendLine = (e, state) => {
         }, state);
         if (online === points.length) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
-            canvas.classList.add("cursor-default");
+            canvas.classList.add("cursor-pointer");
             drawTrendLine(state, i, true);
             returnVal = {
                 ...lineData,
@@ -338,7 +365,7 @@ export const detectTrendLine = (e, state) => {
         }
         if (online !== -1) {
             canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
-            canvas.classList.add("cursor-pointer");
+            canvas.classList.add("cursor-default");
             drawTrendLine(state, i, true);
             returnVal = {
                 selectedPoint: online,
