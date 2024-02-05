@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
-import { useOutsideClick } from "../nav_bar/nav_bar.jsx";
+import { useOutsideClick } from "../navbar/navbar.jsx";
 import { stocksConfig } from "../../config/stocksConfig.js";
 
 function SearchBar({ instrumentKey, mode }) {
