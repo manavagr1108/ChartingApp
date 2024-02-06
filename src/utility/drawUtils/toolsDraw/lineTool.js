@@ -24,6 +24,9 @@ export const drawTrendLine = (state, i, lineSelected = false) => {
     case 4:
       drawTrendAngleUsingPoints(state, canvas, points, lineSelected, ctx1);
       break;
+    case 5: 
+      drawHorizontalLineUsingPoints(state, canvas, points, lineSelected, ctx1); 
+      break;
   }
 };
 
@@ -273,6 +276,22 @@ const drawPoint = (ctx, x, y) => {
   ctx.fill();
   ctx.stroke();
 };
+export const drawHorizontalLineUsingPoints = (state, canvas, points, lineSelected = false, ctx1 = null) => {
+    const [startCoords] = getCoordsArray(state, points);
+    const { chartCanvasSize } = state;
+    drawTrendLineUsingPoints(state, canvas, [{ x: 0, y: startCoords.y }, { x: chartCanvasSize.peek().width, y: startCoords.y }], false, ctx1);
+    if (lineSelected && ctx1 !== null) {
+        ctx1.fillStyle = "White";
+        ctx1.strokeStyle = "blue";
+        ctx1.beginPath();
+        ctx1.arc(startCoords.x, startCoords.y, 5, 0, 2 * Math.PI);
+        ctx1.fill();
+        ctx1.stroke();
+        ctx1.strokeStyle = "black";
+        ctx1.fillStyle = "black";
+    }
+}
+
 
 export const drawTrendLines = (state) => {
   const { trendLinesData } = state;

@@ -7,7 +7,7 @@ import {
 import { prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
 import { detectTrendLine, setTool, getCoordsArray } from "./toolsUtils";
 import { drawFibChannelUsingPoints, drawFibTimeZoneUsingPoints, drawFibUsingPoints, drawFibs, drawTrendFibTimeUsingPoints, drawTrendFibUsingPoints } from "./drawUtils/toolsDraw/fibTool";
-import { drawExtendedLineUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendAngleUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
+import { drawExtendedLineUsingPoints, drawHorizontalLineUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendAngleUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
 
 export async function getStockDataCallback(
   instrumentKey,
@@ -101,8 +101,16 @@ export function handleOnMouseMove(e, state) {
       };
     }
     if (prevLineData.peek() !== null) {
-      const points = prevLineData.peek().map((point) => point === null ? { x, y } : point);
-      if (points.length === prevLineData.peek().length) points.push({ x, y });
+      let flag = 0;
+      const points = prevLineData.peek().map((point) => {
+        if(point === null){
+          flag = 1;
+          return {x, y};
+        } else {
+          return point;
+        }
+      });
+      if (flag === 0) points.push({ x, y });
       switch (selectedTool.peek()) {
         case 'Line': switch (prevToolItemNo.peek()) {
           case 0: drawTrendLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
@@ -110,6 +118,7 @@ export function handleOnMouseMove(e, state) {
           case 2: drawInfoLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
           case 3: drawExtendedLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
           case 4: drawTrendAngleUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
+          case 5: drawHorizontalLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
         } break;
         case 'Fib': switch (prevToolItemNo.peek()) {
           case 0: drawFibUsingPoints(state, prevSelectedCanvas.peek(), points, false, true); break;
@@ -276,6 +285,7 @@ export function updateCursorValue(state, mode) {
           case 2: drawInfoLineUsingPoints(drawChartobj, canvas, points); break;
           case 3: drawExtendedLineUsingPoints(drawChartobj, canvas, points); break;
           case 4: drawTrendAngleUsingPoints(drawChartobj, canvas, points); break;
+          case 5: drawHorizontalLineUsingPoints(drawChartobj, canvas, points); break;
         } break;
         case 'Fib': switch (toolItemNo) {
           case 0: drawFibUsingPoints(drawChartobj, canvas, points, false, true, ctx); break;
