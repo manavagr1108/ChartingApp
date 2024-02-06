@@ -99,8 +99,18 @@ function ToolbarItems({ mode, ChartWindow }) {
           color={`${mode === "Light" ? "black" : "white"}`}
           size={20}
         />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
       ],
-      toolLabels: ["Trend Line", "Ray", "Info Line", "Extended Line"],
+      toolLabels: [
+        "Trend Line",
+        "Ray",
+        "Info Line",
+        "Extended Line",
+        "Trend Angle",
+      ],
       onClickFunction: linesOnClickHandler,
     },
     {
@@ -127,7 +137,13 @@ function ToolbarItems({ mode, ChartWindow }) {
           size={20}
         />,
       ],
-      toolLabels: ["Fibonacci Retracement","Trend Based Fibonacci Retracement", "Fib Channel", "Fib Time Zone", "Trend-Based Fib Time"],
+      toolLabels: [
+        "Fibonacci Retracement",
+        "Trend Based Fibonacci Retracement",
+        "Fib Channel",
+        "Fib Time Zone",
+        "Trend-Based Fib Time",
+      ],
       onClickFunction: fibOnClickHandler,
     },
   ];
