@@ -69,6 +69,9 @@ function isCursorOnTrendLine(e, lineData, state) {
   for (let i = -5; i < 5; i++) {
     if (parseInt(y) + i === parseInt(slope * x + constant)) return 2;
   }
+  for (let i = -5; i < 5; i++) {
+    if (parseInt(x) + i === parseInt((y - constant) / slope)) return 2;
+  }
   return -1;
 }
 function isCursorOnRayLine(e, lineData, state) {
@@ -108,6 +111,87 @@ function isCursorOnExtendedLine(e, lineData, state) {
   }
   return -1;
 }
+
+export const isCursorOnPointLine = (
+  e,
+  lineData,
+  state,
+  isHorizontal = false,
+  isVertical = false
+) => {
+  let { points } = lineData;
+  const { chartCanvasSize } = state;
+  let [startCoords] = points;
+  const canvas = state.ChartRef.current[1];
+  const rect = canvas.getBoundingClientRect();
+  const x = parseInt(e.pageX - rect.left);
+  const y = parseInt(e.pageY - rect.top);
+  if (isIntersect(x, y, startCoords.x + 5, startCoords.y + 5, 5)) return 0;
+  if (
+    isHorizontal &&
+    isCursorOnTrendLine(
+      e,
+      {
+        points: [
+          { x: 0, y: startCoords.y },
+          { x: chartCanvasSize.peek().width, y: startCoords.y },
+        ],
+      },
+      state
+    ) !== -1
+  ) {
+    return 1;
+  }
+  if (isVertical) {
+    for (let i = -5; i < 5; i++) {
+      if (parseInt(x) + i === parseInt(startCoords.x)) {
+        return 1;
+      }
+    }
+  }
+  return -1;
+};
+
+export const isCursorOnPointRay = (
+  e,
+  lineData,
+  state,
+  isHorizontal = false,
+  isVertical = false
+) => {
+  let { points } = lineData;
+  const { chartCanvasSize } = state;
+  let [startCoords] = points;
+  const canvas = state.ChartRef.current[1];
+  const rect = canvas.getBoundingClientRect();
+  const x = parseInt(e.pageX - rect.left);
+  const y = parseInt(e.pageY - rect.top);
+  if (isIntersect(x, y, startCoords.x + 5, startCoords.y + 5, 5)) return 0;
+  if (
+    isHorizontal &&
+    isCursorOnTrendLine(
+      e,
+      {
+        points: [
+          { x: startCoords.x, y: startCoords.y },
+          { x: chartCanvasSize.peek().width, y: startCoords.y },
+        ],
+      },
+      state
+    ) !== -1
+  ) {
+    return 1;
+  }
+  if (isVertical) {
+    for (let i = -5; i < 5; i++) {
+      if (parseInt(x) + i === parseInt(startCoords.x)) {
+        return 1;
+      }
+    }
+  }
+  return -1;
+};
+
 export const isCursorOnLine = (e, lineData, state) => {
   const { toolItemNo } = lineData;
   switch (toolItemNo) {
@@ -121,6 +205,14 @@ export const isCursorOnLine = (e, lineData, state) => {
       return isCursorOnExtendedLine(e, lineData, state);
     case 4:
       return isCursorOnTrendLine(e, lineData, state);
+    case 5:
+      return isCursorOnPointLine(e, lineData, state, true, false);
+    case 6:
+      return isCursorOnPointRay(e, lineData, state, true, false);
+    case 7:
+      return isCursorOnPointLine(e, lineData, state, false, true);
+    case 8:
+      return isCursorOnPointLine(e, lineData, state, true, true);
   }
 };
 
@@ -508,6 +600,47 @@ export const detectTrendLine = (e, state) => {
   });
   return returnVal;
 };
+
+const setToolData = (state, lineStartPoint) => {
+  const { selectedTool, selectedToolItem } = state.ChartWindow;
+  state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+    if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+      let flag = 0;
+      const points = [];
+      prevLineData.peek().forEach((point) => {
+        if (point === null) {
+          flag = 1;
+          points.push(lineStartPoint);
+        } else {
+          points.push(point);
+        }
+      });
+      if (flag === 0) points.push(lineStartPoint);
+      switch (selectedTool.peek()) {
+        case "Line": {
+          obj.trendLinesData.value.push({
+            points: points,
+            toolItemNo: selectedToolItem.peek(),
+          });
+          drawTrendLines(obj);
+          break;
+        }
+        case "Fib": {
+          obj.fibData.value.push({
+            points: points,
+            toolItemNo: selectedToolItem.peek(),
+          });
+          drawFibs(obj, true, false);
+          break;
+        }
+      }
+      prevLineData.value = null;
+      prevToolItemNo.value = null;
+      prevSelectedCanvas.value = null;
+      selectedTool.value = "Cursor";
+    }
+  });
+};
 export const setTool = (e, state) => {
   const { selectedTool, selectedToolItem } = state.ChartWindow;
   switch (selectedTool.peek()) {
@@ -551,30 +684,44 @@ export const setTrendLine = (e, state) => {
     yLabel: priceText,
   };
   if (prevLineData.peek() !== null) {
-    state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
-      if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
-        let flag = 0;
-        const points = [];
-        prevLineData.peek().forEach((point) => {
-          if (point === null) {
-            flag = 1;
-            points.push(lineStartPoint);
-          } else {
-            points.push(point);
-          }
-        });
-        if (flag === 0) points.push(lineStartPoint);
-        obj.trendLinesData.value.push({
-          toolItemNo: selectedToolItem.peek(),
-          points: points,
-        });
-        drawTrendLines(obj);
-        prevLineData.value = null;
-        prevToolItemNo.value = null;
-        prevSelectedCanvas.value = null;
-        selectedTool.value = "Cursor";
+    switch (prevToolItemNo.peek()) {
+      case 0: {
+        setToolData(state, lineStartPoint);
+        break;
       }
-    });
+      case 1: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 2: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 3: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 4: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 5: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 6: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 7: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+      case 8: {
+        setToolData(state, lineStartPoint);
+        break;
+      }
+    }
   } else {
     const ctx = canvas.getContext("2d");
     ctx.font = "12px Arial";
@@ -587,35 +734,73 @@ export const setTrendLine = (e, state) => {
     prevLineData.value = [lineStartPoint];
     prevToolItemNo.value = selectedToolItem.peek();
     prevSelectedCanvas.value = canvas;
-  }
-};
-
-const setToolData = (state, lineStartPoint) => {
-  const { selectedTool, selectedToolItem } = state.ChartWindow;
-  state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
-    if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
-      let flag = 0;
-      const points = [];
-      prevLineData.peek().forEach((point) => {
-        if (point === null) {
-          flag = 1;
-          points.push(lineStartPoint);
-        } else {
-          points.push(point);
-        }
-      });
-      if (flag === 0) points.push(lineStartPoint);
-      obj.fibData.value.push({
-        points: points,
-        toolItemNo: selectedToolItem.peek(),
-      });
-      drawFibs(obj, true, false);
-      prevLineData.value = null;
-      prevToolItemNo.value = null;
-      prevSelectedCanvas.value = null;
-      selectedTool.value = "Cursor";
+    switch (prevToolItemNo.peek()) {
+      case 5: {
+        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+          if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+            obj.trendLinesData.value.push({
+              points: [lineStartPoint],
+              toolItemNo: selectedToolItem.peek(),
+            });
+            drawTrendLines(obj);
+          }
+        });
+        prevLineData.value = null;
+        prevToolItemNo.value = null;
+        prevSelectedCanvas.value = null;
+        selectedTool.value = "Cursor";
+        break;
+      }
+      case 6: {
+        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+          if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+            obj.trendLinesData.value.push({
+              points: [lineStartPoint],
+              toolItemNo: selectedToolItem.peek(),
+            });
+            drawTrendLines(obj);
+          }
+        });
+        prevLineData.value = null;
+        prevToolItemNo.value = null;
+        prevSelectedCanvas.value = null;
+        selectedTool.value = "Cursor";
+        break;
+      }
+      case 7: {
+        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+          if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+            obj.trendLinesData.value.push({
+              points: [lineStartPoint],
+              toolItemNo: selectedToolItem.peek(),
+            });
+            drawTrendLines(obj);
+          }
+        });
+        prevLineData.value = null;
+        prevToolItemNo.value = null;
+        prevSelectedCanvas.value = null;
+        selectedTool.value = "Cursor";
+        break;
+      }
+      case 8: {
+        state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+          if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+            obj.trendLinesData.value.push({
+              points: [lineStartPoint],
+              toolItemNo: selectedToolItem.peek(),
+            });
+            drawTrendLines(obj);
+          }
+        });
+        prevLineData.value = null;
+        prevToolItemNo.value = null;
+        prevSelectedCanvas.value = null;
+        selectedTool.value = "Cursor";
+        break;
+      }
     }
-  });
+  }
 };
 
 export const setFibTool = (e, state) => {

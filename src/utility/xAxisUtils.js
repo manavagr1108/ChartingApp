@@ -1,7 +1,7 @@
 export const intervalMap = {
-  "day": "1d",
-  "week": "1W",
-  "month": "1M",
+  day: "1d",
+  week: "1W",
+  month: "1M",
 };
 
 export const TimeFrames = {
@@ -152,7 +152,7 @@ export function getNewZoomTime(
   noOfPMoved,
   dates
 ) {
-  if(noOfPMoved === 0){
+  if (noOfPMoved === 0) {
     return {
       startTime,
       endTime,
@@ -231,7 +231,7 @@ export function getNewZoomTime(
 }
 
 export const xAxisMouseDown = (e, state) => {
-  const {xAxisMovement} = state;
+  const { xAxisMovement } = state;
   xAxisMovement.value.mouseDown = true;
   xAxisMovement.value.prevXCoord = e.pageX;
   const canvas = e.target;
@@ -239,8 +239,11 @@ export const xAxisMouseDown = (e, state) => {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 };
 export const xAxisMouseMove = (e, state) => {
-  const { xAxisMovement, timeRange, dateConfig, xAxisConfig} = state;
-  if (xAxisMovement.peek().mouseDown && e.pageX - xAxisMovement.peek().prevXCoord !== 0) {
+  const { xAxisMovement, timeRange, dateConfig, xAxisConfig } = state;
+  if (
+    xAxisMovement.peek().mouseDown &&
+    e.pageX - xAxisMovement.peek().prevXCoord !== 0
+  ) {
     if (!xAxisMovement.peek().mouseMove) {
       xAxisMovement.value.mouseMove = true;
     }
@@ -255,7 +258,7 @@ export const xAxisMouseMove = (e, state) => {
       xAxisConfig.peek().widthOfOneCS,
       pixelMovement * xAxisConfig.peek().widthOfOneCS,
       dateConfig.peek().dateToIndex
-    )
+    );
     state.setXAxisConfig();
     state.drawChartObjects.peek()[0].setYRange();
     state.drawChartObjects.peek()[0].setYAxisConfig();
@@ -263,9 +266,9 @@ export const xAxisMouseMove = (e, state) => {
   }
 };
 export const xAxisMouseUp = (e, state) => {
-  const {xAxisMovement} = state;
+  const { xAxisMovement } = state;
   if (xAxisMovement.peek().mouseMove) {
-    xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 }
+    xAxisMovement.value = { mouseDown: false, mouseMove: false, prevXCoord: 0 };
   } else if (xAxisMovement.peek().mouseDown) {
     xAxisMovement.value.mouseDown = false;
   }

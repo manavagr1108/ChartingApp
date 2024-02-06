@@ -103,6 +103,22 @@ function ToolbarItems({ mode, ChartWindow }) {
           color={`${mode === "Light" ? "black" : "white"}`}
           size={20}
         />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
       ],
       toolLabels: [
         "Trend Line",
@@ -110,6 +126,10 @@ function ToolbarItems({ mode, ChartWindow }) {
         "Info Line",
         "Extended Line",
         "Trend Angle",
+        "Horizontal Line",
+        "Horizontal Ray",
+        "Vertical Line",
+        "Cross Line",
       ],
       onClickFunction: linesOnClickHandler,
     },
