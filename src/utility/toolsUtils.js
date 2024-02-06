@@ -69,6 +69,9 @@ function isCursorOnTrendLine(e, lineData, state) {
     for (let i = -5; i < 5; i++) {
         if (parseInt(y) + i === parseInt(slope * x + constant)) return 2;
     }
+    for (let i = -5; i < 5; i++) {
+        if (parseInt(x) + i === parseInt((y - constant) / slope)) return 2;
+    }
     return -1;
 }
 function isCursorOnRayLine(e, lineData, state) {
@@ -123,8 +126,12 @@ export const isCursorOnPointLine = (e, lineData, state, isHorizontal = false, is
     if (isHorizontal && isCursorOnTrendLine(e, { points: [{ x: 0, y: startCoords.y }, { x: chartCanvasSize.peek().width, y: startCoords.y }] }, state) !== -1) {
         return 1;
     }
-    if (isVertical && isCursorOnTrendLine(e, { points: [{ x: startCoords.x, y: 0 }, { x: startCoords.x, y: chartCanvasSize.peek().height }] }, state) !== -1) {
-        return 1;
+    if (isVertical) {
+        for (let i = -5; i < 5; i++) {
+            if (parseInt(x) + i === parseInt(startCoords.x)) {
+                return 1;
+            }
+        }
     }
     return -1;
 }
@@ -143,8 +150,12 @@ export const isCursorOnPointRay = (e, lineData, state, isHorizontal = false, isV
     if (isHorizontal && isCursorOnTrendLine(e, { points: [{ x: startCoords.x, y: startCoords.y }, { x: chartCanvasSize.peek().width, y: startCoords.y }] }, state) !== -1) {
         return 1;
     }
-    if (isVertical && isCursorOnTrendLine(e, { points: [{ x: startCoords.x, y: startCoords.y }, { x: startCoords.x, y: chartCanvasSize.peek().height }] }, state) !== -1) {
-        return 1;
+    if (isVertical) {
+        for (let i = -5; i < 5; i++) {
+            if (parseInt(x) + i === parseInt(startCoords.x)) {
+                return 1;
+            }
+        }
     }
     return -1;
 }
@@ -164,8 +175,10 @@ export const isCursorOnLine = (e, lineData, state) => {
             return isCursorOnTrendLine(e, lineData, state);
         case 5:
             return isCursorOnPointLine(e, lineData, state, true, false);
-        case 6: 
+        case 6:
             return isCursorOnPointRay(e, lineData, state, true, false);
+        case 7:
+            return isCursorOnPointLine(e, lineData, state, false, true);
     }
 };
 
@@ -625,6 +638,10 @@ export const setTrendLine = (e, state) => {
                 setToolData(state, lineStartPoint);
                 break
             }
+            case 7: {
+                setToolData(state, lineStartPoint);
+                break
+            }
         }
     } else {
         const ctx = canvas.getContext("2d");
@@ -656,6 +673,22 @@ export const setTrendLine = (e, state) => {
                 break;
             }
             case 6: {
+                state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+                    if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+                        obj.trendLinesData.value.push({
+                            points: [lineStartPoint],
+                            toolItemNo: selectedToolItem.peek(),
+                        })
+                        drawTrendLines(obj);
+                    }
+                })
+                prevLineData.value = null;
+                prevToolItemNo.value = null;
+                prevSelectedCanvas.value = null;
+                selectedTool.value = 'Cursor';
+                break;
+            }
+            case 7: {
                 state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
                     if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
                         obj.trendLinesData.value.push({
