@@ -10,12 +10,12 @@ import { drawFibChannelUsingPoints, drawFibTimeZoneUsingPoints, drawFibUsingPoin
 import { drawExtendedLineUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
 
 export async function getStockDataCallback(
-  symbol,
+  instrumentKey,
   interval,
   setStockDataState
 ) {
   try {
-    const fetchedData = await getStockData(symbol.value, interval.value);
+    const fetchedData = await getStockData(instrumentKey.value, interval.value);
     if (fetchedData.length) {
       setStockDataState.value = [...fetchedData];
       return;
@@ -240,7 +240,7 @@ export function updateCursorValue(state, mode) {
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
-      ctx.fillText(dateCursor.peek().text, 50, 20);
+      ctx.fillText(dateCursor.peek().text, 10, 40);
       // Draw on YAxis
       yAxisCtx.fillRect(
         0,

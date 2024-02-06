@@ -10,7 +10,7 @@ import {
   drawIchimokuIndicator,
   drawParabolicSAR,
   drawSMAIndicator,
-  drawZigZagIndicator
+  drawZigZagIndicator,
 } from "../utility/drawUtils/indicatorDraw";
 import {
   calculateATRDrawChart,
@@ -44,37 +44,37 @@ import {
 } from "../utility/calulations.js/indicatorCalcualations";
 export const indicatorConfig = {
   SMA: {
-    name: 'SMA',
+    name: "SMA",
     color: "#FFA500",
     stroke: 1,
     period: 20,
     label: "Simple Moving Average",
     chartRequired: false,
     getChartData: calculateSMA,
-    drawChartFunction: drawSMAIndicator
+    drawChartFunction: drawSMAIndicator,
   },
   EMA: {
-    name: 'EMA',
+    name: "EMA",
     color: "#FF0000",
     stroke: 1,
     period: 20,
     label: "Expontential Moving Average",
     chartRequired: false,
     getChartData: calculateEMA,
-    drawChartFunction: drawEMAIndicator
+    drawChartFunction: drawEMAIndicator,
   },
   ZigZag: {
-    name: 'ZigZag',
+    name: "ZigZag",
     color: "#00FF00",
     label: "Zig Zag",
     deviation: 10,
     pivotLegs: 5,
     chartRequired: false,
     getChartData: calculateZigZag,
-    drawChartFunction: drawZigZagIndicator
+    drawChartFunction: drawZigZagIndicator,
   },
   RSI: {
-    name: 'RSI',
+    name: "RSI",
     color: "#FFA500",
     stroke: 1,
     period: 14,
@@ -84,7 +84,7 @@ export const indicatorConfig = {
     getChartData: calculateRSI,
   },
   MACD: {
-    name: 'MACD',
+    name: "MACD",
     color: "#FFA500",
     stroke: 1,
     label: "Moving Average Convergence Divergence",
@@ -96,7 +96,7 @@ export const indicatorConfig = {
     getChartData: calculateMACD,
   },
   ParabolicSAR: {
-    name: 'ParabolicSAR',
+    name: "ParabolicSAR",
     color: "#FFA500",
     stroke: 2,
     label: "Parabolic SAR",
@@ -107,7 +107,7 @@ export const indicatorConfig = {
     getChartData: calculateParabolicSAR,
   },
   BB: {
-    name: 'BB',
+    name: "BB",
     color: "#FFA500",
     stroke: 1,
     label: "Bollinger Bands",
@@ -118,7 +118,7 @@ export const indicatorConfig = {
     getChartData: calculateBB,
   },
   BBW: {
-    name: 'BBW',
+    name: "BBW",
     color: "#FFA500",
     stroke: 1,
     label: "Bollinger Bands Width",
@@ -129,7 +129,7 @@ export const indicatorConfig = {
     getChartData: calculateBBW,
   },
   KeltnerChannels: {
-    name: 'KeltnerChannels',
+    name: "KeltnerChannels",
     color: "#FFA500",
     stroke: 2,
     label: "Keltner Channels",
@@ -140,7 +140,7 @@ export const indicatorConfig = {
     getChartData: calculateKeltnerChannels,
   },
   DonchainChannels: {
-    name: 'DonchainChannels',
+    name: "DonchainChannels",
     color: "#FFA500",
     stroke: 2,
     label: "Donchain Channels",
@@ -150,7 +150,7 @@ export const indicatorConfig = {
     getChartData: calculateDonchainChannels,
   },
   ATR: {
-    name: 'ATR',
+    name: "ATR",
     color: "#FFA500",
     stroke: 1,
     label: "Average True Range",
@@ -160,7 +160,7 @@ export const indicatorConfig = {
     getChartData: calculateATRDrawChart,
   },
   ADX: {
-    name: 'ADX',
+    name: "ADX",
     color: "#FFA500",
     stroke: 1,
     label: "Average Directional Index",
@@ -170,7 +170,7 @@ export const indicatorConfig = {
     getChartData: calculateADX,
   },
   Vortex: {
-    name: 'Vortex',
+    name: "Vortex",
     color: "#FFA500",
     stroke: 1,
     label: "Vortex",
@@ -180,7 +180,7 @@ export const indicatorConfig = {
     getChartData: calculateVortex,
   },
   Alligator: {
-    name: 'Alligator',
+    name: "Alligator",
     color: "#FFA500",
     stroke: 1,
     label: "Williams Alligator",
@@ -192,7 +192,7 @@ export const indicatorConfig = {
     getChartData: calculateAlligator,
   },
   Stochaistic: {
-    name: 'Stochaistic',
+    name: "Stochaistic",
     color: "#FFA500",
     stroke: 1,
     label: "Stochaistic Oscillator",
@@ -204,7 +204,7 @@ export const indicatorConfig = {
     getChartData: calculateStochastic,
   },
   ROC: {
-    name: 'ROC',
+    name: "ROC",
     color: "#FFA500",
     stroke: 1,
     label: "Rate of Change",
@@ -214,7 +214,7 @@ export const indicatorConfig = {
     getChartData: calculateROC,
   },
   Momentum: {
-    name: 'Momentum',
+    name: "Momentum",
     color: "#FFA500",
     stroke: 1,
     label: "Momentum",
@@ -224,7 +224,7 @@ export const indicatorConfig = {
     getChartData: calculateMomentum,
   },
   BBP: {
-    name: 'BBP',
+    name: "BBP",
     color: "#FFA500",
     stroke: 1,
     label: "Bull Bear Power",
@@ -234,7 +234,7 @@ export const indicatorConfig = {
     getChartData: calculateBBP,
   },
   Envelope: {
-    name: 'Envelope',
+    name: "Envelope",
     color: "#FFA500",
     stroke: 1,
     label: "Envelope",
@@ -245,7 +245,7 @@ export const indicatorConfig = {
     getChartData: calculateEnvelope,
   },
   AwesomeOscillator: {
-    name: 'AwesomeOscillator',
+    name: "AwesomeOscillator",
     color: "#FFA500",
     stroke: 1,
     label: "Awesome Oscillator",
@@ -254,7 +254,7 @@ export const indicatorConfig = {
     getChartData: calculateAwesomeOscillator,
   },
   IchimokuCloud: {
-    name: 'IchimokuCloud',
+    name: "IchimokuCloud",
     color: "#FFA500",
     stroke: 1,
     label: "Ichimoku Cloud",
@@ -267,7 +267,7 @@ export const indicatorConfig = {
     getChartData: calculateIchimokuCloud,
   },
   CCI: {
-    name: 'CCI',
+    name: "CCI",
     color: "#FFA500",
     stroke: 1,
     label: "Commodity Channel Index",
@@ -277,7 +277,7 @@ export const indicatorConfig = {
     getChartData: calculateCCI,
   },
   SuperTrend: {
-    name: 'SuperTrend',
+    name: "SuperTrend",
     color: "#FFA500",
     stroke: 1,
     label: "Super Trend",
@@ -288,7 +288,7 @@ export const indicatorConfig = {
     getChartData: calculateSuperTrend,
   },
   AverageDayRange: {
-    name: 'AverageDayRange',
+    name: "AverageDayRange",
     color: "#FFA500",
     stroke: 1,
     label: "Average Day Range",
@@ -298,7 +298,7 @@ export const indicatorConfig = {
     getChartData: calculateAverageDayRange,
   },
   BalanceOfPower: {
-    name: 'BalanceOfPower',
+    name: "BalanceOfPower",
     color: "#FFA500",
     stroke: 1,
     label: "Balance of Power",
@@ -307,7 +307,7 @@ export const indicatorConfig = {
     getChartData: calculateBalanceOfPower,
   },
   WilliamsR: {
-    name: 'WilliamsR',
+    name: "WilliamsR",
     color: "#FFA500",
     stroke: 1,
     label: "Williams %R",
@@ -317,7 +317,7 @@ export const indicatorConfig = {
     getChartData: calculateWilliamsR,
   },
   DoubleEMA: {
-    name: 'DoubleEMA',
+    name: "DoubleEMA",
     color: "#FFA500",
     stroke: 1,
     period: 9,
@@ -327,7 +327,7 @@ export const indicatorConfig = {
     getChartData: calculateDoubleEMA,
   },
   TripleEMA: {
-    name: 'TripleEMA',
+    name: "TripleEMA",
     color: "#FFA500",
     stroke: 1,
     period: 9,

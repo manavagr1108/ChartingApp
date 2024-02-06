@@ -463,6 +463,7 @@ export const setTrendLine = (e, state) => {
             if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
                 let flag = 0;
                 const points = [];
+                console.log(prevLineData.peek());
                 prevLineData.peek().forEach((point) => {
                     if (point === null) {
                         flag = 1;

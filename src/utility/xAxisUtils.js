@@ -1,7 +1,7 @@
 export const intervalMap = {
-  "1d": "1d",
-  "1wk": "1W",
-  "1mo": "1M",
+  "day": "1d",
+  "week": "1W",
+  "month": "1M",
 };
 
 export const TimeFrames = {
