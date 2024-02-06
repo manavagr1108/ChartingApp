@@ -1,7 +1,6 @@
 import axios from "axios";
 
 function parseData(data) {
-  console.log(data);
   const fetchedData = [];
   data.data.candles.forEach((item) => {
     fetchedData.push({
@@ -15,18 +14,6 @@ function parseData(data) {
   });
   return fetchedData.reverse();
 }
-
-// export const searchSymbol = async (query) => {
-//   if (query === "") return;
-//   const response = await axios.get(
-//     `${import.meta.env.VITE_BASE_URL}/search?q=${query}&token=${import.meta.env.VITE_API_KEY}`
-//   );
-//   if (response.status !== 200) {
-//     const message = `An error has occured: ${response.status}`;
-//     throw new Error(message);
-//   }
-//   return response.data;
-// };
 
 export const getStockData = async (instrumentKey, interval) => {
   if (instrumentKey === "") return;
