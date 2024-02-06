@@ -26,7 +26,7 @@ export const useOutsideClick = (callBackFunc) => {
   return dropRef;
 };
 
-function NavBar({ ChartWindow, mode, toggleMode }){
+function NavBar({ ChartWindow, mode, toggleMode }) {
   const { instrumentKey, interval, chartType } = ChartWindow;
   return (
     <div

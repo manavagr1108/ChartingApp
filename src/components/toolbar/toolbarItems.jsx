@@ -129,7 +129,7 @@ function ToolbarItems({ mode, ChartWindow }) {
         "Horizontal Line",
         "Horizontal Ray",
         "Vertical Line",
-        "Cross Line"
+        "Cross Line",
       ],
       onClickFunction: linesOnClickHandler,
     },

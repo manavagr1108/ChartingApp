@@ -32,10 +32,10 @@ function EditSelectedItem({ ChartWindow, mode }) {
   return (
     <div>
       {selectedItemState?.startPoint?.xLabel !== undefined ? (
-        <div className={`absolute flex justify-around top-[5%] left-[50%] p-1 ${mode === "Light" ? "bg-white" : "bg-gray-700"} rounded-md shadow-md`}>
-          <button
-            className={`p-1 cursor-grab rounded-md`}
-          >
+        <div
+          className={`absolute flex justify-around top-[5%] left-[50%] p-1 ${mode === "Light" ? "bg-white" : "bg-gray-700"} rounded-md shadow-md`}
+        >
+          <button className={`p-1 cursor-grab rounded-md`}>
             <GoGrabber
               color={`${mode === "Light" ? "black" : "white"}`}
               size={20}

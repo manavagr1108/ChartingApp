@@ -29,7 +29,9 @@ function DrawIndicator({
   const { ChartRef, yAxisRef } = drawChart;
   const indicatorsLength = computed(
     () =>
-      canvasSizeConfig[drawChart.ChartWindow.offChartIndicatorSignal.value.length + 1]
+      canvasSizeConfig[
+        drawChart.ChartWindow.offChartIndicatorSignal.value.length + 1
+      ]
   );
   return (
     <>

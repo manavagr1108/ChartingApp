@@ -10,7 +10,16 @@ import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
 
 function Charting({ mode, ChartWindow }) {
-  const { xAxisRef, instrumentKey, interval, stockData, chartType, drawChartObjects, onChartIndicatorSignal, offChartIndicatorSignal } = ChartWindow;
+  const {
+    xAxisRef,
+    instrumentKey,
+    interval,
+    stockData,
+    chartType,
+    drawChartObjects,
+    onChartIndicatorSignal,
+    offChartIndicatorSignal,
+  } = ChartWindow;
   const drawChart = drawChartObjects.peek()[0];
   const [onChartIndicators, setOnChartIndicators] = useState([]);
   const [offChartIndicators, setOffChartIndicators] = useState([]);
@@ -28,14 +37,16 @@ function Charting({ mode, ChartWindow }) {
     }
   });
   effect(() => {
-    if (instrumentKey.value && interval.value && chartType.value){
-      getStockDataCallback(instrumentKey, interval, stockData).then(() =>{
-        ChartWindow.setChartWindowSignal();
-        drawChart.setDrawChartSignal([stockData.peek()]);
-        drawChart.drawChartFunction(drawChart, mode)
-      }).catch(e => {
-        console.log(e);
-      })
+    if (instrumentKey.value && interval.value && chartType.value) {
+      getStockDataCallback(instrumentKey, interval, stockData)
+        .then(() => {
+          ChartWindow.setChartWindowSignal();
+          drawChart.setDrawChartSignal([stockData.peek()]);
+          drawChart.drawChartFunction(drawChart, mode);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   });
   return (
@@ -73,7 +84,11 @@ function Charting({ mode, ChartWindow }) {
                 />
               );
             })}
-          <IndicatorsList mode={mode} indicators={onChartIndicators} ChartWindow={ChartWindow} />
+          <IndicatorsList
+            mode={mode}
+            indicators={onChartIndicators}
+            ChartWindow={ChartWindow}
+          />
         </div>
         <div className="w-[95%] h-[3%] relative">
           <canvas
