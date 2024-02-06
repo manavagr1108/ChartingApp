@@ -7,7 +7,7 @@ import {
 import { prevLineData, prevSelectedCanvas, prevToolItemNo, selectedLine } from "../signals/toolbarSignals";
 import { detectTrendLine, setTool, getCoordsArray } from "./toolsUtils";
 import { drawFibChannelUsingPoints, drawFibTimeZoneUsingPoints, drawFibUsingPoints, drawFibs, drawTrendFibTimeUsingPoints, drawTrendFibUsingPoints } from "./drawUtils/toolsDraw/fibTool";
-import { drawExtendedLineUsingPoints, drawHorizontalLineUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendAngleUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
+import { drawExtendedLineUsingPoints, drawHorizontalLineUsingPoints, drawHorizontalRayUsingPoints, drawInfoLineUsingPoints, drawRayLineUsingPoints, drawTrendAngleUsingPoints, drawTrendLineUsingPoints, drawTrendLines } from "./drawUtils/toolsDraw/lineTool";
 
 export async function getStockDataCallback(
   instrumentKey,
@@ -119,6 +119,7 @@ export function handleOnMouseMove(e, state) {
           case 3: drawExtendedLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
           case 4: drawTrendAngleUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
           case 5: drawHorizontalLineUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
+          case 6: drawHorizontalRayUsingPoints(state, prevSelectedCanvas.peek(), points, true); break;
         } break;
         case 'Fib': switch (prevToolItemNo.peek()) {
           case 0: drawFibUsingPoints(state, prevSelectedCanvas.peek(), points, false, true); break;
@@ -286,6 +287,7 @@ export function updateCursorValue(state, mode) {
           case 3: drawExtendedLineUsingPoints(drawChartobj, canvas, points); break;
           case 4: drawTrendAngleUsingPoints(drawChartobj, canvas, points); break;
           case 5: drawHorizontalLineUsingPoints(drawChartobj, canvas, points); break;
+          case 6: drawHorizontalRayUsingPoints(drawChartobj, canvas, points); break;
         } break;
         case 'Fib': switch (toolItemNo) {
           case 0: drawFibUsingPoints(drawChartobj, canvas, points, false, true, ctx); break;
