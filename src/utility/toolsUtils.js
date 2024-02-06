@@ -179,6 +179,8 @@ export const isCursorOnLine = (e, lineData, state) => {
             return isCursorOnPointRay(e, lineData, state, true, false);
         case 7:
             return isCursorOnPointLine(e, lineData, state, false, true);
+        case 8: 
+            return isCursorOnPointLine(e, lineData, state, true, true);
     }
 };
 
@@ -642,6 +644,10 @@ export const setTrendLine = (e, state) => {
                 setToolData(state, lineStartPoint);
                 break
             }
+            case 8: {
+                setToolData(state, lineStartPoint);
+                break
+            }
         }
     } else {
         const ctx = canvas.getContext("2d");
@@ -689,6 +695,22 @@ export const setTrendLine = (e, state) => {
                 break;
             }
             case 7: {
+                state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
+                    if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
+                        obj.trendLinesData.value.push({
+                            points: [lineStartPoint],
+                            toolItemNo: selectedToolItem.peek(),
+                        })
+                        drawTrendLines(obj);
+                    }
+                })
+                prevLineData.value = null;
+                prevToolItemNo.value = null;
+                prevSelectedCanvas.value = null;
+                selectedTool.value = 'Cursor';
+                break;
+            }
+            case 8: {
                 state.ChartWindow.drawChartObjects.peek().forEach((obj) => {
                     if (obj.ChartRef.current[1] === prevSelectedCanvas.peek()) {
                         obj.trendLinesData.value.push({
