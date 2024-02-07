@@ -287,6 +287,43 @@ export const isCursorOnLine = (e, lineData, state) => {
         return onDiagonal2 + 1;
       }
     }
+    case 11: {
+      const [lineStartCoords, lineEndCoords, channelEndCoords] = getCoordsArray(
+        state,
+        points
+      );
+      const slope =
+        (lineEndCoords.y - lineStartCoords.y) /
+        (lineEndCoords.x - lineStartCoords.x);
+      const contant = channelEndCoords.y - lineEndCoords.x * slope;
+      const newY = lineStartCoords.x * slope + contant;
+      const newPoint1 = {
+        x: points[0].x,
+        y: newY,
+      };
+      const newPoint2 = {
+        x: points[1].x,
+        y: points[2].y,
+      };
+      const onDiagonal1 = isCursorOnTrendLine(
+        e,
+        { points: points.slice(0, 2) },
+        state
+      );
+      const onDiagonal2 = isCursorOnTrendLine(
+        e,
+        { points: [newPoint1, newPoint2] },
+        state
+      );
+      if (onDiagonal1 !== -1) {
+        if (onDiagonal1 === 2) return points.length;
+        return onDiagonal1;
+      }
+      if (onDiagonal2 !== -1) {
+        if (onDiagonal2 === 2 || onDiagonal2 === 0) return points.length;
+        return onDiagonal2 + 1;
+      }
+    }
     default:
       return -1;
   }
@@ -816,6 +853,24 @@ export const setTrendLine = (e, state) => {
         break;
       }
       case 10: {
+        if (prevLineData.peek().length === 1) {
+          const ctx = canvas.getContext("2d");
+          ctx.font = "12px Arial";
+          ctx.fillStyle = "White";
+          ctx.strokeStyle = "blue";
+          ctx.beginPath();
+          ctx.arc(x, y, 5, 0, 2 * Math.PI);
+          ctx.fill();
+          ctx.stroke();
+          prevLineData.value = [...prevLineData.peek(), lineStartPoint];
+          prevToolItemNo.value = selectedToolItem.peek();
+          prevSelectedCanvas.value = canvas;
+        } else {
+          setToolData(state, lineStartPoint);
+        }
+        break;
+      }
+      case 11: {
         if (prevLineData.peek().length === 1) {
           const ctx = canvas.getContext("2d");
           ctx.font = "12px Arial";

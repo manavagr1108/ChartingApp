@@ -61,6 +61,16 @@ export const drawTrendLine = (
         ctx1
       );
       break;
+    case 11:
+      drawDisjointChannelUsingPoints(
+        state,
+        canvas,
+        points,
+        lineSelected,
+        fromDrawChart,
+        ctx1
+      );
+      break;
   }
 };
 
@@ -532,6 +542,85 @@ export const drawFlatTopBottomChannelUsingPoints = (
   }
   if (channelEndCoords !== undefined) {
     drawFlatTopBottomChannel(
+      state,
+      canvas,
+      points,
+      lineSelected,
+      fromDrawChart,
+      ctx1
+    );
+  }
+  if (lineSelected && ctx1 !== null) {
+    drawPoint(ctx1, lineStartCoords.x, lineStartCoords.y);
+    drawPoint(ctx1, lineEndCoords.x, lineEndCoords.y);
+  }
+};
+
+export const drawDisjointChannel = (
+  state,
+  canvas,
+  points,
+  lineSelected = false,
+  fromDrawChart = false,
+  ctx1 = null
+) => {
+  if (!fromDrawChart) return;
+  const [lineStartCoords, lineEndCoords, channelEndCoords] = getCoordsArray(
+    state,
+    points
+  );
+  const slope =
+    -(lineEndCoords.y - lineStartCoords.y) /
+    (lineEndCoords.x - lineStartCoords.x);
+  const contant = channelEndCoords.y - lineEndCoords.x * slope;
+  const newY = lineStartCoords.x * slope + contant;
+  if (lineSelected) {
+    drawPoint(ctx1, lineEndCoords.x, channelEndCoords.y);
+  } else {
+    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
+    drawTrendLineUsingPoints(
+      state,
+      canvas,
+      [
+        { x: lineStartCoords.x, y: newY },
+        { x: lineEndCoords.x, y: channelEndCoords.y },
+      ],
+      false,
+      ctx1
+    );
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "rgba(69,179,157,0.5)";
+    ctx.beginPath();
+    ctx.moveTo(lineStartCoords.x, lineStartCoords.y);
+    ctx.lineTo(lineEndCoords.x, lineEndCoords.y);
+    ctx.lineTo(lineEndCoords.x, channelEndCoords.y);
+    ctx.lineTo(lineStartCoords.x, newY);
+    ctx.fill();
+    ctx.closePath();
+    ctx.setLineDash([5, 2]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+};
+
+export const drawDisjointChannelUsingPoints = (
+  state,
+  canvas,
+  points,
+  lineSelected = false,
+  fromDrawChart = false,
+  ctx1 = null
+) => {
+  if (!fromDrawChart) return;
+  const [lineStartCoords, lineEndCoords, channelEndCoords] = getCoordsArray(
+    state,
+    points
+  );
+  if (channelEndCoords === undefined) {
+    drawTrendLineUsingPoints(state, canvas, points, false, ctx1);
+  }
+  if (channelEndCoords !== undefined) {
+    drawDisjointChannel(
       state,
       canvas,
       points,
