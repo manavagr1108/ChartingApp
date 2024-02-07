@@ -181,7 +181,7 @@ export function drawChart(state, mode) {
   drawIndicators(startIndex, endIndex, ctx, mode, state);
   state.ChartWindow.drawChartObjects
     .peek()
-    .forEach((obj) => drawTrendLines(obj));
+    .forEach((obj) => drawTrendLines(obj, true));
   state.ChartWindow.drawChartObjects
     .peek()
     .forEach((obj) => drawFibs(obj, true));

@@ -25,6 +25,7 @@ import {
   drawHorizontalLineUsingPoints,
   drawHorizontalRayUsingPoints,
   drawInfoLineUsingPoints,
+  drawParallelChannelUsingPoints,
   drawRayLineUsingPoints,
   drawTrendAngleUsingPoints,
   drawTrendLineUsingPoints,
@@ -210,6 +211,15 @@ export function handleOnMouseMove(e, state) {
                 state,
                 prevSelectedCanvas.peek(),
                 points,
+                true
+              );
+              break;
+            case 9:
+              drawParallelChannelUsingPoints(
+                state,
+                prevSelectedCanvas.peek(),
+                points,
+                false,
                 true
               );
               break;
@@ -449,6 +459,9 @@ export function updateCursorValue(state, mode) {
               break;
             case 8:
               drawCrossLineUsingPoints(drawChartobj, canvas, points);
+              break;
+            case 9:
+              drawParallelChannelUsingPoints(drawChartobj, canvas, points, false, true, ctx);
               break;
           }
           break;
@@ -756,7 +769,7 @@ export const chartMouseUp = (e, state) => {
             toolItemNo: toolItemNo,
             points: result,
           });
-          drawTrendLines(state);
+          drawTrendLines(state, true);
         }
         break;
       case "Fib": {
@@ -764,7 +777,7 @@ export const chartMouseUp = (e, state) => {
           toolItemNo: toolItemNo,
           points: result,
         });
-        drawFibs(state, true, true);
+        drawFibs(state, true);
       }
     }
   }
