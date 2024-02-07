@@ -119,6 +119,10 @@ function ToolbarItems({ mode, ChartWindow }) {
           color={`${mode === "Light" ? "black" : "white"}`}
           size={20}
         />,
+        <PiLineSegmentFill
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
       ],
       toolLabels: [
         "Trend Line",
@@ -130,6 +134,7 @@ function ToolbarItems({ mode, ChartWindow }) {
         "Horizontal Ray",
         "Vertical Line",
         "Cross Line",
+        "Parallel Channel",
       ],
       onClickFunction: linesOnClickHandler,
     },

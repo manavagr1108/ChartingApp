@@ -1,5 +1,5 @@
 import { getCoordsArray } from "../../toolsUtils";
-import { drawTrendLineUsingPoints } from "./lineTool";
+import { drawPoint, drawTrendLineUsingPoints } from "./lineTool";
 
 export const drawFib = (
   state,
@@ -77,18 +77,8 @@ export const drawFibUsingPoints = (
   if (!fromDrawChart) return;
   const [startCoords, endCoords] = getCoordsArray(state, points);
   if (lineSelected) {
-    ctx1.fillStyle = "White";
-    ctx1.strokeStyle = "blue";
-    ctx1.beginPath();
-    ctx1.arc(endCoords.x, endCoords.y, 5, 0, 2 * Math.PI);
-    ctx1.fill();
-    ctx1.stroke();
-    ctx1.beginPath();
-    ctx1.arc(startCoords.x, startCoords.y, 5, 0, 2 * Math.PI);
-    ctx1.fill();
-    ctx1.stroke();
-    ctx1.strokeStyle = "black";
-    ctx1.fillStyle = "black";
+    drawPoint(ctx1, startCoords.x, startCoords.y);
+    drawPoint(ctx1, endCoords.x, endCoords.y);
     if (startCoords.y < endCoords.y) {
       const temp = startCoords.y;
       startCoords.y = endCoords.y;
@@ -182,14 +172,7 @@ export const drawFibRevUsingPoints = (
     ctx1
   );
   if (lineSelected) {
-    ctx1.fillStyle = "White";
-    ctx1.strokeStyle = "blue";
-    ctx1.beginPath();
-    ctx1.arc(fibEndCoords.x, fibEndCoords.y, 5, 0, 2 * Math.PI);
-    ctx1.fill();
-    ctx1.stroke();
-    ctx1.strokeStyle = "black";
-    ctx1.fillStyle = "black";
+    drawPoint(ctx1, fibEndCoords.x, fibEndCoords.y);
   } else {
     if (fibEndCoords.x > lineEndCoords.x) {
       const temp = fibEndCoords.x;
@@ -250,14 +233,7 @@ export const drawFibAngledUsingPoints = (
     points
   );
   if (lineSelected) {
-    ctx1.fillStyle = "White";
-    ctx1.strokeStyle = "blue";
-    ctx1.beginPath();
-    ctx1.arc(fibEndCoords.x, fibEndCoords.y, 5, 0, 2 * Math.PI);
-    ctx1.fill();
-    ctx1.stroke();
-    ctx1.strokeStyle = "black";
-    ctx1.fillStyle = "black";
+    drawPoint(ctx1, fibEndCoords.x, fibEndCoords.y);
   } else {
     if (fibEndCoords.x > lineEndCoords.x) {
       const temp = fibEndCoords.x;
@@ -362,14 +338,7 @@ export const drawFibTimeTrendUsingPoints = (
   );
   const { chartCanvasSize } = state;
   if (lineSelected) {
-    ctx1.fillStyle = "White";
-    ctx1.strokeStyle = "blue";
-    ctx1.beginPath();
-    ctx1.arc(fibEndCoords.x, fibEndCoords.y, 5, 0, 2 * Math.PI);
-    ctx1.fill();
-    ctx1.stroke();
-    ctx1.strokeStyle = "black";
-    ctx1.fillStyle = "black";
+    drawPoint(ctx1, fibEndCoords.x, fibEndCoords.y);
   } else {
     const ctx = canvas.getContext("2d");
     const fibValues = [0.236, 0.382, 0.5, 0.618, 0.786, 1.0];
