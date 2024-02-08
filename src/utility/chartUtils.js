@@ -21,7 +21,9 @@ import {
 } from "./drawUtils/toolsDraw/fibTool";
 import {
   drawCrossLineUsingPoints,
+  drawDisjointChannelUsingPoints,
   drawExtendedLineUsingPoints,
+  drawFlatTopBottomChannelUsingPoints,
   drawHorizontalLineUsingPoints,
   drawHorizontalRayUsingPoints,
   drawInfoLineUsingPoints,
@@ -216,6 +218,24 @@ export function handleOnMouseMove(e, state) {
               break;
             case 9:
               drawParallelChannelUsingPoints(
+                state,
+                prevSelectedCanvas.peek(),
+                points,
+                false,
+                true
+              );
+              break;
+            case 10:
+              drawFlatTopBottomChannelUsingPoints(
+                state,
+                prevSelectedCanvas.peek(),
+                points,
+                false,
+                true
+              );
+              break;
+            case 11:
+              drawDisjointChannelUsingPoints(
                 state,
                 prevSelectedCanvas.peek(),
                 points,
@@ -461,7 +481,34 @@ export function updateCursorValue(state, mode) {
               drawCrossLineUsingPoints(drawChartobj, canvas, points);
               break;
             case 9:
-              drawParallelChannelUsingPoints(drawChartobj, canvas, points, false, true, ctx);
+              drawParallelChannelUsingPoints(
+                drawChartobj,
+                canvas,
+                points,
+                false,
+                true,
+                ctx
+              );
+              break;
+            case 10:
+              drawFlatTopBottomChannelUsingPoints(
+                drawChartobj,
+                canvas,
+                points,
+                false,
+                true,
+                ctx
+              );
+              break;
+            case 11:
+              drawDisjointChannelUsingPoints(
+                drawChartobj,
+                canvas,
+                points,
+                false,
+                true,
+                ctx
+              );
               break;
           }
           break;
