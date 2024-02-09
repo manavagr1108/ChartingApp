@@ -5,6 +5,7 @@ import { getYCoordinate } from "../yAxisUtils";
 import { drawIndicators } from "./indicatorDraw";
 import { drawFibs } from "./toolsDraw/fibTool";
 import { drawTrendLines } from "./toolsDraw/lineTool";
+import { drawProjections } from "./toolsDraw/projectionTool";
 export function drawChart(state, mode) {
   const { data, yAxisRange, ChartRef, yAxisRef, chartCanvasSize } = state;
   const {
@@ -185,6 +186,9 @@ export function drawChart(state, mode) {
   state.ChartWindow.drawChartObjects
     .peek()
     .forEach((obj) => drawFibs(obj, true));
+  state.ChartWindow.drawChartObjects
+    .peek()
+    .forEach((obj) => drawProjections(obj, true));
 }
 
 export const drawYAxis = (ctx, yAxisCtx, mode, state) => {

@@ -34,6 +34,7 @@ import {
   drawTrendLines,
   drawVerticalLineUsingPoints,
 } from "./drawUtils/toolsDraw/lineTool";
+import { drawLongPositionUsingPoints } from "./drawUtils/toolsDraw/projectionTool";
 
 export async function getStockDataCallback(
   instrumentKey,
@@ -97,7 +98,7 @@ export function handleOnMouseMove(e, state) {
     }
     const firstIndex =
       dateConfig.peek().dateToIndex[
-        getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
       ];
     const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata === undefined) return;
@@ -294,6 +295,18 @@ export function handleOnMouseMove(e, state) {
               break;
           }
           break;
+        case "Projection":
+          switch (prevToolItemNo.peek()) {
+            case 0:
+              drawLongPositionUsingPoints(
+                state,
+                prevSelectedCanvas.peek(),
+                points,
+                false,
+                true
+              )
+              break;
+          }
       }
     }
   } else {
@@ -342,10 +355,10 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
+        dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-          dateConfig.peek().indexToDate[0])
+        dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -415,7 +428,7 @@ export function updateCursorValue(state, mode) {
       yAxisRange.peek().minPrice +
       ((chartCanvasSize.peek().height - dateCursor.peek().y) *
         (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-        chartCanvasSize.peek().height;
+      chartCanvasSize.peek().height;
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
@@ -565,6 +578,19 @@ export function updateCursorValue(state, mode) {
               );
               break;
           }
+        case "Projection":
+          switch (prevToolItemNo.peek()) {
+            case 0:
+              drawLongPositionUsingPoints(
+                drawChartobj,
+                canvas,
+                points,
+                false,
+                true,
+                ctx
+              )
+              break;
+          }
       }
     }
   });
@@ -595,7 +621,7 @@ export const removeCursor = (e, state) => {
 };
 
 export const chartMouseDown = (e, state) => {
-  const { chartMovement, ChartRef, trendLinesData, fibData } = state;
+  const { chartMovement, ChartRef, trendLinesData, fibData, projectionData } = state;
   const { selectedTool, selectedItem } = state.ChartWindow;
   const selectedEle = detectTrendLine(e, state);
   if (selectedTool.peek() !== "Cursor") {
@@ -608,6 +634,9 @@ export const chartMouseDown = (e, state) => {
       case "Fib":
         selectedItem.value = fibData.peek()[selectedEle.index];
         break;
+      case "Projection":
+        selectedItem.value = projectionData.peek()[selectedEle.index];
+        break;
     }
     if (selectedEle.selectedPoint !== selectedItem.peek().points.length) {
       prevToolItemNo.value = selectedEle.toolItemNo;
@@ -617,10 +646,10 @@ export const chartMouseDown = (e, state) => {
         case "Line": {
           prevLineData.value = trendLinesData
             .peek()
-            [selectedEle.index].points.map((_, i) => {
-              if (i !== selectedEle.selectedPoint) return _;
-              else return null;
-            });
+          [selectedEle.index].points.map((_, i) => {
+            if (i !== selectedEle.selectedPoint) return _;
+            else return null;
+          });
           trendLinesData.value = trendLinesData
             .peek()
             .filter((ele, i) => i !== selectedEle.index);
@@ -630,14 +659,27 @@ export const chartMouseDown = (e, state) => {
         case "Fib": {
           prevLineData.value = fibData
             .peek()
-            [selectedEle.index].points.map((_, i) => {
-              if (i !== selectedEle.selectedPoint) return _;
-              else return null;
-            });
+          [selectedEle.index].points.map((_, i) => {
+            if (i !== selectedEle.selectedPoint) return _;
+            else return null;
+          });
           fibData.value = fibData
             .peek()
             .filter((ele, i) => i !== selectedEle.index);
           drawFibs(state);
+          break;
+        }
+        case "Projection": {
+          prevLineData.value = projectionData
+            .peek()
+          [selectedEle.index].points.map((_, i) => {
+            if (i !== selectedEle.selectedPoint) return _;
+            else return null;
+          });
+          projectionData.value = projectionData
+            .peek()
+            .filter((ele, i) => i !== selectedEle.index);
+          drawProjections(state);
           break;
         }
       }
@@ -731,7 +773,7 @@ export const chartMouseMove = (e, state) => {
       const points = getCoordsArray(state, lineData.points);
       chartMovement.value.mouseMove = true;
       drawChartObjects.peek().forEach((obj) => {
-        const { trendLinesData, fibData } = obj;
+        const { trendLinesData, fibData, projectionData } = obj;
         switch (chartMovement.peek().itemData.toolName) {
           case "Line":
             trendLinesData.peek().forEach((trendLine, i) => {
@@ -747,6 +789,14 @@ export const chartMouseMove = (e, state) => {
             fibData.peek().forEach((fib, i) => {
               if (fib === selectedItem.peek()) {
                 fibData.value = fibData.peek().filter((_, j) => i !== j);
+                return;
+              }
+            });
+            break;
+          case "Projection":
+            projectionData.peek().forEach((projection, i) => {
+              if (projection === selectedItem.peek()) {
+                projectionData.value = projectionData.peek().filter((_, j) => i !== j);
                 return;
               }
             });
@@ -779,6 +829,7 @@ export const chartMouseUp = (e, state) => {
     yAxisRange,
     data,
     fibData,
+    projectionData,
   } = state;
   const { xAxisConfig, dateConfig, timeRange } = state.ChartWindow;
   if (!chartMovement.peek().mouseMove && chartMovement.peek().mouseDown) {
@@ -790,7 +841,7 @@ export const chartMouseUp = (e, state) => {
     const { points, toolItemNo, toolName } = chartMovement.peek().itemData;
     const firstIndex =
       dateConfig.peek().dateToIndex[
-        getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
       ];
     const result = points.map((point, i) => {
       const x1 = point.x;
@@ -803,7 +854,7 @@ export const chartMouseUp = (e, state) => {
         yAxisRange.peek().minPrice +
         ((chartCanvasSize.peek().height - y1) *
           (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-          chartCanvasSize.peek().height;
+        chartCanvasSize.peek().height;
       return {
         xLabel: cursordata1.Date,
         yLabel: price1.toFixed(2),
@@ -825,6 +876,13 @@ export const chartMouseUp = (e, state) => {
           points: result,
         });
         drawFibs(state, true);
+      }
+      case "Projection": {
+        projectionData.value.push({
+          toolItemNo: toolItemNo,
+          points: result,
+        });
+        drawProjections(state, true);
       }
     }
   }
