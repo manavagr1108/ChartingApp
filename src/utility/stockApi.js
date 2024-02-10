@@ -4,7 +4,7 @@ function parseData(data) {
   const fetchedData = [];
   data.data.candles.forEach((item) => {
     fetchedData.push({
-      Date: item[0].slice(0, 10),
+      Date: item[0],
       Open: item[1],
       High: item[2],
       Low: item[3],

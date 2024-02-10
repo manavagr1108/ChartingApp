@@ -1,4 +1,6 @@
 export const intervalMap = {
+  "1minute": "1m",
+  "30minute": "30m",
   day: "1d",
   week: "1W",
   month: "1M",
@@ -26,7 +28,19 @@ export function getTime(time) {
 }
 
 export function getObjtoStringTime(time) {
-  let result = new Date(time.Year + "-" + time.Month + "-" + time.Date);
+  let result = new Date(
+    time.Year +
+      "-" +
+      time.Month +
+      "-" +
+      time.Date +
+      " " +
+      time.Hours +
+      ":" +
+      time.Minutes +
+      ":" +
+      time.Seconds
+  );
   if (time.Date < 10 && time.Month < 10) {
     result =
       result.getFullYear() +
@@ -56,6 +70,14 @@ export function getObjtoStringTime(time) {
       "-" +
       result.getDate();
   }
+
+  if (time.Hours < 10) result += "T0" + time.Hours;
+  else result += "T" + time.Hours;
+  if (time.Minutes < 10) result += ":0" + time.Minutes;
+  else result += ":" + time.Minutes;
+  if (time.Seconds < 10) result += ":0" + time.Seconds;
+  else result += ":" + time.Seconds;
+  result += "+05:30";
   return result;
 }
 
