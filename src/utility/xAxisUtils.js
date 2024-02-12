@@ -15,6 +15,39 @@ export const TimeFrames = {
   Sec: "Seconds",
 };
 
+export const dateToColMap = {
+  31536000: {
+    index: 1,
+    freq: 0,
+    maxLen: Math.round(24 / 1) - 2
+  },
+  15768000: {
+    index: 1,
+    freq: 1,
+    maxLen: Math.round(24 / 2) - 2
+  },
+  7884000: {
+    index: 1,
+    freq: 2, // 3
+    maxLen: Math.round(24 / 3) - 2
+  },
+  5256000: {
+    index: 1,
+    freq: 3, // 4
+    maxLen: Math.round(24 / 4) - 2
+  },
+  2628000: {
+    index: 1,
+    freq: 4, // 7
+    maxLen: Math.round(24 / 8) - 2
+  },
+  1987200: {
+    index: 2,
+    freq: 1,
+    maxLen: 1
+  }
+}
+
 export function getTime(time) {
   const TIME = new Date(time);
   const result = {};
@@ -27,19 +60,40 @@ export function getTime(time) {
   return result;
 }
 
+export function getNumTime(time) {
+  let result = new Date(
+    time.Year +
+    "-" +
+    time.Month +
+    "-" +
+    time.Date +
+    " " +
+    time.Hours +
+    ":" +
+    time.Minutes +
+    ":" +
+    time.Seconds
+  );
+  return result.getTime() / 1000;
+}
+
+export function getNumTimeDiff(startTime, endTime){
+  return getNumTime(startTime) - getNumTime(endTime);
+}
+
 export function getObjtoStringTime(time) {
   let result = new Date(
     time.Year +
-      "-" +
-      time.Month +
-      "-" +
-      time.Date +
-      " " +
-      time.Hours +
-      ":" +
-      time.Minutes +
-      ":" +
-      time.Seconds
+    "-" +
+    time.Month +
+    "-" +
+    time.Date +
+    " " +
+    time.Hours +
+    ":" +
+    time.Minutes +
+    ":" +
+    time.Seconds
   );
   if (time.Date < 10 && time.Month < 10) {
     result =
