@@ -1,6 +1,6 @@
 import { stocksConfig } from "../../config/stocksConfig";
 import { monthMap } from "../../data/TIME_MAP";
-import { getObjtoStringTime } from "../xAxisUtils";
+import { dateToColMap, getNumTime, getNumTimeDiff, getObjtoStringTime, getTime } from "../xAxisUtils";
 import { getYCoordinate } from "../yAxisUtils";
 import { drawIndicators } from "./indicatorDraw";
 import { drawFibs } from "./toolsDraw/fibTool";
@@ -43,7 +43,7 @@ export function drawChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -55,6 +55,7 @@ export function drawChart(state, mode) {
     .slice(startIndex, endIndex + 1)
     .reverse();
   ctx.beginPath();
+  drawXAxis(state, resultData, mode);
   resultData.forEach((d, i) => {
     if (i === 0 && endIndex <= data.peek()[0].length - 3) {
       i = i - 1;
@@ -72,9 +73,8 @@ export function drawChart(state, mode) {
         const currentYear = parseInt(d.Date.split("-")[0]);
         xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
         if (currentMonth === 1) {
-          const lineColor = `${
-            mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+          const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+            }`;
           ctx.beginPath();
           ctx.strokeStyle = lineColor;
           ctx.moveTo(xCoord, 0);
@@ -82,9 +82,8 @@ export function drawChart(state, mode) {
           ctx.stroke();
           xAxisCtx.fillText(currentYear, xCoord - 10, 12);
         } else {
-          const lineColor = `${
-            mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+          const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+            }`;
           ctx.beginPath();
           ctx.strokeStyle = lineColor;
           ctx.moveTo(xCoord, 0);
@@ -123,38 +122,6 @@ export function drawChart(state, mode) {
       i * xAxisConfig.peek().widthOfOneCS -
       xAxisConfig.peek().widthOfOneCS / 2 -
       timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
-    if (xCoord < -2 * xAxisConfig.widthOfOneCS) {
-      return;
-    }
-    if (
-      i < resultData.length - 1 &&
-      d.Date.split("-")[1] !== resultData[i + 1].Date.split("-")[1]
-    ) {
-      const currentMonth = parseInt(d.Date.split("-")[1]);
-      const currentYear = parseInt(d.Date.split("-")[0]);
-      xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-      if (currentMonth === 1) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
-        ctx.beginPath();
-        ctx.strokeStyle = lineColor;
-        ctx.moveTo(xCoord, 0);
-        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
-        ctx.stroke();
-        xAxisCtx.fillText(currentYear, xCoord - 10, 12);
-      } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
-        ctx.beginPath();
-        ctx.strokeStyle = lineColor;
-        ctx.moveTo(xCoord, 0);
-        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
-        ctx.stroke();
-        xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
-      }
-    }
     if (chartType.peek() === "Candles") {
       drawCandleStick(
         d,
@@ -310,3 +277,117 @@ export const drawBarChart = (
     context.stroke();
   }
 };
+
+export const drawXAxis = (state, resultData, mode) => {
+  const { chartCanvasSize, ChartRef } = state;
+  const { timeRange, xAxisConfig, xAxisRef, interval } = state.ChartWindow;
+  const canvas = ChartRef.current[0];
+  const canvasXAxis = xAxisRef.current[0];
+  const ctx = canvas.getContext("2d");
+  const xAxisCtx = canvasXAxis.getContext("2d");
+  const timeDiff = getNumTimeDiff(timeRange.peek().startTime, timeRange.peek().endTime);
+  let freq = 0;
+  let index = 0;
+  const nums = Object.keys(dateToColMap[interval.peek()])
+  nums.some((num, i) => {
+    num = parseInt(num);
+    if (i === nums.length - 1 || num >= timeDiff) {
+      freq = dateToColMap[interval.peek()][num].freq;
+      index = dateToColMap[interval.peek()][num].index;
+      return true;
+    }
+  })
+  let prevIndex = -1;
+  const indexToDraw = [];
+  let diff = 0;
+  let startId = 0;
+  let endId = 0;
+  resultData.forEach((d, i) => {
+    const xCoord =
+      chartCanvasSize.peek().width -
+      i * xAxisConfig.peek().widthOfOneCS -
+      xAxisConfig.peek().widthOfOneCS / 2 -
+      timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+    if (xCoord < -2 * xAxisConfig.widthOfOneCS) {
+      return;
+    }
+    const currentTime = getTime(d.Date);
+    if (
+      i < resultData.length - 1 &&
+      currentTime[index] !== getTime(resultData[i + 1].Date)[index]
+    ) {
+      if (prevIndex === -1) startId = i;
+      endId = i;
+      if (prevIndex !== -1) {
+        diff = parseInt((i - prevIndex) / (freq + 1));
+        for (let j = 1; j <= freq; j++) {
+          indexToDraw.push(parseInt(((i - prevIndex) / (freq + 1) * j) + prevIndex))
+        }
+      }
+      prevIndex = i;
+      const currentMonth = currentTime['Month'];
+      const currentYear = currentTime['Year'];
+      xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
+      if (currentMonth === 1 && currentMonth !== getTime(resultData[i + 1].Date)['Month']) {
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
+        ctx.beginPath();
+        ctx.strokeStyle = lineColor;
+        ctx.moveTo(xCoord, 0);
+        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+        ctx.stroke();
+        xAxisCtx.fillText(currentYear, xCoord - 10, 12);
+      } else {
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
+        ctx.beginPath();
+        ctx.strokeStyle = lineColor;
+        ctx.moveTo(xCoord, 0);
+        ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+        ctx.stroke();
+        if (index === 'Month') {
+          xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+        } else if (index === 'Date') {
+          if (currentTime['Month'] !== getTime(resultData[i + 1].Date)['Month']) {
+            xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+          } else {
+            xAxisCtx.fillText(currentTime[index], xCoord - 10, 12);
+          }
+        }
+      }
+    }
+  })
+  let temp = endId;
+  if (index === 'Month') {
+    if (diff === 0) {
+      if (interval.peek() === 'day') diff = 5;
+      else if (interval.peek() === '30minute') diff = 20;
+    }
+    while (diff !== 0 && temp + diff < resultData.length) {
+      indexToDraw.push(temp + diff);
+      temp += diff;
+    }
+    temp = startId;
+    while (diff !== 0 && temp - diff > 0) {
+      indexToDraw.push(temp - diff);
+      temp -= diff;
+    }
+    indexToDraw.forEach(i => {
+      const xCoord =
+        chartCanvasSize.peek().width -
+        i * xAxisConfig.peek().widthOfOneCS -
+        xAxisConfig.peek().widthOfOneCS / 2 -
+        timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+      const d = resultData[i];
+      const time = getTime(d.Date);
+      const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
+      ctx.beginPath();
+      ctx.strokeStyle = lineColor;
+      ctx.moveTo(xCoord, 0);
+      ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+      ctx.stroke();
+      xAxisCtx.fillText(time.Date, xCoord - 10, 12);
+    })
+  }
+}

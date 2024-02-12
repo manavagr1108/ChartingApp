@@ -1,4 +1,6 @@
 export const intervalMap = {
+  "1minute": "1m",
+  "30minute": "30m",
   day: "1d",
   week: "1W",
   month: "1M",
@@ -13,6 +15,78 @@ export const TimeFrames = {
   Sec: "Seconds",
 };
 
+export const dateToColMap = {
+  'day': {
+    31536000: {
+      index: 'Month',
+      freq: 0,
+      maxLen: Math.round(24 / 1) - 2
+    },
+    15768000: {
+      index: 'Month',
+      freq: 1,
+      maxLen: Math.round(24 / 2) - 2
+    },
+    7884000: {
+      index: 'Month',
+      freq: 2, // 3
+      maxLen: Math.round(24 / 3) - 2
+    },
+    5256000: {
+      index: 'Month',
+      freq: 3, // 4
+      maxLen: Math.round(24 / 4) - 2
+    },
+    2628000: {
+      index: 'Month',
+      freq: 4, // 7
+      maxLen: Math.round(24 / 8) - 2
+    },
+    1987200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }
+  },
+  '30minute': {
+    31536000: {
+      index: 'Month',
+      freq: 0,
+      maxLen: Math.round(24 / 1) - 2
+    },
+    15768000: {
+      index: 'Month',
+      freq: 1,
+      maxLen: Math.round(24 / 2) - 2
+    },
+    7884000: {
+      index: 'Month',
+      freq: 2, // 3
+      maxLen: Math.round(24 / 3) - 2
+    },
+    5256000: {
+      index: 'Month',
+      freq: 3, // 4
+      maxLen: Math.round(24 / 4) - 2
+    },
+    2628000: {
+      index: 'Month',
+      freq: 4, // 7
+      maxLen: Math.round(24 / 8) - 2
+    },
+    1987200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }, 
+    1393200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }
+  }
+}
+
 export function getTime(time) {
   const TIME = new Date(time);
   const result = {};
@@ -25,8 +99,41 @@ export function getTime(time) {
   return result;
 }
 
+export function getNumTime(time) {
+  let result = new Date(
+    time.Year +
+    "-" +
+    time.Month +
+    "-" +
+    time.Date +
+    " " +
+    time.Hours +
+    ":" +
+    time.Minutes +
+    ":" +
+    time.Seconds
+  );
+  return result.getTime() / 1000;
+}
+
+export function getNumTimeDiff(startTime, endTime) {
+  return getNumTime(startTime) - getNumTime(endTime);
+}
+
 export function getObjtoStringTime(time) {
-  let result = new Date(time.Year + "-" + time.Month + "-" + time.Date);
+  let result = new Date(
+    time.Year +
+    "-" +
+    time.Month +
+    "-" +
+    time.Date +
+    " " +
+    time.Hours +
+    ":" +
+    time.Minutes +
+    ":" +
+    time.Seconds
+  );
   if (time.Date < 10 && time.Month < 10) {
     result =
       result.getFullYear() +
@@ -56,6 +163,14 @@ export function getObjtoStringTime(time) {
       "-" +
       result.getDate();
   }
+
+  if (time.Hours < 10) result += "T0" + time.Hours;
+  else result += "T" + time.Hours;
+  if (time.Minutes < 10) result += ":0" + time.Minutes;
+  else result += ":" + time.Minutes;
+  if (time.Seconds < 10) result += ":0" + time.Seconds;
+  else result += ":" + time.Seconds;
+  result += "+05:30";
   return result;
 }
 
