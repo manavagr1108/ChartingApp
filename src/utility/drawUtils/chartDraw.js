@@ -56,7 +56,6 @@ export function drawChart(state, mode) {
     .reverse();
   ctx.beginPath();
   drawXAxis(state, resultData, mode);
-  // console.log(getNumTimeDiff(timeRange.peek().startTime, timeRange.peek().endTime), getObjtoStringTime(timeRange.peek().startTime), getObjtoStringTime(timeRange.peek().endTime));
   resultData.forEach((d, i) => {
     if (i === 0 && endIndex <= data.peek()[0].length - 3) {
       i = i - 1;
@@ -287,8 +286,6 @@ export const drawXAxis = (state, resultData, mode) => {
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const timeDiff = getNumTimeDiff(timeRange.peek().startTime, timeRange.peek().endTime);
-  console.log(timeDiff);
-  let count = 0;
   let freq = 0;
   let index = 0;
   const nums = Object.keys(dateToColMap[interval.peek()])
@@ -300,14 +297,11 @@ export const drawXAxis = (state, resultData, mode) => {
       return true;
     }
   })
-  console.log(freq, index);
   let prevIndex = -1;
   const indexToDraw = [];
-  const indexToDrawFromStart = [];
   let diff = 0;
   let startId = 0;
   let endId = 0;
-  // console.log(freq, index);
   resultData.forEach((d, i) => {
     const xCoord =
       chartCanvasSize.peek().width -
