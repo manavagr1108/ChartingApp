@@ -281,25 +281,26 @@ export const drawBarChart = (
 
 export const drawXAxis = (state, resultData, mode) => {
   const { chartCanvasSize, ChartRef } = state;
-  const { timeRange, xAxisConfig, xAxisRef } = state.ChartWindow;
+  const { timeRange, xAxisConfig, xAxisRef, interval } = state.ChartWindow;
   const canvas = ChartRef.current[0];
   const canvasXAxis = xAxisRef.current[0];
   const ctx = canvas.getContext("2d");
   const xAxisCtx = canvasXAxis.getContext("2d");
   const timeDiff = getNumTimeDiff(timeRange.peek().startTime, timeRange.peek().endTime);
+  console.log(timeDiff);
   let count = 0;
   let freq = 0;
   let index = 0;
-  const nums = Object.keys(dateToColMap)
+  const nums = Object.keys(dateToColMap[interval.peek()])
   nums.some((num, i) => {
     num = parseInt(num);
     if (i === nums.length - 1 || num >= timeDiff) {
-      // count = dateToColMap[num].maxLen;
-      freq = dateToColMap[num].freq;
-      index = dateToColMap[num].index
+      freq = dateToColMap[interval.peek()][num].freq;
+      index = dateToColMap[interval.peek()][num].index;
       return true;
     }
   })
+  console.log(freq, index);
   let prevIndex = -1;
   const indexToDraw = [];
   const indexToDrawFromStart = [];
@@ -316,9 +317,10 @@ export const drawXAxis = (state, resultData, mode) => {
     if (xCoord < -2 * xAxisConfig.widthOfOneCS) {
       return;
     }
+    const currentTime = getTime(d.Date);
     if (
       i < resultData.length - 1 &&
-      d.Date.split("-")[index] !== resultData[i + 1].Date.split("-")[index]
+      currentTime[index] !== getTime(resultData[i + 1].Date)[index]
     ) {
       if (prevIndex === -1) startId = i;
       endId = i;
@@ -329,10 +331,10 @@ export const drawXAxis = (state, resultData, mode) => {
         }
       }
       prevIndex = i;
-      const currentMonth = parseInt(d.Date.split("-")[index]);
-      const currentYear = parseInt(d.Date.split("-")[0]);
+      const currentMonth = currentTime['Month'];
+      const currentYear = currentTime['Year'];
       xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-      if (currentMonth === 1) {
+      if (currentMonth === 1 && currentMonth !== getTime(resultData[i + 1].Date)['Month']) {
         const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
           }`;
         ctx.beginPath();
@@ -349,18 +351,23 @@ export const drawXAxis = (state, resultData, mode) => {
         ctx.moveTo(xCoord, 0);
         ctx.lineTo(xCoord, chartCanvasSize.peek().height);
         ctx.stroke();
-        if (index === 1) {
+        if (index === 'Month') {
           xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
-        } else if (index === 2) {
-          xAxisCtx.fillText(currentMonth, xCoord - 10, 12);
+        } else if (index === 'Date') {
+          if (currentTime['Month'] !== getTime(resultData[i + 1].Date)['Month']) {
+            xAxisCtx.fillText(monthMap[currentMonth - 1], xCoord - 10, 12);
+          } else {
+            xAxisCtx.fillText(currentTime[index], xCoord - 10, 12);
+          }
         }
       }
     }
   })
   let temp = endId;
-  if (index === 1) {
-    if(diff === 0){
-      diff = 5;
+  if (index === 'Month') {
+    if (diff === 0) {
+      if (interval.peek() === 'day') diff = 5;
+      else if (interval.peek() === '30minute') diff = 20;
     }
     while (diff !== 0 && temp + diff < resultData.length) {
       indexToDraw.push(temp + diff);

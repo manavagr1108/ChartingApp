@@ -16,35 +16,74 @@ export const TimeFrames = {
 };
 
 export const dateToColMap = {
-  31536000: {
-    index: 1,
-    freq: 0,
-    maxLen: Math.round(24 / 1) - 2
+  'day': {
+    31536000: {
+      index: 'Month',
+      freq: 0,
+      maxLen: Math.round(24 / 1) - 2
+    },
+    15768000: {
+      index: 'Month',
+      freq: 1,
+      maxLen: Math.round(24 / 2) - 2
+    },
+    7884000: {
+      index: 'Month',
+      freq: 2, // 3
+      maxLen: Math.round(24 / 3) - 2
+    },
+    5256000: {
+      index: 'Month',
+      freq: 3, // 4
+      maxLen: Math.round(24 / 4) - 2
+    },
+    2628000: {
+      index: 'Month',
+      freq: 4, // 7
+      maxLen: Math.round(24 / 8) - 2
+    },
+    1987200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }
   },
-  15768000: {
-    index: 1,
-    freq: 1,
-    maxLen: Math.round(24 / 2) - 2
-  },
-  7884000: {
-    index: 1,
-    freq: 2, // 3
-    maxLen: Math.round(24 / 3) - 2
-  },
-  5256000: {
-    index: 1,
-    freq: 3, // 4
-    maxLen: Math.round(24 / 4) - 2
-  },
-  2628000: {
-    index: 1,
-    freq: 4, // 7
-    maxLen: Math.round(24 / 8) - 2
-  },
-  1987200: {
-    index: 2,
-    freq: 1,
-    maxLen: 1
+  '30minute': {
+    31536000: {
+      index: 'Month',
+      freq: 0,
+      maxLen: Math.round(24 / 1) - 2
+    },
+    15768000: {
+      index: 'Month',
+      freq: 1,
+      maxLen: Math.round(24 / 2) - 2
+    },
+    7884000: {
+      index: 'Month',
+      freq: 2, // 3
+      maxLen: Math.round(24 / 3) - 2
+    },
+    5256000: {
+      index: 'Month',
+      freq: 3, // 4
+      maxLen: Math.round(24 / 4) - 2
+    },
+    2628000: {
+      index: 'Month',
+      freq: 4, // 7
+      maxLen: Math.round(24 / 8) - 2
+    },
+    1987200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }, 
+    1393200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    }
   }
 }
 
@@ -77,7 +116,7 @@ export function getNumTime(time) {
   return result.getTime() / 1000;
 }
 
-export function getNumTimeDiff(startTime, endTime){
+export function getNumTimeDiff(startTime, endTime) {
   return getNumTime(startTime) - getNumTime(endTime);
 }
 
