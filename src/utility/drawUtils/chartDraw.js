@@ -297,6 +297,7 @@ export const drawXAxis = (state, resultData, mode) => {
       return true;
     }
   })
+  console.log(freq, index);
   let prevIndex = -1;
   const indexToDraw = [];
   let diff = 0;
