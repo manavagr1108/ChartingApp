@@ -16,88 +16,88 @@ export const TimeFrames = {
 };
 
 export const dateToColMap = {
-  'day': {
+  day: {
     31536000: {
-      index: 'Month',
+      index: "Month",
       freq: 0,
-      maxLen: Math.round(24 / 1) - 2
+      maxLen: Math.round(24 / 1) - 2,
     },
     15768000: {
-      index: 'Month',
+      index: "Month",
       freq: 1,
-      maxLen: Math.round(24 / 2) - 2
+      maxLen: Math.round(24 / 2) - 2,
     },
     7884000: {
-      index: 'Month',
+      index: "Month",
       freq: 2, // 3
-      maxLen: Math.round(24 / 3) - 2
+      maxLen: Math.round(24 / 3) - 2,
     },
     5256000: {
-      index: 'Month',
+      index: "Month",
       freq: 3, // 4
-      maxLen: Math.round(24 / 4) - 2
+      maxLen: Math.round(24 / 4) - 2,
     },
     2628000: {
-      index: 'Month',
+      index: "Month",
       freq: 4, // 7
-      maxLen: Math.round(24 / 8) - 2
+      maxLen: Math.round(24 / 8) - 2,
     },
     1987200: {
-      index: 'Date',
+      index: "Date",
       freq: 1,
-      maxLen: 1
-    }
+      maxLen: 1,
+    },
   },
-  '30minute': {
+  "30minute": {
     31536000: {
-      index: 'Month',
+      index: "Month",
       freq: 0,
-      maxLen: Math.round(24 / 1) - 2
+      maxLen: Math.round(24 / 1) - 2,
     },
     15768000: {
-      index: 'Month',
+      index: "Month",
       freq: 1,
-      maxLen: Math.round(24 / 2) - 2
+      maxLen: Math.round(24 / 2) - 2,
     },
     7884000: {
-      index: 'Month',
+      index: "Month",
       freq: 2, // 3
-      maxLen: Math.round(24 / 3) - 2
+      maxLen: Math.round(24 / 3) - 2,
     },
     5256000: {
-      index: 'Month',
+      index: "Month",
       freq: 3, // 4
-      maxLen: Math.round(24 / 4) - 2
+      maxLen: Math.round(24 / 4) - 2,
     },
     2628000: {
-      index: 'Month',
+      index: "Month",
       freq: 4, // 7
-      maxLen: Math.round(24 / 8) - 2
+      maxLen: Math.round(24 / 8) - 2,
     },
     1987200: {
-      index: 'Date',
+      index: "Date",
       freq: 1,
-      maxLen: 1
+      maxLen: 1,
     },
     1393200: {
-      index: 'Date',
+      index: "Date",
       freq: 1,
-      maxLen: 1
-    }
+      maxLen: 1,
+    },
   },
-  '1minute': {
+  "1minute": {
     1393200: {
-      index: 'Date',
+      index: "Date",
       freq: 1,
-      maxLen: 1
+      maxLen: 1,
     },
     93000: {
-      index: 'Hours',
+      index: "Hours",
       freq: 1,
-      maxLen: Math.round(60 / 2) - 2
-    }
-  }
-}
+      maxLen: Math.round(60 / 2) - 2,
+    },
+  },
+};
 
 export function getTime(time) {
   const TIME = new Date(time);
@@ -114,16 +114,16 @@ export function getTime(time) {
 export function getNumTime(time) {
   let result = new Date(
     time.Year +
-    "-" +
-    time.Month +
-    "-" +
-    time.Date +
-    " " +
-    time.Hours +
-    ":" +
-    time.Minutes +
-    ":" +
-    time.Seconds
+      "-" +
+      time.Month +
+      "-" +
+      time.Date +
+      " " +
+      time.Hours +
+      ":" +
+      time.Minutes +
+      ":" +
+      time.Seconds
   );
   return result.getTime() / 1000;
 }
@@ -135,16 +135,16 @@ export function getNumTimeDiff(startTime, endTime) {
 export function getObjtoStringTime(time) {
   let result = new Date(
     time.Year +
-    "-" +
-    time.Month +
-    "-" +
-    time.Date +
-    " " +
-    time.Hours +
-    ":" +
-    time.Minutes +
-    ":" +
-    time.Seconds
+      "-" +
+      time.Month +
+      "-" +
+      time.Date +
+      " " +
+      time.Hours +
+      ":" +
+      time.Minutes +
+      ":" +
+      time.Seconds
   );
   if (time.Date < 10 && time.Month < 10) {
     result =

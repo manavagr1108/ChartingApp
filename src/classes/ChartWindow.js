@@ -91,10 +91,10 @@ class ChartWindow {
   setXAxisConfig() {
     const noOfDataPoints =
       this.dateConfig.peek().dateToIndex[
-      getObjtoStringTime(this.timeRange.peek().startTime)
+        getObjtoStringTime(this.timeRange.peek().startTime)
       ] -
       this.dateConfig.peek().dateToIndex[
-      getObjtoStringTime(this.timeRange.peek().endTime)
+        getObjtoStringTime(this.timeRange.peek().endTime)
       ];
     const widthOfOneCS = this.xAxisCanvasSize.peek().width / noOfDataPoints;
     this.xAxisConfig.value.noOfDataPoints = noOfDataPoints;
