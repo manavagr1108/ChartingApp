@@ -51,7 +51,7 @@ class ChartWindow {
     this.onChartIndicatorSignal = signal([]);
     this.onChartIndicatorData = signal([]);
     this.drawChartObjects = signal([]);
-    this.interval = signal("30minute");
+    this.interval = signal("1minute");
     this.chartType = signal("Candles");
     this.instrumentKey = signal("NSE_INDEX|Nifty 50");
     this.mode = signal("");

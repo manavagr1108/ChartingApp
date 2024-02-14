@@ -78,11 +78,23 @@ export const dateToColMap = {
       index: 'Date',
       freq: 1,
       maxLen: 1
-    }, 
+    },
     1393200: {
       index: 'Date',
       freq: 1,
       maxLen: 1
+    }
+  },
+  '1minute': {
+    1393200: {
+      index: 'Date',
+      freq: 1,
+      maxLen: 1
+    },
+    93000: {
+      index: 'Hours',
+      freq: 1,
+      maxLen: Math.round(60 / 2) - 2
     }
   }
 }

@@ -353,6 +353,13 @@ export const drawXAxis = (state, resultData, mode) => {
           } else {
             xAxisCtx.fillText(currentTime[index], xCoord - 10, 12);
           }
+        } else if (index === 'Hours') {
+          if (currentTime['Date'] !== getTime(resultData[i + 1].Date)['Date']) {
+            xAxisCtx.fillText(currentTime['Date'], xCoord - 10, 12);
+          } else {
+            const min = currentTime['Minutes'] < 10 ? '0' + currentTime['Minutes'] : currentTime['Minutes']
+            xAxisCtx.fillText(currentTime[index] + ':' + min, xCoord - 10, 12);
+          }
         }
       }
     }
@@ -388,6 +395,38 @@ export const drawXAxis = (state, resultData, mode) => {
       ctx.lineTo(xCoord, chartCanvasSize.peek().height);
       ctx.stroke();
       xAxisCtx.fillText(time.Date, xCoord - 10, 12);
+    })
+  }
+  if (index === 'Hours' || index === 'Date') {
+    if (diff === 0) {
+      diff = 40;
+    }
+    while (diff !== 0 && temp + diff < resultData.length) {
+      indexToDraw.push(temp + diff);
+      temp += diff;
+    }
+    temp = startId;
+    while (diff !== 0 && temp - diff > 0) {
+      indexToDraw.push(temp - diff);
+      temp -= diff;
+    }
+    indexToDraw.forEach(i => {
+      const xCoord =
+        chartCanvasSize.peek().width -
+        i * xAxisConfig.peek().widthOfOneCS -
+        xAxisConfig.peek().widthOfOneCS / 2 -
+        timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
+      const d = resultData[i];
+      const time = getTime(d.Date);
+      const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
+      ctx.beginPath();
+      ctx.strokeStyle = lineColor;
+      ctx.moveTo(xCoord, 0);
+      ctx.lineTo(xCoord, chartCanvasSize.peek().height);
+      ctx.stroke();
+      const min = time['Minutes'] < 10 ? '0' + time['Minutes'] : time['Minutes']
+      xAxisCtx.fillText(time[index] + ':' + min, xCoord - 10, 12);
     })
   }
 }
