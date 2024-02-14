@@ -9,6 +9,7 @@ import { FaArrowPointer } from "react-icons/fa6";
 import { cursorConfig } from "../../signals/toolbarSignals";
 import { useOutsideClick } from "../navbar/navbar";
 import { PiLineSegmentFill } from "react-icons/pi";
+import { FaProjectDiagram } from "react-icons/fa";
 
 function ToolItems({
   toogleToolItemsIndex,
@@ -65,6 +66,11 @@ function ToolbarItems({ mode, ChartWindow }) {
   function fibOnClickHandler(index) {
     setToogleToolItemsIndex(-1);
     selectedTool.value = items[2].toolName;
+    selectedToolItem.value = index;
+  }
+  function projectionOnClickHandler(index) {
+    setToogleToolItemsIndex(-1);
+    selectedTool.value = items[3].toolName;
     selectedToolItem.value = index;
   }
   const items = [
@@ -180,6 +186,19 @@ function ToolbarItems({ mode, ChartWindow }) {
         "Trend-Based Fib Time",
       ],
       onClickFunction: fibOnClickHandler,
+    },
+    {
+      toolName: "Projection",
+      toolItemsEle: [
+        <FaProjectDiagram
+          color={`${mode === "Light" ? "black" : "white"}`}
+          size={20}
+        />,
+      ],
+      toolLabels: [
+        "Long Position",
+      ],
+      onClickFunction: projectionOnClickHandler,
     },
   ];
   return (

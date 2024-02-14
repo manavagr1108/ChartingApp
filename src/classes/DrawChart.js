@@ -47,6 +47,7 @@ class DrawChart {
     // trend lines data;
     this.trendLinesData = signal([]);
     this.fibData = signal([]);
+    this.projectionData = signal([]);
   }
   #setData(data) {
     this.data.value = data;
