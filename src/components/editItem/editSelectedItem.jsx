@@ -2,23 +2,28 @@ import { effect } from "@preact/signals-react";
 import React, { useState } from "react";
 import { MdDelete, MdMoreHoriz } from "react-icons/md";
 import { GoGrabber } from "react-icons/go";
+import { getCoordsArray } from "../../utility/toolsUtils";
+import { isEqual } from "lodash";
 
 function EditSelectedItem({ ChartWindow, mode }) {
   const { selectedItem, drawChartObjects } = ChartWindow;
   const [selectedItemState, setSelectedItemState] = useState({});
   effect(() => {
-    if (
+    if (selectedItem.value !== null && selectedItemState.points === undefined) {
+      setSelectedItemState({ ...selectedItem.peek() });
+    } else if (
       selectedItem.value !== null &&
-      selectedItem.value.startPoint !== selectedItemState.startPoint
+      selectedItemState.points !== undefined &&
+      selectedItemState.points.length !== selectedItem.peek().points.length
     ) {
       setSelectedItemState({ ...selectedItem.peek() });
     }
   });
   const handleDelete = () => {
     drawChartObjects.peek().forEach((obj) => {
-      const { trendLinesData } = obj;
+      const { trendLinesData, fibData } = obj;
       trendLinesData.peek().forEach((trendLine, i) => {
-        if (trendLine === selectedItem.peek()) {
+        if (isEqual(trendLine, selectedItem.peek())) {
           selectedItem.value = null;
           trendLinesData.value = trendLinesData
             .peek()
@@ -27,11 +32,20 @@ function EditSelectedItem({ ChartWindow, mode }) {
           return;
         }
       });
+      fibData.peek().forEach((fib, i) => {
+        if (isEqual(fib, selectedItem.peek())) {
+          selectedItem.value = null;
+          fibData.value = fibData.peek().filter((_, j) => i !== j);
+          setSelectedItemState({});
+          return;
+        }
+      });
     });
   };
   return (
     <div>
-      {selectedItemState?.startPoint?.xLabel !== undefined ? (
+      {selectedItemState.points !== undefined &&
+      selectedItemState.points.length ? (
         <div
           className={`absolute flex justify-around top-[5%] left-[50%] p-1 ${mode === "Light" ? "bg-white" : "bg-gray-700"} rounded-md shadow-md`}
         >

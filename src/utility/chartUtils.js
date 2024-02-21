@@ -97,7 +97,7 @@ export function handleOnMouseMove(e, state) {
     }
     const firstIndex =
       dateConfig.peek().dateToIndex[
-        getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
       ];
     const cursordata = data.peek()[0][firstIndex - dateIndex];
     if (cursordata === undefined) return;
@@ -342,10 +342,10 @@ export function handleScroll(e, state) {
       Math.abs(pixelMovement) === 0 ||
       (pixelMovement > 0 &&
         getObjtoStringTime(timeRange.peek().startTime) ===
-          dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
+        dateConfig.peek().indexToDate[data.peek()[0].length - 1]) ||
       (pixelMovement < 0 &&
         getObjtoStringTime(timeRange.peek().endTime) ===
-          dateConfig.peek().indexToDate[0])
+        dateConfig.peek().indexToDate[0])
     ) {
       return;
     }
@@ -415,7 +415,7 @@ export function updateCursorValue(state, mode) {
       yAxisRange.peek().minPrice +
       ((chartCanvasSize.peek().height - dateCursor.peek().y) *
         (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-        chartCanvasSize.peek().height;
+      chartCanvasSize.peek().height;
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
@@ -617,10 +617,10 @@ export const chartMouseDown = (e, state) => {
         case "Line": {
           prevLineData.value = trendLinesData
             .peek()
-            [selectedEle.index].points.map((_, i) => {
-              if (i !== selectedEle.selectedPoint) return _;
-              else return null;
-            });
+          [selectedEle.index].points.map((_, i) => {
+            if (i !== selectedEle.selectedPoint) return _;
+            else return null;
+          });
           trendLinesData.value = trendLinesData
             .peek()
             .filter((ele, i) => i !== selectedEle.index);
@@ -630,10 +630,10 @@ export const chartMouseDown = (e, state) => {
         case "Fib": {
           prevLineData.value = fibData
             .peek()
-            [selectedEle.index].points.map((_, i) => {
-              if (i !== selectedEle.selectedPoint) return _;
-              else return null;
-            });
+          [selectedEle.index].points.map((_, i) => {
+            if (i !== selectedEle.selectedPoint) return _;
+            else return null;
+          });
           fibData.value = fibData
             .peek()
             .filter((ele, i) => i !== selectedEle.index);
@@ -780,7 +780,7 @@ export const chartMouseUp = (e, state) => {
     data,
     fibData,
   } = state;
-  const { xAxisConfig, dateConfig, timeRange } = state.ChartWindow;
+  const { xAxisConfig, dateConfig, timeRange, selectedItem } = state.ChartWindow;
   if (!chartMovement.peek().mouseMove && chartMovement.peek().mouseDown) {
     e.target.classList.remove("cursor-grabbing");
     chartMovement.value.mouseDown = false;
@@ -790,7 +790,7 @@ export const chartMouseUp = (e, state) => {
     const { points, toolItemNo, toolName } = chartMovement.peek().itemData;
     const firstIndex =
       dateConfig.peek().dateToIndex[
-        getObjtoStringTime(timeRange.peek().startTime)
+      getObjtoStringTime(timeRange.peek().startTime)
       ];
     const result = points.map((point, i) => {
       const x1 = point.x;
@@ -803,7 +803,7 @@ export const chartMouseUp = (e, state) => {
         yAxisRange.peek().minPrice +
         ((chartCanvasSize.peek().height - y1) *
           (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-          chartCanvasSize.peek().height;
+        chartCanvasSize.peek().height;
       return {
         xLabel: cursordata1.Date,
         yLabel: price1.toFixed(2),
@@ -816,6 +816,10 @@ export const chartMouseUp = (e, state) => {
             toolItemNo: toolItemNo,
             points: result,
           });
+          selectedItem.value = {
+            toolItemNo: toolItemNo,
+            points: result,
+          }
           drawTrendLines(state, true);
         }
         break;
@@ -824,6 +828,10 @@ export const chartMouseUp = (e, state) => {
           toolItemNo: toolItemNo,
           points: result,
         });
+        selectedItem.value = {
+          toolItemNo: toolItemNo,
+          points: result,
+        }
         drawFibs(state, true);
       }
     }

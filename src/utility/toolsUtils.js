@@ -688,7 +688,7 @@ export const detectTrendLine = (e, state) => {
     if (online === points.length) {
       canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
       canvas.classList.add("cursor-pointer");
-      drawFib(state, i, true, true);
+      drawFib(state, i, true, false);
       returnVal = {
         ...fib,
         selectedPoint: online,
@@ -701,7 +701,7 @@ export const detectTrendLine = (e, state) => {
     if (online !== -1) {
       canvas.classList.remove(`cursor-${cursorConfig[selectedCursor.value]}`);
       canvas.classList.add("cursor-default");
-      drawFib(state, i, true, true);
+      drawFib(state, i, true, false);
       returnVal = {
         selectedPoint: online,
         index: i,
