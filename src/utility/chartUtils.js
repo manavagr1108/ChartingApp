@@ -34,6 +34,7 @@ import {
   drawTrendLines,
   drawVerticalLineUsingPoints,
 } from "./drawUtils/toolsDraw/lineTool";
+import { stocksConfig } from "../config/stocksConfig";
 
 export async function getStockDataCallback(
   instrumentKey,
