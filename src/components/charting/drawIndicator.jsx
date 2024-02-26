@@ -21,9 +21,20 @@ function DrawIndicator({
   );
   useEffect(() => {
     if (drawChart.ChartRef.current.length === 2) {
-      ChartWindow.drawChartObjects.value.push(drawChart);
-      drawChart.setDrawChartSignal(drawChart.data.peek());
-      drawChart.drawChartFunction(drawChart, mode);
+      let temp = 0;
+      ChartWindow.drawChartObjects.peek().forEach(obj => {
+          if(obj.ChartRef.current[0] === drawChart.ChartRef.current[0]){
+            temp = 1;
+          }
+      });
+      if(temp === 0){
+        ChartWindow.drawChartObjects.value = [
+          ...ChartWindow.drawChartObjects.peek(),
+          drawChart,
+        ];
+        drawChart.setDrawChartSignal(drawChart.data.peek());
+        drawChart.drawChartFunction(drawChart, mode);
+      }
     }
   });
   const { ChartRef, yAxisRef } = drawChart;
@@ -35,9 +46,10 @@ function DrawIndicator({
   );
   return (
     <>
-      <PaneSeparator mode={mode} ChartWindow={ChartWindow} />
+      <PaneSeparator mode={mode} ChartWindow={ChartWindow} index={index} />
       <div
-        className={`flex direction-row relative flex-wrap w-[100%] ${indicatorsLength.value}`}
+        className={`flex direction-row relative flex-wrap w-[100%]`}
+        style={{ height: indicatorsLength.peek() }}
       >
         <div className="w-[95%] h-[100%] relative">
           <canvas

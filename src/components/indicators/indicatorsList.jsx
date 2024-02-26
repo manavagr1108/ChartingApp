@@ -153,7 +153,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
     }
   };
   return (
-    <div className="absolute flex flex-col z-6 select-none top-7 left-2 w-250">
+    <div className="absolute flex flex-col z-6 select-none top-11 left-2 w-250">
       {indicators.length !== 0 &&
         indicators.map((indicator, index) => {
           return (
