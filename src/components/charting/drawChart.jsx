@@ -18,7 +18,7 @@ function DrawChart({ handleOnMouseMove, removeCursor, drawChart }) {
   return (
     <div
       className={`flex direction-row flex-wrap w-[100%]`}
-      style={{height: indicatorsLength.peek()}}
+      style={{ height: indicatorsLength.peek() }}
     >
       <div className="w-[95%] h-[100%] relative">
         <canvas

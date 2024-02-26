@@ -61,17 +61,17 @@ const useDrawChart = (ChartWindow, isIndicator, mode, indicator) => {
   // draw chart
   effect(() => {
     if (
+      state.chartCanvasSize.value &&
       state.trendLinesData.value &&
       state.fibData.value &&
       state.ChartWindow.timeRange.value.endTime.Date !== 0 &&
       state.ChartWindow.timeRange.value.startTime.Date !== 0 &&
       state.ChartWindow.chartType.value &&
-      state.ChartWindow.onChartIndicatorSignal.value &&
-      state.chartCanvasSize.value
+      state.ChartWindow.onChartIndicatorSignal.value
     ) {
       if (
         state.ChartRef.current[0] !== null &&
-        state.ChartRef.current[0] !== null &&
+        state.yAxisRef.current[0] !== null &&
         ChartWindow.xAxisRef.current[0] !== null &&
         state.yAxisRange.value.minPrice
       ) {

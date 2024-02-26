@@ -22,12 +22,12 @@ function DrawIndicator({
   useEffect(() => {
     if (drawChart.ChartRef.current.length === 2) {
       let temp = 0;
-      ChartWindow.drawChartObjects.peek().forEach(obj => {
-          if(obj.ChartRef.current[0] === drawChart.ChartRef.current[0]){
-            temp = 1;
-          }
+      ChartWindow.drawChartObjects.peek().forEach((obj) => {
+        if (obj.ChartRef.current[0] === drawChart.ChartRef.current[0]) {
+          temp = 1;
+        }
       });
-      if(temp === 0){
+      if (temp === 0) {
         ChartWindow.drawChartObjects.value = [
           ...ChartWindow.drawChartObjects.peek(),
           drawChart,

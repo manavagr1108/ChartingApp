@@ -43,7 +43,6 @@ export function drawChart(state, mode) {
   xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
   yAxisCtx.font = "12px Arial";
   yAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
-  ctx.fillText(stocksConfig[instrumentKey.peek()], 10, 20);
   drawYAxis(ctx, yAxisCtx, mode, state);
   const startIndex =
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
