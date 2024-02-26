@@ -20,6 +20,7 @@ export function drawChart(state, mode) {
     xAxisConfig,
     chartType,
     instrumentKey,
+    selectedItem
   } = state.ChartWindow;
   if (
     data.peek()[0].length === 0 ||

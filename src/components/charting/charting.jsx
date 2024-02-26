@@ -8,6 +8,7 @@ import {
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
+import EditSelectedItem from "../editItem/editSelectedItem";
 
 function Charting({ mode, ChartWindow }) {
   const {
@@ -101,7 +102,7 @@ function Charting({ mode, ChartWindow }) {
           ></canvas>
         </div>
       </div>
-      {/* <EditSelectedItem ChartWindow={ChartWindow} mode={mode} /> */}
+      <EditSelectedItem ChartWindow={ChartWindow} mode={mode} />
       <div className="w-full h-[5%]"></div>
     </div>
   );

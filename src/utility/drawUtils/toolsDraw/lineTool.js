@@ -7,12 +7,30 @@ export const drawTrendLine = (
   fromDrawChart = false
 ) => {
   const { trendLinesData, ChartRef } = state;
+  const { selectedItem } = state.ChartWindow;
   const canvas = ChartRef.current[0];
   const canvas1 = ChartRef.current[1];
-  const ctx = canvas.getContext("2d");
-  const ctx1 = canvas1.getContext("2d");
   const lineData = trendLinesData.peek()[i];
   const points = getCoordsArray(state, lineData.points);
+  let ctx1;
+  ctx1 = canvas1.getContext("2d");
+  if (selectedItem.peek() !== null && selectedItem.peek().toolItemNo === lineData.toolItemNo) {
+    const selectedPoints = getCoordsArray(state, selectedItem.peek().points);
+    let temp = 0;
+    selectedPoints.forEach((point, i) => {
+      if (point.x !== points[i].x && point.y !== points[i].y) {
+        temp = 1;
+      }
+    })
+    if (temp === 0) {
+      ctx1 = canvas.getContext("2d");
+      lineSelected = true;
+    } else {
+      ctx1 = canvas1.getContext("2d");
+    }
+  } else {
+    ctx1 = canvas1.getContext("2d");
+  }
   switch (lineData.toolItemNo) {
     case 0:
       drawTrendLineUsingPoints(state, canvas, points, lineSelected, ctx1);
@@ -177,19 +195,19 @@ export const drawInfoLineUsingPoints = (
     yAxisRange.peek().minPrice +
     ((chartCanvasSize.peek().height - startCoords.y) *
       (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-      chartCanvasSize.peek().height;
+    chartCanvasSize.peek().height;
   let price2 =
     yAxisRange.peek().minPrice +
     ((chartCanvasSize.peek().height - endCoords.y) *
       (yAxisRange.peek().maxPrice - yAxisRange.peek().minPrice)) /
-      chartCanvasSize.peek().height;
+    chartCanvasSize.peek().height;
   const dateIndex1 = Math.floor(
     (chartCanvasSize.peek().width - startCoords.x) /
-      xAxisConfig.peek().widthOfOneCS
+    xAxisConfig.peek().widthOfOneCS
   );
   const dateIndex2 = Math.floor(
     (chartCanvasSize.peek().width - endCoords.x) /
-      xAxisConfig.peek().widthOfOneCS
+    xAxisConfig.peek().widthOfOneCS
   );
   drawTrendLineUsingPoints(state, canvas, points, lineSelected, ctx1);
   ctx.beginPath();
