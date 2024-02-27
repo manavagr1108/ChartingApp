@@ -1,4 +1,3 @@
-import { stocksConfig } from "../../config/stocksConfig";
 import { monthMap } from "../../data/TIME_MAP";
 import {
   dateToColMap,

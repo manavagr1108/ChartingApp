@@ -34,7 +34,6 @@ import {
   drawTrendLines,
   drawVerticalLineUsingPoints,
 } from "./drawUtils/toolsDraw/lineTool";
-import { stocksConfig } from "../config/stocksConfig";
 
 export async function getStockDataCallback(
   instrumentKey,
@@ -373,7 +372,7 @@ export function handleScroll(e, state) {
 }
 
 export function updateCursorValue(state, mode) {
-  const { dateCursor, xAxisRef, drawChartObjects, instrumentKey } = state;
+  const { dateCursor, xAxisRef, drawChartObjects, instrumentKey, stocksList } = state;
   drawChartObjects.peek().forEach((drawChartobj) => {
     const isCanvas =
       drawChartobj.ChartRef.current[1] === dateCursor.peek().canvas;
@@ -421,7 +420,7 @@ export function updateCursorValue(state, mode) {
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
       ctx.fillText(
-        stocksConfig[instrumentKey.peek()] + " " + dateCursor.peek().text,
+        stocksList.peek()[instrumentKey.peek()] + " " + dateCursor.peek().text,
         10,
         20
       );

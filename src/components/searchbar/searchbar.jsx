@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import { useOutsideClick } from "../navbar/navbar.jsx";
-import { stocksConfig } from "../../config/stocksConfig.js";
+import { effect } from "@preact/signals-react";
 
-function SearchBar({ instrumentKey, mode }) {
+function SearchBar({ instrumentKey, stocksList, mode }) {
+  let stocksConfig = {};
+  effect(() => {
+    if (stocksList.value !== null) {
+      stocksConfig = stocksList.peek();
+    }
+  });
   const [searchVal, setSearchVal] = useState("");
   const [filteredProduct, setFilteredProduct] = useState([]);
   const dropRefSelectStock = useOutsideClick(() => setSearchVal(""));

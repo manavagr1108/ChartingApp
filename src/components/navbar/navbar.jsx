@@ -27,7 +27,8 @@ export const useOutsideClick = (callBackFunc) => {
 };
 
 function NavBar({ ChartWindow, mode, toggleMode }) {
-  const { instrumentKey, interval, chartType } = ChartWindow;
+  const { instrumentKey, interval, chartType, stocksList } = ChartWindow;
+  console.log(stocksList.value);
   return (
     <div
       className={`flex justify-between items-center pl-2 pr-5 border-l-2 border-b-2 ${
@@ -37,7 +38,7 @@ function NavBar({ ChartWindow, mode, toggleMode }) {
       }`}
     >
       <div className="flex items-center w-full h-full">
-        <SearchBar instrumentKey={instrumentKey} mode={mode} />
+        <SearchBar instrumentKey={instrumentKey} stocksList={stocksList} mode={mode} />
         <div className="border-l-2 ml-2 h-2/3"></div>
         <DropdownMenu
           menuList={intervalMap}

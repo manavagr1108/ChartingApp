@@ -46,6 +46,7 @@ class ChartWindow {
       prevXCoord: 0,
     });
     this.lockUpdatePriceRange = signal(false);
+    this.stocksList = signal(null);
     this.stockData = signal([]);
     this.offChartIndicatorSignal = signal([]);
     this.onChartIndicatorSignal = signal([]);
