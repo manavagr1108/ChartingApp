@@ -26,3 +26,12 @@ export const getStockData = async (instrumentKey, interval) => {
   }
   return parseData(response.data);
 };
+
+export const getWebsocketToken = async () => {
+  const response = await axios.get(`${import.meta.env.VITE_BACKEND_URL}getAccessToken`)
+  if (response.status !== 200) {
+    const message = `An error has occured: ${response.status}`;
+    throw new Error(message);
+  }
+  return response.data;
+}

@@ -1,5 +1,6 @@
 import { effect } from "@preact/signals-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Buffer } from "buffer";
 import {
   getStockDataCallback,
   handleOnMouseMove,
@@ -8,6 +9,13 @@ import {
 import IndicatorsList from "../indicators/indicatorsList";
 import DrawChart from "./drawChart";
 import DrawIndicator from "./drawIndicator";
+import { getWebsocketToken } from "../../utility/stockApi";
+import {
+  blobToArrayBuffer,
+  decodeProfobuf,
+  getUrl,
+  initProtobuf,
+} from "../../socket/MarketDataFeed";
 
 function Charting({ mode, ChartWindow }) {
   const {
@@ -49,6 +57,57 @@ function Charting({ mode, ChartWindow }) {
         });
     }
   });
+  // Establish WebSocket connection
+  useEffect(() => {
+    const connectWebSocket = async (token) => {
+      try {
+        const wsUrl = await getUrl(token);
+        const ws = new WebSocket(wsUrl);
+        ws.onopen = () => {
+          console.log("Connected");
+          const data = {
+            guid: "someguid",
+            method: "sub",
+            data: {
+              mode: "full",
+              instrumentKeys: [instrumentKey.peek()],
+            },
+          };
+          const newBuffer = new Buffer.from(JSON.stringify(data));
+          ws.send(newBuffer);
+        };
+
+        ws.onclose = () => {
+          console.log("Disconnected");
+        };
+
+        ws.onmessage = async (event) => {
+          const arrayBuffer = await blobToArrayBuffer(event.data);
+          let buffer = Buffer.from(arrayBuffer);
+          let response = decodeProfobuf(buffer);
+        };
+
+        ws.onerror = (error) => {
+          console.log("WebSocket error:", error);
+        };
+        return () => ws.close();
+      } catch (error) {
+        console.error("WebSocket connection error:", error);
+      }
+    };
+    try {
+      getWebsocketToken().then((acessToken) => {
+        initProtobuf();
+        effect(() => {
+          if (instrumentKey.value !== null) {
+            connectWebSocket(acessToken);
+          }
+        });
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  }, []);
   return (
     <div
       className={`flex w-[100%] flex-col relative border-l-2 ${
