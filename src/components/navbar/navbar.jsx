@@ -28,7 +28,6 @@ export const useOutsideClick = (callBackFunc) => {
 
 function NavBar({ ChartWindow, mode, toggleMode }) {
   const { instrumentKey, interval, chartType, stocksList } = ChartWindow;
-  console.log(stocksList.value);
   return (
     <div
       className={`flex justify-between items-center pl-2 pr-5 border-l-2 border-b-2 ${
