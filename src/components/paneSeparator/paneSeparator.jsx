@@ -43,11 +43,12 @@ function PaneSeparator({ mode, ChartWindow, index }) {
     };
   });
   return (
-    <div
-      className={`${mode !== "Light" ? "bg-gray-300" : "bg-gray-700"} relative h-[1px] w-full cursor-ns-resize`}
-      onMouseDown={(e) => setCharts(e)}
-    >
-      <div className="absolute top-[-2px] left-0 h-[4px] w-full bg-gray-30 z-10"></div>
+    <div className="w-full relative cursor-ns-resize h-[1px] bg-gray-400">
+      <div
+        size="xs"
+        className={`w-full absolute h-[9px] top-[-4px] hover:border-y-[4px] hover:border-gray-300`}
+        onMouseDown={(e) => setCharts(e)}
+      ></div>
     </div>
   );
 }
