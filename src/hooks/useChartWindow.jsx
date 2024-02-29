@@ -8,6 +8,7 @@ import {
 } from "../utility/xAxisUtils";
 import { updateCursorValue } from "../utility/chartUtils";
 import { effect } from "@preact/signals-react";
+import { getStocksList } from "../utility/stockApi";
 
 export const useCanavsSplitRef = () => {
   const ref = useRef([]);
@@ -30,7 +31,16 @@ const useChartWindow = (mode) => {
       updateCursorValue(state, mode);
     }
   });
-  useEffect(() => {
+  useEffect(async () => {
+    if (localStorage.getItem("stocksList") === null) {
+      const stocksList = await getStocksList();
+      state.stocksList.value = stocksList;
+      localStorage.setItem("stocksList", JSON.stringify(stocksList));
+    } else {
+      const stocksList = localStorage.getItem("stocksList");
+      state.stocksList.value = JSON.parse(stocksList).stocksList;
+    }
+    console.log(state.stocksList.value);
     state.setXAxisCanvas();
     window.addEventListener("resize", state.setXAxisCanvas());
     state.xAxisRef.current[1].addEventListener("mousedown", (e) =>

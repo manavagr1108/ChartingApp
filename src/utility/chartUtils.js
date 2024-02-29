@@ -372,7 +372,7 @@ export function handleScroll(e, state) {
 }
 
 export function updateCursorValue(state, mode) {
-  const { dateCursor, xAxisRef, drawChartObjects } = state;
+  const { dateCursor, xAxisRef, drawChartObjects, instrumentKey, stocksList } = state;
   drawChartObjects.peek().forEach((drawChartobj) => {
     const isCanvas =
       drawChartobj.ChartRef.current[1] === dateCursor.peek().canvas;
@@ -419,7 +419,11 @@ export function updateCursorValue(state, mode) {
     const priceText = price.toFixed(2);
     const yCoord1 = dateCursor.peek().y;
     if (isCanvas) {
-      ctx.fillText(dateCursor.peek().text, 10, 40);
+      ctx.fillText(
+        stocksList.peek()[instrumentKey.peek()] + " " + dateCursor.peek().text,
+        10,
+        20
+      );
       // Draw on YAxis
       yAxisCtx.fillRect(
         0,

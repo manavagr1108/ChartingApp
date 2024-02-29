@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MdClose, MdSettings } from "react-icons/md";
+import { useOutsideClick } from "../navbar/navbar";
 
 function IndicatorsList({ mode, indicators, ChartWindow }) {
   const {
@@ -9,6 +10,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
   } = ChartWindow;
   const [selectedKey, setSelectedKey] = useState(null);
   const [inputValues, setInputValues] = useState({});
+  const dropRef = useOutsideClick(() => setSelectedKey(null));
 
   const removeIndicator = (index) => {
     if (onChartIndicatorSignal.peek().includes(indicators[index])) {
@@ -111,6 +113,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
                   return (
                     <div
                       key={property}
+                      ref={dropRef}
                       className="flex flex-row justify-center items-start w-full h-auto py-3"
                     >
                       <label
@@ -153,7 +156,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
     }
   };
   return (
-    <div className="absolute flex flex-col z-6 select-none top-11 left-2 w-250">
+    <div className="absolute flex flex-col z-6 select-none top-6 left-2 w-250">
       {indicators.length !== 0 &&
         indicators.map((indicator, index) => {
           return (

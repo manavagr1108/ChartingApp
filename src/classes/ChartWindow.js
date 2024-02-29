@@ -46,12 +46,13 @@ class ChartWindow {
       prevXCoord: 0,
     });
     this.lockUpdatePriceRange = signal(false);
+    this.stocksList = signal(null);
     this.stockData = signal([]);
     this.offChartIndicatorSignal = signal([]);
     this.onChartIndicatorSignal = signal([]);
     this.onChartIndicatorData = signal([]);
     this.drawChartObjects = signal([]);
-    this.interval = signal("1minute");
+    this.interval = signal("day");
     this.chartType = signal("Candles");
     this.instrumentKey = signal("NSE_INDEX|Nifty 50");
     this.mode = signal("");
