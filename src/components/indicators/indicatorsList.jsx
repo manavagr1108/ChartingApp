@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { MdClose, MdSettings } from "react-icons/md";
 import { useOutsideClick } from "../navbar/navbar";
+import { ColorInput, Input, Button, Modal } from "@mantine/core";
+import { colorSwatches } from "../../signals/toolbarSignals";
+import { useDisclosure } from "@mantine/hooks";
 
 function IndicatorsList({ mode, indicators, ChartWindow }) {
   const {
@@ -10,7 +13,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
   } = ChartWindow;
   const [selectedKey, setSelectedKey] = useState(null);
   const [inputValues, setInputValues] = useState({});
-  const dropRef = useOutsideClick(() => setSelectedKey(null));
+  const [opened, { open, close }] = useDisclosure(false);
 
   const removeIndicator = (index) => {
     if (onChartIndicatorSignal.peek().includes(indicators[index])) {
@@ -31,6 +34,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
   };
 
   const handlePropertyInputChange = (property, value) => {
+    console.log(property, value);
     setInputValues((prev) => {
       return {
         ...prev,
@@ -40,6 +44,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
   };
   const updateIndicator = (index) => {
     setSelectedKey(index);
+    open();
     setInputValues(indicators[index]);
   };
   const updateIndicatorSignal = () => {
@@ -51,108 +56,103 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
     }
     setSelectedKey(null);
   };
-
   const indicatorModal = () => {
     if (selectedKey !== null) {
       return (
-        <div className="fixed top-0 left-0 w-full h-full flex items-start justify-center z-10">
-          <div
-            className={`relative w-[400px] h-[600px] ${mode === "Light" ? "bg-gray-100" : "bg-gray-900"} rounded-lg shadow-lg flex flex-col items-center justify-center mt-20 pb-10`}
-          >
-            <div className="flex flex-row items-start w-full h-full overflow-y-auto overflow-x-hidden">
-              <div
-                className={`flex flex-col justify-start items-start w-full h-full py-3 transition-transform ease-in-out duration-700 transform translate-x-0`}
-              >
-                <p
-                  className={`w-full text-center h-auto py-3 mb-5 ${mode === "Light" ? "text-gray-500" : "text-gray-200"}`}
-                >
-                  Set the values for your indicator:
-                </p>
-                {Object.keys(indicators[selectedKey]).map((property) => {
-                  if (
-                    property === "label" ||
-                    property === "chartRequired" ||
-                    property === "drawChartFunction" ||
-                    property === "getChartData" ||
-                    property === "name"
-                  )
-                    return null;
+        <Modal.Root centered size="md" opened={opened} onClose={close}>
+          <Modal.Overlay />
+          <Modal.Content className="">
+            <Modal.Header>
+              <Modal.Title className="mr-6">
+                Set the values for your indicator:
+              </Modal.Title>
+              <Modal.CloseButton />
+            </Modal.Header>
+            <Modal.Body className="flex space-y-3 flex-col justify-around">
+              {Object.keys(indicators[selectedKey]).map((property) => {
+                if (
+                  property === "label" ||
+                  property === "chartRequired" ||
+                  property === "drawChartFunction" ||
+                  property === "getChartData" ||
+                  property === "name"
+                )
+                  return null;
 
-                  if (property === "color") {
-                    return (
-                      <div
-                        key={property}
-                        className="flex flex-row justify-start items-center w-full h-auto py-3 ml-16"
-                      >
-                        <label
-                          className={`flex justify-center items-center ${mode === "Light" ? "text-gray-900" : "text-gray-100"} w-auto h-auto pr-10 py-3`}
+                return (
+                  <div
+                    key={property}
+                    className="flex flex-row justify-center items-start w-full h-auto py-1"
+                  >
+                    <div className="flex flex-row">
+                      {property === "color" ? (
+                        <Input.Wrapper
+                          label={
+                            property.charAt(0).toUpperCase() +
+                            property.slice(1) +
+                            ":"
+                          }
                         >
-                          {property.charAt(0).toUpperCase() + property.slice(1)}
-                          :
-                        </label>
-                        <div className="flex flex-row">
-                          <input
-                            type="color"
+                          <ColorInput
+                            withPicker={false}
+                            size="xs"
                             value={
                               inputValues?.[property] ||
                               indicators[selectedKey]?.[property]
                             }
                             onChange={(e) =>
+                              handlePropertyInputChange(property, e)
+                            }
+                            format="hex"
+                            closeOnColorSwatchClick
+                            swatches={colorSwatches}
+                          />
+                        </Input.Wrapper>
+                      ) : (
+                        <Input.Wrapper
+                          label={
+                            property.charAt(0).toUpperCase() +
+                            property.slice(1) +
+                            ":"
+                          }
+                        >
+                          <Input
+                            type="number"
+                            placeholder="Input value"
+                            value={
+                              inputValues?.[property]
+                                ? inputValues?.[property]
+                                : indicators[selectedKey]?.[property]
+                            }
+                            onChange={(e) =>
                               handlePropertyInputChange(
                                 property,
-                                e.target.value
+                                parseInt(e.target.value)
                               )
                             }
-                            className={`w-[40px] h-[40px] p-[1px] border-2 ${mode === "Light" ? "border-gray-200" : "border-gray-900"} rounded-md`}
                           />
-                        </div>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div
-                      key={property}
-                      ref={dropRef}
-                      className="flex flex-row justify-center items-start w-full h-auto py-3"
-                    >
-                      <label
-                        className={`flex justify-center items-center ${mode === "Light" ? "text-gray-900" : "text-gray-100"} w-auto h-auto pr-10 py-3`}
-                      >
-                        {property.charAt(0).toUpperCase() + property.slice(1)}:
-                      </label>
-                      <div className="flex flex-row">
-                        <input
-                          type="number"
-                          value={
-                            inputValues?.[property] ||
-                            indicators[selectedKey]?.[property]
-                          }
-                          onChange={(e) =>
-                            handlePropertyInputChange(
-                              property,
-                              parseInt(e.target.value)
-                            )
-                          }
-                          className={`w-[180px] h-auto px-2 py-3 ${mode === "Light" ? "bg-gray-200 text-gray-900" : "bg-gray-800 text-gray-100"} rounded-md mr-5`}
-                        />
-                      </div>
+                        </Input.Wrapper>
+                      )}
                     </div>
-                  );
-                })}
-                <div className="flex items-center mx-auto h-auto my-10">
-                  <button
-                    className={`w-[150px] h-full px-2 mt-10 ${mode === "Light" ? "bg-gray-900 text-gray-100" : "bg-gray-100 text-gray-900"} rounded-md`}
-                    onClick={updateIndicatorSignal}
-                  >
-                    Update Indicator
-                  </button>
-                </div>
+                  </div>
+                );
+              })}
+              <div className="flex items-center mx-auto h-auto py-6">
+                <Button
+                  variant="subtle"
+                  color="white"
+                  className="bg-black px-2 hover:text-black"
+                  onClick={updateIndicatorSignal}
+                >
+                  Update Indicator
+                </Button>
               </div>
-            </div>
-          </div>
-        </div>
+            </Modal.Body>
+          </Modal.Content>
+        </Modal.Root>
       );
+    } else {
+      return null;
     }
   };
   return (

@@ -151,8 +151,8 @@ function ToolbarItems({ mode, ChartWindow }) {
             key={index}
             width={200}
             shadow="md"
-            withArrow
-            position="left"
+            offset={0}
+            position="right-start"
           >
             <Menu.Target>
               <Button variant="subtle" color="gray" className="text-slate-600">
@@ -165,22 +165,22 @@ function ToolbarItems({ mode, ChartWindow }) {
             <Menu.Dropdown color="gray" className="!w-fit">
               {item.toolItemsEle.map((ele, i) => {
                 return (
-                  <Menu.Item
-                    rightSection={ele}
+                  <Button
                     onClick={() => item.onClickFunction(i)}
-                    key={i}
-                    color="black"
-                    pl={1}
-                    py={0}
+                    variant="subtle"
+                    color="gray"
+                    className="bg-white text-black hover:text-black px-0 w-full text-left flex justify-start"
                   >
-                    <Button
-                      variant="subtle"
-                      color="gray"
-                      className="text-slate-600 px-0 w-full text-left flex justify-start"
+                    <Menu.Item
+                      leftSection={ele}
+                      key={i}
+                      color="black"
+                      pl={1}
+                      py={0}
                     >
                       {item.toolLabels[i]}
-                    </Button>
-                  </Menu.Item>
+                    </Menu.Item>
+                  </Button>
                 );
               })}
             </Menu.Dropdown>
