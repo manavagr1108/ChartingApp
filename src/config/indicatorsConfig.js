@@ -11,6 +11,7 @@ import {
   drawParabolicSAR,
   drawSMAIndicator,
   drawZigZagIndicator,
+  drawSuperTrend,
 } from "../utility/drawUtils/indicatorDraw";
 import {
   calculateATRDrawChart,
@@ -42,10 +43,11 @@ import {
   calculateDoubleEMA,
   calculateTripleEMA,
 } from "../utility/calulations.js/indicatorCalcualations";
+import { colorSwatches } from "../signals/toolbarSignals";
 export const indicatorConfig = {
   SMA: {
     name: "SMA",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     period: 20,
     label: "Simple Moving Average",
@@ -55,7 +57,7 @@ export const indicatorConfig = {
   },
   EMA: {
     name: "EMA",
-    color: "#FF0000",
+    color: colorSwatches[0],
     stroke: 1,
     period: 20,
     label: "Expontential Moving Average",
@@ -65,7 +67,8 @@ export const indicatorConfig = {
   },
   ZigZag: {
     name: "ZigZag",
-    color: "#00FF00",
+    color: colorSwatches[0],
+    stroke: 1,
     label: "Zig Zag",
     deviation: 10,
     pivotLegs: 5,
@@ -97,7 +100,7 @@ export const indicatorConfig = {
   },
   ParabolicSAR: {
     name: "ParabolicSAR",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 2,
     label: "Parabolic SAR",
     acceleration: 0.02,
@@ -108,7 +111,7 @@ export const indicatorConfig = {
   },
   BB: {
     name: "BB",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     label: "Bollinger Bands",
     period: 20,
@@ -130,7 +133,7 @@ export const indicatorConfig = {
   },
   KeltnerChannels: {
     name: "KeltnerChannels",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 2,
     label: "Keltner Channels",
     period: 20,
@@ -141,7 +144,7 @@ export const indicatorConfig = {
   },
   DonchainChannels: {
     name: "DonchainChannels",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 2,
     label: "Donchain Channels",
     period: 20,
@@ -181,7 +184,7 @@ export const indicatorConfig = {
   },
   Alligator: {
     name: "Alligator",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     label: "Williams Alligator",
     jawPeriod: 13,
@@ -235,7 +238,7 @@ export const indicatorConfig = {
   },
   Envelope: {
     name: "Envelope",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     label: "Envelope",
     period: 20,
@@ -255,7 +258,7 @@ export const indicatorConfig = {
   },
   IchimokuCloud: {
     name: "IchimokuCloud",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     label: "Ichimoku Cloud",
     conversionPeriod: 9,
@@ -278,13 +281,12 @@ export const indicatorConfig = {
   },
   SuperTrend: {
     name: "SuperTrend",
-    color: "#FFA500",
     stroke: 1,
     label: "Super Trend",
     period: 10,
     multiplier: 3,
     chartRequired: false,
-    drawChartFunction: calculateSuperTrend,
+    drawChartFunction: drawSuperTrend,
     getChartData: calculateSuperTrend,
   },
   AverageDayRange: {
@@ -318,7 +320,7 @@ export const indicatorConfig = {
   },
   DoubleEMA: {
     name: "DoubleEMA",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     period: 9,
     label: "Double Exponential Moving Average",
@@ -328,7 +330,7 @@ export const indicatorConfig = {
   },
   TripleEMA: {
     name: "TripleEMA",
-    color: "#FFA500",
+    color: colorSwatches[0],
     stroke: 1,
     period: 9,
     label: "Triple Exponential Moving Average",
