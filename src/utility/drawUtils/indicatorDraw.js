@@ -1,5 +1,6 @@
 import { indicatorConfig } from "../../config/indicatorsConfig";
 import { monthMap } from "../../data/TIME_MAP";
+import { calculateZigZag } from "../calulations.js/indicatorCalcualations";
 import { getObjtoStringTime, getXCoordinate } from "../xAxisUtils";
 import { getYCoordinate } from "../yAxisUtils";
 import { drawBarChart, drawLineChart, drawXAxis, drawYAxis } from "./chartDraw";
@@ -11,14 +12,17 @@ export function drawIndicators(startIndex, endIndex, ctx, mode, state) {
     if (indicatorConfig[indicator.name] === undefined) return;
     else if (indicator.label === indicatorConfig["ZigZag"].label) {
       const zigZagData = calculateZigZag(data.peek()[0], indicator);
-      drawZigZagIndicator(ctx, zigZagData, mode, startIndex, endIndex, state);
+      onChartIndicatorData.peek()[index] === undefined
+        ? (onChartIndicatorData.peek()[index] = calculateZigZag(data.peek()[0], indicator))
+        : onChartIndicatorData.peek()[index];
+      drawZigZagIndicator(indicator, ctx, zigZagData, mode, startIndex, endIndex, state);
     } else {
       const dataComplete =
         onChartIndicatorData.peek()[index] === undefined
           ? (onChartIndicatorData.peek()[index] = indicator.getChartData(
-              data.peek()[0],
-              indicator
-            ))
+            data.peek()[0],
+            indicator
+          ))
           : onChartIndicatorData.peek()[index];
       const dataToDraw = dataComplete.slice(startIndex, endIndex + 1).reverse();
       indicator.drawChartFunction(indicator, ctx, dataToDraw, mode, state);
@@ -80,6 +84,7 @@ export function drawEMAIndicator(indicator, ctx, emaData, mode, state) {
 }
 
 export function drawZigZagIndicator(
+  indicator,
   ctx,
   zigZagData,
   mode,
@@ -89,9 +94,8 @@ export function drawZigZagIndicator(
 ) {
   const { chartCanvasSize, yAxisRange, data } = state;
   const { dateConfig, timeRange, xAxisConfig } = state.ChartWindow;
-  const zigzagColor = mode === "Light" ? "#0b69ac" : "#f0a70b";
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = zigzagColor;
+  ctx.lineWidth = indicator.stroke;
+  ctx.strokeStyle = indicator.color;
   ctx.beginPath();
   let flag = false;
   for (let i = startIndex; i <= endIndex; i++) {
@@ -101,7 +105,7 @@ export function drawZigZagIndicator(
         const zigZagValues = Object.values(zigZagData);
         const index1 =
           dateConfig.peek().dateToIndex[
-            zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.date
+          zigZagValues[zigZagData[data.peek()[0][i].Date].index - 1]?.date
           ];
         ctx.moveTo(
           getXCoordinate(
@@ -153,6 +157,7 @@ export function drawZigZagIndicator(
     )
   );
   ctx.stroke();
+  ctx.lineWidth = 1;
 }
 
 export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
@@ -182,15 +187,14 @@ export function drawParabolicSAR(indicator, ctx, sarData, mode, state) {
     ctx.fill();
   }
 }
-
+export const setOpacity = (hex, alpha) => `${hex}${Math.floor(alpha * 255).toString(16).padStart(2, 0)}`;
 export function drawBB(indicator, ctx, BBData, mode, state) {
   const { chartCanvasSize, yAxisRange } = state;
   const { timeRange, xAxisConfig } = state.ChartWindow;
-  ctx.strokeStyle = indicator.color;
-  ctx.lineWidth = indicator.stroke;
   let prevSma = null;
   let prevUpper = null;
   let prevLower = null;
+  const fillColor = setOpacity(indicator.color, 0.5);
   BBData.forEach((data, i) => {
     const xCoordSMA = getXCoordinate(
       chartCanvasSize.peek().width,
@@ -217,7 +221,7 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
       yAxisRange.peek().maxPrice,
       chartCanvasSize.peek().height
     );
-    ctx.fillStyle = "rgba(0,148,255,0.3)";
+    ctx.strokeStyle = indicator.color;
     ctx.lineWidth = indicator.stroke;
     if (i === 0) {
       ctx.beginPath();
@@ -273,9 +277,8 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
       );
       ctx.closePath();
       ctx.lineWidth = 5;
-      ctx.fillStyle = "rgba(0,148,255,0.3)";
+      ctx.fillStyle = fillColor;
       ctx.fill();
-      ctx.strokeStyle = "blue";
     }
     prevSma = { xCoordSMA, yCoordSMA };
     prevUpper = { xCoordSMA, yCoordUpper };
@@ -287,13 +290,12 @@ export function drawBB(indicator, ctx, BBData, mode, state) {
 export function drawAlligator(indicator, ctx, alligatorData, mode, state) {
   const { chartCanvasSize, yAxisRange } = state;
   const { timeRange, xAxisConfig } = state.ChartWindow;
-  ctx.strokeStyle = indicator.color;
-  ctx.lineWidth = indicator.stroke;
-  ctx.beginPath();
   let prevJaw = null;
   let prevTeeth = null;
   let prevLips = null;
-
+  const fillColor = setOpacity(indicator.color, 0.4);
+  
+  ctx.beginPath();
   alligatorData.forEach((data, i) => {
     const xCoordJaw = getXCoordinate(
       chartCanvasSize.peek().width,
@@ -334,7 +336,7 @@ export function drawAlligator(indicator, ctx, alligatorData, mode, state) {
       yAxisRange.peek().maxPrice,
       chartCanvasSize.peek().height
     );
-    ctx.fillStyle = "rgba(0,148,255,0.3)";
+    ctx.strokeStyle = indicator.color;
     ctx.lineWidth = indicator.stroke;
     if (i === 0) {
       ctx.beginPath();
@@ -396,10 +398,9 @@ export function drawAlligator(indicator, ctx, alligatorData, mode, state) {
         prevLips.yCoordLips
       );
       ctx.closePath();
-      ctx.lineWidth = 5;
-      ctx.fillStyle = "rgba(0,148,255,0.3)";
+      ctx.lineWidth = indicator.stroke;
+      ctx.fillStyle = fillColor;
       ctx.fill();
-      ctx.strokeStyle = "blue";
     }
     prevJaw = { xCoordJaw, yCoordJaw };
     prevTeeth = { xCoordTeeth, yCoordTeeth };
@@ -649,7 +650,7 @@ export function drawRSIIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -764,7 +765,7 @@ export function drawMACDIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -871,7 +872,7 @@ export function drawVortexIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -966,7 +967,7 @@ export function drawBBPIndicatorChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -1046,7 +1047,7 @@ export function drawAwesomeOscillatorIndicator(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");

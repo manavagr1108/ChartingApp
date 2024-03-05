@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { MdClose, MdSettings } from "react-icons/md";
 import { useOutsideClick } from "../navbar/navbar";
-import { ColorInput, Input, Button, Modal } from "@mantine/core";
+import { ColorInput, Input, NumberInput, Button, Modal } from "@mantine/core";
 import { colorSwatches } from "../../signals/toolbarSignals";
 import { useDisclosure } from "@mantine/hooks";
 
@@ -58,6 +58,7 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
   };
   const indicatorModal = () => {
     if (selectedKey !== null) {
+      console.log(indicators[selectedKey]);
       return (
         <Modal.Root centered size="md" opened={opened} onClose={close}>
           <Modal.Overlay />
@@ -109,29 +110,28 @@ function IndicatorsList({ mode, indicators, ChartWindow }) {
                           />
                         </Input.Wrapper>
                       ) : (
-                        <Input.Wrapper
+                        <NumberInput
                           label={
                             property.charAt(0).toUpperCase() +
                             property.slice(1) +
                             ":"
                           }
-                        >
-                          <Input
-                            type="number"
-                            placeholder="Input value"
-                            value={
-                              inputValues?.[property]
-                                ? inputValues?.[property]
-                                : indicators[selectedKey]?.[property]
-                            }
-                            onChange={(e) =>
-                              handlePropertyInputChange(
-                                property,
-                                parseInt(e.target.value)
-                              )
-                            }
-                          />
-                        </Input.Wrapper>
+                          placeholder="Input value"
+                          value={
+                            inputValues?.[property]
+                              ? inputValues?.[property]
+                              : null
+                          }
+                          defaultValue={indicators[selectedKey]?.[property]}
+                          onChange={(e) =>
+                            handlePropertyInputChange(
+                              property,
+                              isNaN(parseFloat(e)) || parseFloat(e) === 0.0
+                                ? indicators[selectedKey]?.[property]
+                                : parseFloat(e)
+                            )
+                          }
+                        />
                       )}
                     </div>
                   </div>

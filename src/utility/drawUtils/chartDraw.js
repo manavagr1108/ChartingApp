@@ -47,7 +47,7 @@ export function drawChart(state, mode) {
     dateConfig.peek().dateToIndex[getObjtoStringTime(timeRange.peek().endTime)];
   const endIndex =
     dateConfig.peek().dateToIndex[
-      getObjtoStringTime(timeRange.peek().startTime)
+    getObjtoStringTime(timeRange.peek().startTime)
     ];
   if (startIndex === undefined || endIndex === undefined) {
     console.log("Undefined startIndex or endIndex!");
@@ -77,9 +77,8 @@ export function drawChart(state, mode) {
         const currentYear = parseInt(d.Date.split("-")[0]);
         xAxisCtx.fillStyle = `${mode === "Light" ? "black" : "white"}`;
         if (currentMonth === 1) {
-          const lineColor = `${
-            mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+          const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+            }`;
           ctx.beginPath();
           ctx.strokeStyle = lineColor;
           ctx.moveTo(xCoord, 0);
@@ -87,9 +86,8 @@ export function drawChart(state, mode) {
           ctx.stroke();
           xAxisCtx.fillText(currentYear, xCoord - 10, 12);
         } else {
-          const lineColor = `${
-            mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-          }`;
+          const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+            }`;
           ctx.beginPath();
           ctx.strokeStyle = lineColor;
           ctx.moveTo(xCoord, 0);
@@ -343,9 +341,8 @@ export const drawXAxis = (state, resultData, mode) => {
         currentMonth === 1 &&
         currentMonth !== getTime(resultData[i + 1].Date)["Month"]
       ) {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -353,9 +350,8 @@ export const drawXAxis = (state, resultData, mode) => {
         ctx.stroke();
         xAxisCtx.fillText(currentYear, xCoord - 10, 12);
       } else {
-        const lineColor = `${
-          mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-        }`;
+        const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+          }`;
         ctx.beginPath();
         ctx.strokeStyle = lineColor;
         ctx.moveTo(xCoord, 0);
@@ -408,9 +404,8 @@ export const drawXAxis = (state, resultData, mode) => {
         timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
       const d = resultData[i];
       const time = getTime(d.Date);
-      const lineColor = `${
-        mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-      }`;
+      const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
       ctx.beginPath();
       ctx.strokeStyle = lineColor;
       ctx.moveTo(xCoord, 0);
@@ -440,9 +435,8 @@ export const drawXAxis = (state, resultData, mode) => {
         timeRange.peek().scrollDirection * timeRange.peek().scrollOffset;
       const d = resultData[i];
       const time = getTime(d.Date);
-      const lineColor = `${
-        mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
-      }`;
+      const lineColor = `${mode === "Light" ? "rgba(0,0,0,0.1)" : "rgba(255,255,255,0.1)"
+        }`;
       ctx.beginPath();
       ctx.strokeStyle = lineColor;
       ctx.moveTo(xCoord, 0);
